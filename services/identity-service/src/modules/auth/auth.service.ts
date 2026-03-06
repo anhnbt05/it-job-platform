@@ -167,6 +167,7 @@ export class AuthService {
 
       if (role === RoleEnum.RECRUITER && recruiter) {
         let companyId: string | null = null;
+        let branchId: string | null = null;
 
         if (recruiter.company_id) {
           const existingCompany = await tx.company.findUnique({
@@ -221,8 +222,10 @@ export class AuthService {
                 'Không tìm thấy chi nhánh thuộc công ty này',
               );
             }
+
+            branchId = existingBranch.id;
           } else if (recruiter.branch && recruiter.branch.name) {
-            await tx.companyBranch.create({
+            const newBranch = await tx.companyBranch.create({
               data: {
                 company_id: companyId,
                 name: recruiter.branch.name,
@@ -231,7 +234,15 @@ export class AuthService {
                 country: recruiter.branch.country,
               },
             });
+
+            branchId = newBranch.id;
           }
+        }
+
+        if (!branchId?.trim()) {
+          throw new BadRequestException(
+            'Không xác định được chi nhánh làm việc.',
+          );
         }
 
         await tx.recruiter.create({
@@ -239,6 +250,7 @@ export class AuthService {
             user_id: user.id,
             company_id: companyId,
             department: recruiter.department,
+            branch_id: branchId,
           },
         });
       }
