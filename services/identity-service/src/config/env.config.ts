@@ -11,4 +11,9 @@ export default () => ({
   mail_user: process.env.MAIL_USER || '',
   mail_pass: process.env.MAIL_PASS || '',
   mail_from: process.env.MAIL_FROM || '',
+  imagekit: {
+    public_key: process.env.IMAGEKIT_PUBLIC_KEY || '',
+    private_key: process.env.IMAGEKIT_PRIVATE_KEY || '',
+    url_endpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
+  },
 });
