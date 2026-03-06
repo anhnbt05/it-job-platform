@@ -1,0 +1,16 @@
+services:
+  identity-postgres:
+    image: postgres:15
+    container_name: identity-postgres
+    restart: always
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - identity_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  identity_postgres_data:
