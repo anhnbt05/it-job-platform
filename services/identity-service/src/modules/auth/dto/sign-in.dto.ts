@@ -1,1 +1,4 @@
-export class SignInDto {}
+export class SignInDto {
+  readonly email: string;
+  readonly password: string;
+}

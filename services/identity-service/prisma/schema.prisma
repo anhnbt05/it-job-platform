@@ -8,18 +8,251 @@ datasource db {
 }
 
 model User {
-  id              String           @id @default(uuid())
-  email           String           @unique
-  password        String
-  role            String
-  createdAt       DateTime         @default(now())
+  id       String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email    String     @unique
+  password String
+  role     Role
+  status   UserStatus @default(active)
+
+  is_email_verified Boolean @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  profile UserProfile?
+
+  candidate Candidate?
+  recruiter Recruiter?
+
+  refresh_tokens RefreshToken[]
+  devices        UserDevice[]
+  otp_tokens     OtpToken[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String @unique @db.Uuid
+
+  full_name    String
+  avatar_url   String?
+  phone_number String? @unique
+  bio          String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("user_profiles")
+}
+
+model Candidate {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String @unique @db.Uuid
+
+  headline String?
+  summary  String[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id])
+
+  skills          CandidateSkill[]
+  educations      CandidateEducation[]
+  certifications  CandidateCertification[]
   workExperiences WorkExperience[]
+
+  @@map("candidates")
+}
+
+model Company {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  name        String
+  size        String?
+  website     String?
+  logo_url    String?
+  description String?
+  location    String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  recruiters Recruiter[]
+  branches   CompanyBranch[]
+
+  @@map("companies")
+}
+
+model CompanyBranch {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id String @db.Uuid
+
+  name      String
+  address   String?
+  city      String?
+  country   String?
+  latitude  Float?
+  longitude Float?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@map("company_branches")
+}
+
+model Recruiter {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String @unique @db.Uuid
+  company_id String @db.Uuid
+
+  department     String?
+  last_active_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user    User    @relation(fields: [user_id], references: [id])
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@map("recruiters")
+}
+
+model CandidateSkill {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id String @db.Uuid
+
+  skill_name String
+  level      String?
+
+  candidate Candidate @relation(fields: [candidate_id], references: [id])
+
+  @@map("candidate_skills")
+}
+
+model CandidateEducation {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id String @db.Uuid
+
+  school_name String
+  degree      String?
+  field       String?
+
+  start_date DateTime?
+  end_date   DateTime?
+
+  candidate Candidate @relation(fields: [candidate_id], references: [id])
+
+  @@map("candidate_educations")
+}
+
+model CandidateCertification {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id String @db.Uuid
+
+  name         String
+  organization String?
+  issue_date   DateTime?
+
+  candidate Candidate @relation(fields: [candidate_id], references: [id])
+
+  @@map("candidate_certifications")
+}
+
+model RefreshToken {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String @db.Uuid
+
+  token      String
+  expires_at DateTime
+  revoked    Boolean  @default(false)
+
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("refresh_tokens")
+}
+
+model OtpToken {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String @db.Uuid
+
+  token      String
+  type       OtpType
+  expires_at DateTime
+
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("otp_tokens")
+}
+
+model UserDevice {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String @db.Uuid
+
+  device_name String?
+  device_type DeviceType
+  ip_address  String?
+
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("user_devices")
 }
 
 model WorkExperience {
-  id       String @id @default(uuid())
-  company  String
-  position String
-  userId   String
-  user     User   @relation(fields: [userId], references: [id])
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidate_id String @db.Uuid
+
+  company_name     String
+  company_logo_url String?
+  position         String
+  descriptions     String[]
+  start_date       DateTime
+  end_date         DateTime?
+  location         String
+  job_type         JobType
+
+  candidate Candidate @relation(fields: [candidate_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+enum Role {
+  admin
+  recruiter
+  candidate
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+enum JobType {
+  part_time
+  full_time
+  remote
+  free_lance
+}
+
+enum DeviceType {
+  web
+  mobile
+}
+
+enum OtpType {
+  email_verification
+  password_reset
+  password_reset_confirm
 }

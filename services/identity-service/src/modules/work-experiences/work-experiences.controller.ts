@@ -3,5 +3,7 @@ import { WorkExperiencesService } from './work-experiences.service';
 
 @Controller('work-experiences')
 export class WorkExperiencesController {
-  constructor(private readonly workExperiencesService: WorkExperiencesService) {}
+  constructor(
+    private readonly workExperiencesService: WorkExperiencesService,
+  ) {}
 }
