@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import { UploadsService } from './uploads.service';
 import { UploadsController } from './uploads.controller';
+import { UploadsService } from './uploads.service';
 
 @Global()
 @Module({
