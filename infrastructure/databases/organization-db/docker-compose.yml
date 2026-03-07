@@ -1,0 +1,17 @@
+services:
+  organization-mysql:
+    image: mysql:8
+    container_name: organization-mysql
+    restart: always
+    ports:
+      - "${MYSQL_PORT}:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - organization_mysql_data:/var/lib/mysql
+
+volumes:
+  organization_mysql_data:
