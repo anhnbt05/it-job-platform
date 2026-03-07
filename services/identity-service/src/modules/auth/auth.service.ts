@@ -11,6 +11,7 @@ import { EmailsService } from '@/modules/emails/emails.service';
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -18,6 +19,9 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+import { ClientKafka } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
+import { CompanySnapshot } from 'generated/prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +30,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailsService: EmailsService,
+    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
 
   async signIn(signInDto: SignInDto) {
@@ -170,7 +175,7 @@ export class AuthService {
         let branchId: string | null = null;
 
         if (recruiter.company_id) {
-          const existingCompany = await tx.company.findUnique({
+          const existingCompany = await tx.companySnapshot.findUnique({
             where: { id: recruiter.company_id },
           });
 
@@ -180,25 +185,37 @@ export class AuthService {
 
           companyId = existingCompany.id;
         } else if (recruiter.company && recruiter.company.name) {
-          const existingCompany = await tx.company.findFirst({
-            where: {
+          const existingCompany = await lastValueFrom(
+            this.kafkaClient.send('company.find-by-name-and-website', {
               name: recruiter.company.name,
               website: recruiter.company.website,
+            }),
+          );
+
+          await tx.companySnapshot.findFirst({
+            where: {
+              name: recruiter.company.name,
             },
           });
 
-          const company =
-            existingCompany ||
-            (await tx.company.create({
-              data: {
+          let company: any;
+
+          if (existingCompany) {
+            company = existingCompany;
+          } else {
+            const newCompany = await lastValueFrom(
+              this.kafkaClient.send('company.created', {
                 name: recruiter.company.name,
                 size: recruiter.company.size,
                 website: recruiter.company.website,
                 logo_url: recruiter.company.logo_url,
                 description: recruiter.company.description,
                 location: recruiter.company.location,
-              },
-            }));
+              }),
+            );
+
+            company = newCompany;
+          }
 
           companyId = company.id;
         } else {
@@ -213,9 +230,11 @@ export class AuthService {
 
         if (recruiter.branch_id || recruiter.branch) {
           if (recruiter.branch_id) {
-            const existingBranch = await tx.companyBranch.findUnique({
-              where: { id: recruiter.branch_id },
-            });
+            const existingBranch = await lastValueFrom(
+              this.kafkaClient.send('branch.find-by-id', {
+                id: recruiter.branch_id,
+              }),
+            );
 
             if (!existingBranch || existingBranch.company_id !== companyId) {
               throw new BadRequestException(
@@ -225,15 +244,15 @@ export class AuthService {
 
             branchId = existingBranch.id;
           } else if (recruiter.branch && recruiter.branch.name) {
-            const newBranch = await tx.companyBranch.create({
-              data: {
+            const newBranch = await lastValueFrom(
+              this.kafkaClient.send('branch.created', {
                 company_id: companyId,
                 name: recruiter.branch.name,
                 address: recruiter.branch.address,
                 city: recruiter.branch.city,
                 country: recruiter.branch.country,
-              },
-            });
+              }),
+            );
 
             branchId = newBranch.id;
           }
