@@ -16,4 +16,9 @@ export default () => ({
     private_key: process.env.IMAGEKIT_PRIVATE_KEY || '',
     url_endpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
   },
+  kafka: {
+    client_id: process.env.KAFKA_CLIENT_ID || '',
+    group_id: process.env.KAFKA_GROUP_ID || '',
+    brokers: process.env.KAFKA_BROKERS || '',
+  },
 });
