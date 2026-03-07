@@ -68,44 +68,32 @@ model Candidate {
   @@map("candidates")
 }
 
-model Company {
-  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+model CompanySnapshot {
+  id String @id @db.Uuid
 
-  name        String
-  size        String?
-  website     String?
-  logo_url    String?
-  description String?
-  location    String?
+  name     String
+  logo_url String?
+  location String?
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
+  updated_at DateTime
   recruiters Recruiter[]
-  branches   CompanyBranch[]
 
-  @@map("companies")
+  @@map("company_snapshots")
 }
 
-model CompanyBranch {
-  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+model CompanyBranchSnapshot {
+  id         String @id @db.Uuid
   company_id String @db.Uuid
 
+  name    String
+  address String?
+  city    String?
+  country String?
+
+  updated_at DateTime
   recruiters Recruiter[]
 
-  name      String
-  address   String?
-  city      String?
-  country   String?
-  latitude  Float?
-  longitude Float?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  company Company @relation(fields: [company_id], references: [id])
-
-  @@map("company_branches")
+  @@map("company_branch_snapshots")
 }
 
 model Recruiter {
@@ -117,12 +105,13 @@ model Recruiter {
   department     String?
   last_active_at DateTime?
 
+  company CompanySnapshot       @relation(fields: [company_id], references: [id])
+  branch  CompanyBranchSnapshot @relation(fields: [branch_id], references: [id])
+
+  user User @relation(fields: [user_id], references: [id])
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
-  user    User          @relation(fields: [user_id], references: [id])
-  company Company       @relation(fields: [company_id], references: [id])
-  branch  CompanyBranch @relation(fields: [branch_id], references: [id])
 
   @@map("recruiters")
 }
@@ -230,6 +219,8 @@ model WorkExperience {
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@map("work_experiences")
 }
 
 enum Role {
