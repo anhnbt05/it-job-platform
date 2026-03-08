@@ -1,6 +1,6 @@
 import { CreateCompanyDto } from '@/modules/companies/dto';
 import { Companies } from '@/modules/companies/entities';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +12,20 @@ export class CompaniesService {
     private readonly companyRepo: Repository<Companies>,
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
+
+  async getCompany(id: string) {
+    const company = await this.companyRepo.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!company) {
+      throw new NotFoundException('Không tìm thấy thông tin công ty.');
+    }
+
+    return company;
+  }
 
   async createCompany(dto: CreateCompanyDto) {
     const { name } = dto;
@@ -46,5 +60,9 @@ export class CompaniesService {
         website: dto.website,
       },
     });
+  }
+
+  async getCompanies() {
+    return this.companyRepo.find();
   }
 }
