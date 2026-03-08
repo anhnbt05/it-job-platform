@@ -1,4 +1,5 @@
 import { OtpTypeEnum, RoleEnum } from '@/common/enums';
+import { EmailType } from '@/common/types';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -7,7 +8,6 @@ import {
   VerifyOtpDto,
 } from '@/modules/auth/dto';
 import { PrismaService } from '@/modules/prisma/prisma.service';
-import { EmailsService } from '@/modules/emails/emails.service';
 import {
   BadRequestException,
   ConflictException,
@@ -17,11 +17,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { ClientKafka } from '@nestjs/microservices';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
-import { ClientKafka } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
-import { CompanySnapshot } from 'generated/prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +28,6 @@ export class AuthService {
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly emailsService: EmailsService,
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
 
@@ -284,11 +282,14 @@ export class AuthService {
       });
     });
 
-    await this.emailsService.sendVerificationOtpEmail(
-      email,
-      otp,
-      otpExpiresInMinutes,
-    );
+    this.kafkaClient.emit('email.send', {
+      to: email,
+      type: EmailType.VERIFICATION_OTP,
+      payload: {
+        otp,
+        expiresInMinutes: otpExpiresInMinutes,
+      },
+    });
 
     return {
       message:
@@ -337,11 +338,14 @@ export class AuthService {
       });
     });
 
-    await this.emailsService.sendPasswordResetOtpEmail(
-      email,
-      otp,
-      otpExpiresInMinutes,
-    );
+    this.kafkaClient.emit('email.send', {
+      to: email,
+      type: EmailType.PASSWORD_RESET_OTP,
+      payload: {
+        otp,
+        expiresInMinutes: otpExpiresInMinutes,
+      },
+    });
 
     return {
       message:
@@ -394,15 +398,28 @@ export class AuthService {
       }
 
       await this.prismaService.$transaction(async (tx) => {
-        await tx.user.update({
+        const updated = await tx.user.update({
           where: { id: user.id },
           data: { is_email_verified: true },
+          include: {
+            profile: true,
+          },
         });
 
         await tx.otpToken.deleteMany({
           where: {
             user_id: user.id,
             type,
+          },
+        });
+
+        this.kafkaClient.emit('email.send', {
+          to: email,
+          type: EmailType.WELCOME,
+          payload: {
+            name: updated.profile?.full_name,
+            role: updated.role,
+            loginUrl: this.configService.get<string>('frontend_login_url', ''),
           },
         });
       });
