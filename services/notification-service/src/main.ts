@@ -1,0 +1,36 @@
+import { JwtAuthGuard, RolesGuard } from '@/common/guards';
+import { createKafkaConfig } from '@/config/kafka.config';
+import { ConfigService } from '@nestjs/config';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { WorkerService } from 'nestjs-graphile-worker';
+import { ValidationPipe } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  const reflector = new Reflector();
+
+  app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
+
+  const configService = app.get(ConfigService);
+
+  const PORT = process.env.PORT || configService.get<number>('port', 3003);
+
+  app.connectMicroservice(createKafkaConfig(configService));
+
+  await app.startAllMicroservices();
+
+  await app.get(WorkerService).run();
+
+  await app.listen(PORT, () => {
+    console.log(`Server is running at: 'http://localhost:${PORT}'`);
+  });
+}
+bootstrap();
