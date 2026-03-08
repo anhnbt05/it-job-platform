@@ -14,24 +14,18 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_NODE_ID}@kafka:${KAFKA_CONTROLLER_PORT}
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-
       KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092,CONTROLLER://:${KAFKA_CONTROLLER_PORT}
-
       KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
-
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: ${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR}
-
       CLUSTER_ID: ${CLUSTER_ID}
 
     volumes:
       - kafka_data:/var/lib/kafka/data
       - ./scripts:/scripts
+
+    networks:
+      - it-job-network
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -46,6 +40,9 @@ services:
     depends_on:
       - kafka
 
+    networks:
+      - it-job-network
+
   kafka-init:
     image: confluentinc/cp-kafka:7.6.1
     depends_on:
@@ -54,5 +51,12 @@ services:
       - ./scripts:/scripts
     entrypoint: ["/bin/bash", "/scripts/create-topics.sh"]
 
+    networks:
+      - it-job-network
+
 volumes:
   kafka_data:
+
+networks:
+  it-job-network:
+    external: true
