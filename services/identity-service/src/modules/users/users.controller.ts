@@ -17,6 +17,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { GetWorkExperiencesQueryDto } from '@/modules/work-experiences/dto';
 
 @Controller('users')
 export class UsersController {
@@ -64,5 +65,14 @@ export class UsersController {
     @Body() dto: UpdateStatusOfUserDto,
   ) {
     return this.usersService.updateStatusOfUser(id, dto);
+  }
+
+  @Get(':id/work-experiences')
+  async getWorkExperiencesOfCandidate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: GetWorkExperiencesQueryDto,
+    @UserSession() session: TUserSession,
+  ) {
+    return this.usersService.getWorkExperiencesOfCandidate(id, query, session);
   }
 }

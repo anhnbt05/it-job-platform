@@ -6,6 +6,7 @@ import {
   UpdateProfileDto,
   UpdateStatusOfUserDto,
 } from '@/modules/users/dto';
+import { GetWorkExperiencesQueryDto } from '@/modules/work-experiences/dto';
 import {
   ForbiddenException,
   Inject,
@@ -13,6 +14,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
+import { Prisma } from 'generated/prisma/client';
 import { UserStatus } from 'generated/prisma/enums';
 import { omit } from 'lodash';
 
@@ -22,6 +24,74 @@ export class UsersService {
     private readonly prismaService: PrismaService,
     @Inject('KAFKA_SERVICE') private readonly kakfaClient: ClientKafka,
   ) {}
+
+  async getWorkExperiencesOfCandidate(
+    id: string,
+    query: GetWorkExperiencesQueryDto,
+    session: TUserSession,
+  ) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      select: {
+        candidate: {
+          select: { id: true },
+        },
+      },
+    });
+
+    if (!user || !user.candidate) {
+      throw new NotFoundException(
+        `Không tìm thấy thông tin của ${session.id === id ? 'bạn' : 'ứng viên'}.`,
+      );
+    }
+
+    const { company_name, position, start_date, end_date, location, job_type } =
+      query;
+
+    const where: Prisma.WorkExperienceWhereInput = {
+      candidate_id: user.candidate.id,
+      ...(company_name && {
+        company_name: {
+          contains: company_name,
+          mode: 'insensitive',
+        },
+      }),
+      ...(position && {
+        position: {
+          contains: position,
+          mode: 'insensitive',
+        },
+      }),
+      ...(location && {
+        location: {
+          contains: location,
+          mode: 'insensitive',
+        },
+      }),
+      ...(job_type && {
+        job_type,
+      }),
+      ...(start_date && {
+        start_date: {
+          gte: new Date(start_date),
+        },
+      }),
+      ...(end_date && {
+        end_date: {
+          lte: new Date(end_date),
+        },
+      }),
+    };
+
+    const workExperiences = await this.prismaService.workExperience.findMany({
+      where,
+      orderBy: {
+        start_date: 'desc',
+      },
+    });
+
+    return workExperiences;
+  }
 
   async updateStatusOfUser(id: string, dto: UpdateStatusOfUserDto) {
     const { status, reason } = dto;

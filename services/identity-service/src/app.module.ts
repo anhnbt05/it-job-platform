@@ -1,7 +1,6 @@
 import envConfig from '@/config/env.config';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { CompaniesModule } from '@/modules/companies/companies.module';
-import { EmailsModule } from '@/modules/emails/emails.module';
 import { KafkaModule } from '@/modules/kafka/kafka.module';
 import { PrismaModule } from '@/modules/prisma/prisma.module';
 import { UploadsModule } from '@/modules/uploads/uploads.module';
@@ -21,7 +20,6 @@ import { ConfigModule } from '@nestjs/config';
     WorkExperiencesModule,
     UsersModule,
     UploadsModule,
-    EmailsModule,
     KafkaModule,
     CompaniesModule,
   ],
