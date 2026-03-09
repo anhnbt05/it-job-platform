@@ -1,4 +1,5 @@
 import { RoleEnum } from '@/common/enums';
+import { Level } from 'generated/prisma/enums';
 
 export class SignUpDto {
   readonly email: string;
@@ -11,12 +12,14 @@ export class SignUpDto {
 }
 
 class CandidateSignUpDto {
+  readonly level: Level;
+  readonly resume_url?: string;
   readonly headline?: string;
   readonly summary?: string[];
   readonly skills?: string[];
   readonly educations?: string[];
   readonly certifications?: string[];
-  readonly workExperiences?: string[];
+  readonly work_experiences?: string[];
 }
 
 class RecruiterSignUpDto {

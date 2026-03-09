@@ -3,7 +3,7 @@ import { CreateBranchDto } from '@/modules/branches/dto';
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller()
+@Controller('branches')
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
 
