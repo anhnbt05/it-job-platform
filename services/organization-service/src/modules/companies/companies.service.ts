@@ -1,4 +1,4 @@
-import { CreateCompanyDto } from '@/modules/companies/dto';
+import { CreateCompanyDto, UpdateCompanyDto } from '@/modules/companies/dto';
 import { Companies } from '@/modules/companies/entities';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
@@ -12,6 +12,27 @@ export class CompaniesService {
     private readonly companyRepo: Repository<Companies>,
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
+
+  async updateCompany(id: string, dto: UpdateCompanyDto) {
+    const company = await this.getCompany(id);
+
+    Object.assign(company, dto);
+
+    const savedCompany = await this.companyRepo.save(company);
+
+    this.kafkaClient.emit('company-snapshot.updated', {
+      id: savedCompany.id,
+      name: savedCompany.name,
+      location: savedCompany.location,
+      updated_at: new Date(savedCompany.updatedAt),
+      logo_url: savedCompany.logo_url,
+    });
+
+    return {
+      success: true,
+      message: 'Đã cập nhật thành công thông tin công ty.',
+    };
+  }
 
   async getCompany(id: string) {
     const company = await this.companyRepo.findOne({
