@@ -36,6 +36,8 @@
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "imagekit": "^6.0.0",
     "kafkajs": "^2.2.4",
     "lodash": "^4.17.23",

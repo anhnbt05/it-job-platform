@@ -3,7 +3,9 @@ import { SendEmailDto } from '@/modules/emails/dto';
 import { createEmailTransporter } from '@/modules/emails/factories';
 import {
   EmailStrategy,
+  LockAccountStrategy,
   PasswordResetOtpStrategy,
+  UnlockAccountStrategy,
   VerificationOtpStrategy,
   WelcomeStrategy,
 } from '@/modules/emails/strategies';
@@ -48,6 +50,8 @@ export class EmailsService {
       [EmailType.VERIFICATION_OTP]: new VerificationOtpStrategy(),
       [EmailType.PASSWORD_RESET_OTP]: new PasswordResetOtpStrategy(),
       [EmailType.WELCOME]: new WelcomeStrategy(),
+      [EmailType.LOCK_ACCOUNT]: new LockAccountStrategy(),
+      [EmailType.UNLOCK_ACCOUNT]: new UnlockAccountStrategy(),
     };
 
     const strategy = strategies[type];

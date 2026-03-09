@@ -1,25 +1,22 @@
-import { JwtAuthGuard } from '@/common/guards';
+import { Public } from '@/common/decorators';
+import { UploadedImage } from '@/common/types';
 import {
   Controller,
   Post,
-  UseGuards,
-  UseInterceptors,
-  UploadedFile,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { UploadsService } from './uploads.service';
-import { UploadedImage } from '@/common/types';
-import { Public } from '@/common/decorators';
 
-@UseGuards(JwtAuthGuard)
 @Controller('uploads')
 export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 
   @Public()
-  @Post('image')
+  @Post('file')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),

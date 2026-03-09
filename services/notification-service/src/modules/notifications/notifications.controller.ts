@@ -49,7 +49,7 @@ export class NotificationsController {
 
   @Get(':id')
   async getDetailUserNotification(
-    @Param(':id', ParseUUIDPipe) id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @UserSession() session: TUserSession,
   ) {
     return this.notificationsService.getDetailUserNotification(id, session);

@@ -3,6 +3,7 @@ import { createKafkaConfig } from '@/config/kafka.config';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +11,12 @@ async function bootstrap() {
   const reflector = new Reflector();
 
   app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
 
   const configService = app.get(ConfigService);
 

@@ -11,6 +11,7 @@ import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   UnauthorizedException,
@@ -20,6 +21,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ClientKafka } from '@nestjs/microservices';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+import { UserStatus } from 'generated/prisma/enums';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()
@@ -48,6 +50,12 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
+    }
+
+    if (user.status === UserStatus.inactive) {
+      throw new ForbiddenException(
+        'Tài khoản cũng bạn đã bị khoá. Vui lòng kiểm tra email để biết thêm thông tin.',
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -164,6 +172,11 @@ export class AuthService {
             user_id: user.id,
             headline: candidate.headline,
             summary: candidate.summary ?? [],
+            level: candidate.level,
+            resume_urls:
+              candidate.resume_url?.trim() !== undefined
+                ? [candidate.resume_url.trim()]
+                : [],
           },
         });
       }
