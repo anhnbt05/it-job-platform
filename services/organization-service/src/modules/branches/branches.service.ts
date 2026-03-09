@@ -1,4 +1,4 @@
-import { CreateBranchDto } from '@/modules/branches/dto';
+import { CreateBranchDto, UpdateBranchDto } from '@/modules/branches/dto';
 import { Branches } from '@/modules/branches/entities';
 import { Companies } from '@/modules/companies/entities';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -16,13 +16,46 @@ export class BranchesService {
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
 
+  async updateBranch(id: string, dto: UpdateBranchDto) {
+    const branch = await this.brancheRepo.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        company: true,
+      },
+    });
+
+    if (!branch) {
+      throw new NotFoundException('Không tìm thấy thông tin chi nhánh.');
+    }
+
+    Object.assign(branch, dto);
+
+    const savedBranch = await this.brancheRepo.save(branch);
+
+    this.kafkaClient.emit('branch-snapshot.updated', {
+      id,
+      company_id: branch.company.id,
+      name: savedBranch.name,
+      updated_at: new Date(savedBranch.updatedAt),
+      city: savedBranch.city,
+      address: savedBranch.address,
+      country: savedBranch.country,
+    });
+
+    return {
+      success: true,
+      message: 'Cập nhật thông tin chi nhánh thành công',
+    };
+  }
+
   async findBranchById(dto: { id: string }) {
     return (
       (await this.brancheRepo.findOne({
         where: {
           id: dto.id,
         },
-        relations: {},
       })) ?? null
     );
   }

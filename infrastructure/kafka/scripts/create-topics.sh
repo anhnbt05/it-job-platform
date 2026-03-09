@@ -14,6 +14,9 @@ TOPICS=(
   "branch-snapshot.created"
   "company-snapshot.created"
   "notification.create"
+  "company-snapshot.updated"
+  "branch-snapshot.updated"
+  "email.send"
 )
 
 for topic in "${TOPICS[@]}"

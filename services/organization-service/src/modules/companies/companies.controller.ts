@@ -1,7 +1,16 @@
+import { Roles } from '@/common/decorators';
+import { RoleEnum } from '@/common/enums';
+import { CreateCompanyDto, UpdateCompanyDto } from '@/modules/companies/dto';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+} from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CompaniesService } from './companies.service';
-import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
-import { CreateCompanyDto } from '@/modules/companies/dto';
 
 @Controller('companies')
 export class CompaniesController {
@@ -27,5 +36,14 @@ export class CompaniesController {
     @Payload() dto: { name: string; website: string },
   ) {
     return this.companiesService.findCompanyByNameAndWebsite(dto);
+  }
+
+  @Patch(':id')
+  @Roles(RoleEnum.RECRUITER)
+  async updateCompany(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+  ) {
+    return this.companiesService.updateCompany(id, updateCompanyDto);
   }
 }

@@ -25,7 +25,7 @@ export class Companies {
   location: string;
 
   @Column({ nullable: true })
-  website: string;
+  website?: string;
 
   @Column({
     type: 'int',
