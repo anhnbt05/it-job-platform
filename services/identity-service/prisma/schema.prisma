@@ -125,7 +125,7 @@ model CandidateSkill {
   skill_name String
   level      String?
 
-  candidate Candidate @relation(fields: [candidate_id], references: [id])
+  candidate Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 
   @@map("candidate_skills")
 }
@@ -141,7 +141,7 @@ model CandidateEducation {
   start_date DateTime?
   end_date   DateTime?
 
-  candidate Candidate @relation(fields: [candidate_id], references: [id])
+  candidate Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 
   @@map("candidate_educations")
 }
@@ -154,7 +154,7 @@ model CandidateCertification {
   organization String?
   issue_date   DateTime?
 
-  candidate Candidate @relation(fields: [candidate_id], references: [id])
+  candidate Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 
   @@map("candidate_certifications")
 }
@@ -217,7 +217,7 @@ model WorkExperience {
   location         String
   job_type         JobType
 
-  candidate Candidate @relation(fields: [candidate_id], references: [id])
+  candidate Candidate @relation(fields: [candidate_id], references: [id], onDelete: Cascade)
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

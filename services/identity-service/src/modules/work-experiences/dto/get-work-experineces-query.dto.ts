@@ -1,14 +1,7 @@
-import {
-  IsArray,
-  IsDateString,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { JobType } from 'generated/prisma/enums';
 
-export class UpdateWorkExperienceDto {
+export class GetWorkExperiencesQueryDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
@@ -16,24 +9,17 @@ export class UpdateWorkExperienceDto {
 
   @IsOptional()
   @IsString()
-  readonly company_logo_url?: string;
-
-  @IsOptional()
-  @IsString()
   @IsNotEmpty()
   readonly position?: string;
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  readonly descriptions?: string[];
-
-  @IsOptional()
-  @IsDateString()
+  @IsString()
+  @IsNotEmpty()
   readonly start_date?: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsString()
+  @IsNotEmpty()
   readonly end_date?: string;
 
   @IsOptional()
