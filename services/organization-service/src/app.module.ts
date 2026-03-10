@@ -5,6 +5,7 @@ import { CategoriesModule } from '@/modules/categories/categories.module';
 import { CompaniesModule } from '@/modules/companies/companies.module';
 import { DatabasesModule } from '@/modules/databases/databases.module';
 import { KafkaModule } from '@/modules/kafka/kafka.module';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -30,6 +31,7 @@ import { JwtModule } from '@nestjs/jwt';
     DatabasesModule,
     BranchesModule,
     CategoriesModule,
+    MetricsModule,
   ],
   providers: [RtStrategy, JwtStrategy],
 })

@@ -1,0 +1,25 @@
+{
+  "title": "Chỉ Số Hệ Thống",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Mức Sử Dụng CPU",
+      "targets": [
+        {
+          "expr": "process_cpu_seconds_total"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Mức Sử Dụng Bộ Nhớ",
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}

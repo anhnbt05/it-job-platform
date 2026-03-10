@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard(JWT_STRATEGY) {
@@ -15,6 +16,12 @@ export class JwtAuthGuard extends AuthGuard(JWT_STRATEGY) {
   }
 
   canActivate(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest<Request>();
+
+    if (request.path === '/metrics') {
+      return true;
+    }
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
