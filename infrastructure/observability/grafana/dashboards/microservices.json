@@ -1,0 +1,38 @@
+{
+  "title": "Tổng Quan Microservices",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Số Lượng HTTP Request",
+      "targets": [
+        {
+          "expr": "http_requests_total",
+          "legendFormat": "{{service}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Thời Gian Xử Lý Request",
+      "targets": [
+        {
+          "expr": "http_request_duration_seconds",
+          "legendFormat": "{{service}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Tỷ Lệ Lỗi Server",
+      "targets": [
+        {
+          "expr": "http_requests_total{status=~\"5..\"}",
+          "legendFormat": "Lỗi 5xx"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}

@@ -11,37 +11,6 @@ import {
 } from 'class-validator';
 import { Level } from 'generated/prisma/enums';
 
-export class UpdateProfileDto {
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  readonly full_name?: string;
-
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  readonly phone_number?: string;
-
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  readonly bio?: string;
-
-  @IsOptional()
-  @IsUrl()
-  readonly avatar_url?: string;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateCandidateProfileDto)
-  readonly updateCandidateDto?: UpdateCandidateProfileDto;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateRecruiterProfileDto)
-  readonly updateRecruiterDto?: UpdateRecruiterProfileDto;
-}
-
 class UpdateCandidateProfileDto {
   @IsOptional()
   @IsString()
@@ -93,4 +62,35 @@ class UpdateRecruiterProfileDto {
   @IsString()
   @IsNotEmpty()
   readonly department?: string;
+}
+
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly full_name?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly phone_number?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly bio?: string;
+
+  @IsOptional()
+  @IsUrl()
+  readonly avatar_url?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateCandidateProfileDto)
+  readonly updateCandidateDto?: UpdateCandidateProfileDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateRecruiterProfileDto)
+  readonly updateRecruiterDto?: UpdateRecruiterProfileDto;
 }

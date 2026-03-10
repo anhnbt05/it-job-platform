@@ -1,9 +1,11 @@
+import '@/modules/observability/tracing/tracing';
 import { JwtAuthGuard, RolesGuard } from '@/common/guards';
 import { createKafkaConfig } from '@/config/kafka.config';
+import { MetricsInterceptor } from '@/modules/observability/interceptors';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,6 +13,8 @@ async function bootstrap() {
   const reflector = new Reflector();
 
   app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
+
+  app.useGlobalInterceptors(app.get(MetricsInterceptor));
 
   app.useGlobalPipes(
     new ValidationPipe({
