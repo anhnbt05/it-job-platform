@@ -1,0 +1,35 @@
+pipeline {
+  agent any
+
+  environment {
+    SERVICE_NAME = "identity-service"
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        sh 'npm install'
+      }
+    }
+
+    stage('Run tests') {
+      steps {
+        sh 'npm run test'
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t $SERVICE_NAME .'
+      }
+    }
+
+  }
+}
