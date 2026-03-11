@@ -30,11 +30,8 @@ RUN npm install --omit=dev
 # copy build output
 COPY --from=builder /app/dist ./dist
 
-# copy migration / prisma nếu có
-COPY --from=builder /app/prisma ./prisma
-
 # port của service
-EXPOSE 3001
+EXPOSE 3003
 
 # start app
 CMD ["node", "dist/main.js"]
