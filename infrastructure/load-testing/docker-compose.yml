@@ -1,0 +1,20 @@
+services:
+  k6:
+    image: grafana/k6:latest
+    container_name: k6
+    volumes:
+      - ./scripts:/scripts
+      - ./scenarios:/scenarios
+    environment:
+      - BASE_URL=http://host.docker.internal:3000
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+    command: >
+      run
+      -o experimental-prometheus-rw
+      /scenarios/stress.js
+    networks:
+      - observability
+
+networks:
+  observability:
+    external: true
