@@ -17,6 +17,13 @@ TOPICS=(
   "company-snapshot.updated"
   "branch-snapshot.updated"
   "email.send"
+  "job-created"
+  "job-status-changed"
+  "job-expired"
+  "job-expiring-soon"
+  "application-created"
+  "application-status-changed"
+  "job-closed-by-vacancy"
 )
 
 for topic in "${TOPICS[@]}"
