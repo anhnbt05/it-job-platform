@@ -4,13 +4,12 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class RtGuard extends AuthGuard(JWT_REFRESH_STRATEGY) {
-  constructor(private readonly reflector: Reflector) {
+  constructor() {
     super();
   }
 

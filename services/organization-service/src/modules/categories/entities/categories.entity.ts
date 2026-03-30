@@ -1,4 +1,5 @@
 import {
+  Column,
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
@@ -9,6 +10,9 @@ import {
 export class Categories {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
+
+  @Column()
+  name!: string;
 
   @CreateDateColumn()
   readonly createdAt: Date;
