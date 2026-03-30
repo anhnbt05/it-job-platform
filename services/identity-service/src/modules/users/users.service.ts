@@ -1,6 +1,7 @@
 import { RoleEnum } from '@/common/enums';
 import { EmailType, TUserSession } from '@/common/types';
 import { PrismaService } from '@/modules/prisma/prisma.service';
+import { UploadsService } from '@/modules/uploads/uploads.service';
 import {
   GetUsersQueryDto,
   UpdateProfileDto,
@@ -11,6 +12,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
@@ -23,6 +25,7 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     @Inject('KAFKA_SERVICE') private readonly kakfaClient: ClientKafka,
+    private readonly uploadsService: UploadsService,
   ) {}
 
   async getWorkExperiencesOfCandidate(
@@ -342,5 +345,31 @@ export class UsersService {
     }
 
     return omit(user, ['password']);
+  }
+
+  async uploadAvatar(file: Express.Multer.File, userSession: TUserSession) {
+    const { id } = userSession;
+    const { url } = await this.uploadsService.uploadImage(file);
+
+    if (!url?.trim()) {
+      throw new InternalServerErrorException(
+        'Đã xảy ra lỗi khi tải lên ảnh đại diện',
+      );
+    }
+
+    await this.prismaService.userProfile.update({
+      where: {
+        user_id: id,
+      },
+      data: {
+        avatar_url: url,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Uploaded avatar successfully',
+      data: await this.getMe(userSession),
+    };
   }
 }

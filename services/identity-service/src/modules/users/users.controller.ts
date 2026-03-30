@@ -15,9 +15,13 @@ import {
   ParseUUIDPipe,
   Patch,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { GetWorkExperiencesQueryDto } from '@/modules/work-experiences/dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('users')
 export class UsersController {
@@ -74,5 +78,19 @@ export class UsersController {
     @UserSession() session: TUserSession,
   ) {
     return this.usersService.getWorkExperiencesOfCandidate(id, query, session);
+  }
+
+  @Patch('me/avatar')
+  @Roles(RoleEnum.CANDIDATE, RoleEnum.RECRUITER, RoleEnum.ADMIN)
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: memoryStorage(),
+    }),
+  )
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @UserSession() userSession: TUserSession,
+  ) {
+    return this.usersService.uploadAvatar(file, userSession);
   }
 }
