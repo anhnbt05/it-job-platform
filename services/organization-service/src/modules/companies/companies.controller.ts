@@ -8,6 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
 } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CompaniesService } from './companies.service';
@@ -39,11 +40,17 @@ export class CompaniesController {
   }
 
   @Patch(':id')
-  @Roles(RoleEnum.RECRUITER)
+  @Roles(RoleEnum.RECRUITER, RoleEnum.ADMIN)
   async updateCompany(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateCompanyDto: UpdateCompanyDto,
   ) {
     return this.companiesService.updateCompany(id, updateCompanyDto);
+  }
+
+  @Post()
+  @Roles(RoleEnum.ADMIN)
+  async createCompanyHttp(@Body() createCompanyDto: CreateCompanyDto) {
+    return this.createCompany(createCompanyDto);
   }
 }
