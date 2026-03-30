@@ -1,5 +1,5 @@
 import { OtpTypeEnum, RoleEnum } from '@/common/enums';
-import { EmailType } from '@/common/types';
+import { EmailType, TUserSession } from '@/common/types';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -32,6 +32,23 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
+
+  async signOut(userSession: TUserSession) {
+    await this.prismaService.refreshToken.updateMany({
+      where: {
+        user_id: userSession.id,
+        revoked: false,
+      },
+      data: {
+        revoked: true,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Đăng xuất thành công.',
+    };
+  }
 
   async signIn(signInDto: SignInDto) {
     const { email, password } = signInDto;

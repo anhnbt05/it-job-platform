@@ -171,6 +171,7 @@ model RefreshToken {
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
+  @@unique([user_id, token])
   @@map("refresh_tokens")
 }
 
