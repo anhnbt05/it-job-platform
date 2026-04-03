@@ -11,7 +11,9 @@ export class Categories {
   @PrimaryGeneratedColumn('uuid')
   readonly id!: string;
 
-  @Column()
+  @Column({
+    unique: true
+  })
   name!: string;
 
   @CreateDateColumn()
