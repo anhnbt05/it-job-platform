@@ -2,6 +2,7 @@ import { OtpTypeEnum, RoleEnum } from '@/common/enums';
 import { EmailType, TUserSession } from '@/common/types';
 import {
   ForgotPasswordDto,
+  RefreshTokenDto,
   ResetPasswordDto,
   SignInDto,
   SignUpDto,
@@ -21,6 +22,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ClientKafka } from '@nestjs/microservices';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+import { Prisma } from 'generated/prisma/client';
 import { UserStatus } from 'generated/prisma/enums';
 import { lastValueFrom } from 'rxjs';
 
@@ -89,33 +91,72 @@ export class AuthService {
       is_email_verified: user.is_email_verified,
     };
 
-    const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('jwt_secret'),
-      expiresIn: this.configService.get('jwt_expiration_time'),
-    });
+    return this.issueTokenPair(payload);
+  }
 
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get('jwt_refresh_secret'),
-      expiresIn: this.configService.get('jwt_refresh_expiration_time'),
-    });
+  async refreshToken(
+    refreshTokenDto: RefreshTokenDto,
+    userSession: TUserSession,
+  ) {
+    const { refreshToken } = refreshTokenDto;
 
-    const refreshExpiration =
-      this.configService.get<string>('jwt_refresh_expiration_time') ?? '0';
-
-    await this.prismaService.refreshToken.create({
-      data: {
-        token: refreshToken,
-        expires_at: new Date(
-          Date.now() + this.parseExpirationToMs(refreshExpiration),
-        ),
-        user_id: user.id,
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userSession.id },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        is_email_verified: true,
       },
     });
 
-    return {
-      accessToken,
-      refreshToken,
+    if (!user) {
+      throw new UnauthorizedException('Không tìm thấy thông tin tài khoản.');
+    }
+
+    const existingRefreshToken = await this.prismaService.refreshToken.findUnique(
+      {
+        where: {
+          user_id_token: {
+            user_id: user.id,
+            token: refreshToken,
+          },
+        },
+      },
+    );
+
+    if (
+      !existingRefreshToken ||
+      existingRefreshToken.revoked ||
+      existingRefreshToken.expires_at < new Date()
+    ) {
+      throw new UnauthorizedException('Refresh token không hợp lệ.');
+    }
+
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role as RoleEnum,
+      status: user.status,
+      is_email_verified: user.is_email_verified,
     };
+
+    return this.prismaService.$transaction(async (tx) => {
+      await tx.refreshToken.update({
+        where: {
+          user_id_token: {
+            user_id: user.id,
+            token: refreshToken,
+          },
+        },
+        data: {
+          revoked: true,
+        },
+      });
+
+      return this.issueTokenPair(payload, tx);
+    });
   }
 
   async signUp(signUpDto: SignUpDto) {
@@ -572,6 +613,45 @@ export class AuthService {
   private async hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(10);
     return bcrypt.hash(password, salt);
+  }
+
+  private async issueTokenPair(
+    payload: {
+      id: string;
+      email: string;
+      role: RoleEnum;
+      status: UserStatus;
+      is_email_verified: boolean;
+    },
+    prisma: Prisma.TransactionClient | PrismaService = this.prismaService,
+  ) {
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('jwt_secret'),
+      expiresIn: this.configService.get('jwt_expiration_time'),
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('jwt_refresh_secret'),
+      expiresIn: this.configService.get('jwt_refresh_expiration_time'),
+    });
+
+    const refreshExpiration =
+      this.configService.get<string>('jwt_refresh_expiration_time') ?? '0';
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        expires_at: new Date(
+          Date.now() + this.parseExpirationToMs(refreshExpiration),
+        ),
+        user_id: payload.id,
+      },
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   private generateOtp(): string {
