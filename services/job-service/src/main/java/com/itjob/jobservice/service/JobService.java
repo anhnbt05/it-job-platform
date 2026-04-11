@@ -31,7 +31,7 @@ public class JobService {
     private final JobDescriptionRepository jobDescriptionRepository;
     private final JobRequirementRepository jobRequirementRepository;
     private final JobBenefitRepository jobBenefitRepository;
-    private final CategoryRepository categoryRepository;
+    private final CategorySnapshotRepository categorySnapshotRepository;
     private final JobCategoryRepository jobCategoryRepository;
     private final JobEventProducer jobEventProducer;
 
@@ -326,9 +326,9 @@ public class JobService {
     // ========== Helper methods ==========
 
     private void saveJobCategories(Job job, List<String> categoryNames) {
-        List<Category> categories = categoryRepository.findByCategoryNameIn(categoryNames);
+        List<CategorySnapshot> categories = categorySnapshotRepository.findByCategoryNameIn(categoryNames);
         if (categories.size() != categoryNames.size()) {
-            Set<String> found = categories.stream().map(Category::getCategoryName).collect(Collectors.toSet());
+            Set<String> found = categories.stream().map(CategorySnapshot::getCategoryName).collect(Collectors.toSet());
             List<String> missing = categoryNames.stream().filter(n -> !found.contains(n)).collect(Collectors.toList());
             throw new ResourceNotFoundException("Không tìm thấy danh mục: " + String.join(", ", missing));
         }
