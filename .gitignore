@@ -1,1 +1,7 @@
 *.env
+.idea/
+*.iml
+target/
+out/
+node_modules/
+.DS_Store
