@@ -1,9 +1,24 @@
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+
 export class CreateBranchDto {
-  constructor(
-    public readonly name: string,
-    public readonly address: string,
-    public readonly company_id: string,
-    public readonly city?: string,
-    public readonly country?: string,
-  ) {}
+  @IsString()
+  @IsNotEmpty()
+  readonly name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly address: string;
+
+  @IsUUID()
+  readonly company_id: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly city?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly country?: string;
 }

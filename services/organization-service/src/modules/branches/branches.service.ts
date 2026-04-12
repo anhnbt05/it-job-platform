@@ -16,7 +16,25 @@ export class BranchesService {
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
 
-  async updateBranch(id: string, dto: UpdateBranchDto) {
+  async getBranches(companyId?: string) {
+    return this.brancheRepo.find({
+      where: companyId
+        ? {
+            company: {
+              id: companyId,
+            },
+          }
+        : {},
+      relations: {
+        company: true,
+      },
+      order: {
+        updatedAt: 'DESC',
+      },
+    });
+  }
+
+  async getBranch(id: string) {
     const branch = await this.brancheRepo.findOne({
       where: {
         id,
@@ -29,6 +47,12 @@ export class BranchesService {
     if (!branch) {
       throw new NotFoundException('Không tìm thấy thông tin chi nhánh.');
     }
+
+    return branch;
+  }
+
+  async updateBranch(id: string, dto: UpdateBranchDto) {
+    const branch = await this.getBranch(id);
 
     Object.assign(branch, dto);
 
@@ -56,6 +80,9 @@ export class BranchesService {
         where: {
           id: dto.id,
         },
+        relations: {
+          company: true,
+        },
       })) ?? null
     );
   }
@@ -77,7 +104,7 @@ export class BranchesService {
       this.brancheRepo.create({
         name: dto.name,
         country: dto.country,
-        city: dto.country,
+        city: dto.city,
         company,
         address: dto.address,
       }),

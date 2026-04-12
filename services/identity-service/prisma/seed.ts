@@ -21,6 +21,12 @@ async function main() {
   ======================================================= */
 
   const companyId = '11111111-1111-1111-1111-111111111111';
+  const branchId = '22222222-2222-2222-2222-222222222222';
+  const adminUserId = '33333333-3333-3333-3333-333333333333';
+  const candidateUserId = '44444444-4444-4444-4444-444444444444';
+  const candidateId = '55555555-5555-5555-5555-555555555555';
+  const recruiterUserId = '66666666-6666-6666-6666-666666666666';
+  const recruiterId = '77777777-7777-7777-7777-777777777777';
 
   const company = await prisma.companySnapshot.upsert({
     where: { id: companyId },
@@ -43,8 +49,6 @@ async function main() {
   /* =======================================================
       COMPANY BRANCH
   ======================================================= */
-
-  const branchId = '22222222-2222-2222-2222-222222222222';
 
   const branch = await prisma.companyBranchSnapshot.upsert({
     where: { id: branchId },
@@ -78,6 +82,7 @@ async function main() {
       password: hashPassword('admin123'),
     },
     create: {
+      id: adminUserId,
       email: 'admin@example.com',
       password: hashPassword('admin123'),
       role: 'admin',
@@ -113,6 +118,7 @@ async function main() {
       password: hashPassword('candidate123'),
     },
     create: {
+      id: candidateUserId,
       email: 'candidate@example.com',
       password: hashPassword('candidate123'),
       role: 'candidate',
@@ -142,6 +148,7 @@ async function main() {
       headline: 'Backend Developer',
     },
     create: {
+      id: candidateId,
       user_id: candidateUser.id,
       headline: 'Backend Developer',
       summary: ['NestJS Developer', 'Microservices enthusiast'],
@@ -178,6 +185,7 @@ async function main() {
       password: hashPassword('recruiter123'),
     },
     create: {
+      id: recruiterUserId,
       email: 'recruiter@example.com',
       password: hashPassword('recruiter123'),
       role: 'recruiter',
@@ -207,6 +215,7 @@ async function main() {
       department: 'HR',
     },
     create: {
+      id: recruiterId,
       user_id: recruiterUser.id,
       company_id: company.id,
       branch_id: branch.id,
