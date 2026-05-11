@@ -1,3 +1,4 @@
+export * from './base-email.strategy';
 export * from './emails.strategy';
 export * from './lock-account.strategy';
 export * from './password-reset-otp.strategy';

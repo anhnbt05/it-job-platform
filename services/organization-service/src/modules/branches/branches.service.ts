@@ -1,8 +1,8 @@
 import { CreateBranchDto, UpdateBranchDto } from '@/modules/branches/dto';
 import { Branches } from '@/modules/branches/entities';
 import { Companies } from '@/modules/companies/entities';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { SnapshotEventPublisher } from '@/modules/kafka/snapshot-events';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -13,7 +13,7 @@ export class BranchesService {
     private readonly brancheRepo: Repository<Branches>,
     @InjectRepository(Companies)
     private readonly companyRepo: Repository<Companies>,
-    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
+    private readonly snapshotEventPublisher: SnapshotEventPublisher,
   ) {}
 
   async getBranches(companyId?: string) {
@@ -58,15 +58,10 @@ export class BranchesService {
 
     const savedBranch = await this.brancheRepo.save(branch);
 
-    this.kafkaClient.emit('branch-snapshot.updated', {
-      id,
-      company_id: branch.company.id,
-      name: savedBranch.name,
-      updated_at: new Date(savedBranch.updatedAt),
-      city: savedBranch.city,
-      address: savedBranch.address,
-      country: savedBranch.country,
-    });
+    this.snapshotEventPublisher.publishBranchUpdated(
+      savedBranch,
+      branch.company.id,
+    );
 
     return {
       success: true,
@@ -110,15 +105,7 @@ export class BranchesService {
       }),
     );
 
-    this.kafkaClient.emit('branch-snapshot.created', {
-      id: newBranch.id,
-      company_id,
-      name: newBranch.name,
-      updated_at: new Date(newBranch.updatedAt),
-      city: newBranch.city,
-      address: newBranch.address,
-      country: newBranch.country,
-    });
+    this.snapshotEventPublisher.publishBranchCreated(newBranch, company_id);
 
     return newBranch;
   }

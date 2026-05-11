@@ -1,8 +1,12 @@
 import { Categories } from '@/modules/categories/entities';
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { SnapshotEventPublisher } from '@/modules/kafka/snapshot-events';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { KafkaService } from '../kafka/kafka.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 
 @Injectable()
@@ -10,8 +14,8 @@ export class CategoriesService {
   constructor(
     @InjectRepository(Categories)
     private readonly categoryRepo: Repository<Categories>,
-    @Inject('KAFKA_SERVICE') private readonly kafkaService: KafkaService
-  ) { }
+    private readonly snapshotEventPublisher: SnapshotEventPublisher,
+  ) {}
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Categories> {
     const existing = await this.categoryRepo.findOne({
@@ -25,14 +29,10 @@ export class CategoriesService {
     }
 
     const category = await this.categoryRepo.save(
-      this.categoryRepo.create(createCategoryDto)
+      this.categoryRepo.create(createCategoryDto),
     );
 
-    this.kafkaService.emit('category-snapshot.created', {
-      id: category.id,
-      name: category.name,
-      updated_at: new Date(category.updatedAt),
-    });
+    this.snapshotEventPublisher.publishCategoryCreated(category);
 
     return category;
   }
@@ -57,11 +57,7 @@ export class CategoriesService {
     Object.assign(category, updateCategoryDto);
     const updated = await this.categoryRepo.save(category);
 
-    this.kafkaService.emit('category-snapshot.updated', {
-      id: updated.id,
-      name: updated.name,
-      updated_at: new Date(updated.updatedAt),
-    });
+    this.snapshotEventPublisher.publishCategoryUpdated(updated);
 
     return updated;
   }
@@ -70,8 +66,6 @@ export class CategoriesService {
     const category = await this.findOne(id);
     await this.categoryRepo.remove(category);
 
-    this.kafkaService.emit('category-snapshot.deleted', {
-      id: category.id,
-    });
+    this.snapshotEventPublisher.publishCategoryDeleted(category.id);
   }
 }

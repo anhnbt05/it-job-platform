@@ -1,19 +1,23 @@
 import { Module } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import {
-  BranchCreatedConsummer,
-  BranchUpdatedConsummer,
-  CompanyCreatedConsummer,
-  CompanyUpdatedConsummer,
-} from './consumers';
+  CompanySnapshotCommandRegistry,
+  CreateBranchSnapshotCommand,
+  CreateCompanySnapshotCommand,
+  UpdateBranchSnapshotCommand,
+  UpdateCompanySnapshotCommand,
+} from './commands';
+import { CompaniesEventsConsumer } from './consumers';
 
 @Module({
-  controllers: [
-    CompanyCreatedConsummer,
-    BranchCreatedConsummer,
-    CompanyUpdatedConsummer,
-    BranchUpdatedConsummer,
+  controllers: [CompaniesEventsConsumer],
+  providers: [
+    CompaniesService,
+    CompanySnapshotCommandRegistry,
+    CreateCompanySnapshotCommand,
+    UpdateCompanySnapshotCommand,
+    CreateBranchSnapshotCommand,
+    UpdateBranchSnapshotCommand,
   ],
-  providers: [CompaniesService],
 })
 export class CompaniesModule {}

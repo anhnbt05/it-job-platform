@@ -1,7 +1,7 @@
 import { CreateCompanyDto, UpdateCompanyDto } from '@/modules/companies/dto';
 import { Companies } from '@/modules/companies/entities';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
+import { SnapshotEventPublisher } from '@/modules/kafka/snapshot-events';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -10,7 +10,7 @@ export class CompaniesService {
   constructor(
     @InjectRepository(Companies)
     private readonly companyRepo: Repository<Companies>,
-    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
+    private readonly snapshotEventPublisher: SnapshotEventPublisher,
   ) {}
 
   async updateCompany(id: string, dto: UpdateCompanyDto) {
@@ -20,13 +20,7 @@ export class CompaniesService {
 
     const savedCompany = await this.companyRepo.save(company);
 
-    this.kafkaClient.emit('company-snapshot.updated', {
-      id: savedCompany.id,
-      name: savedCompany.name,
-      location: savedCompany.location,
-      updated_at: new Date(savedCompany.updatedAt),
-      logo_url: savedCompany.logo_url,
-    });
+    this.snapshotEventPublisher.publishCompanyUpdated(savedCompany);
 
     return {
       success: true,
@@ -63,13 +57,7 @@ export class CompaniesService {
       );
     }
 
-    this.kafkaClient.emit('company-snapshot.created', {
-      id: existingCompanyWithName.id,
-      name: existingCompanyWithName.name,
-      location: existingCompanyWithName.location,
-      updated_at: new Date(existingCompanyWithName.updatedAt),
-      logo_url: existingCompanyWithName.logo_url,
-    });
+    this.snapshotEventPublisher.publishCompanyCreated(existingCompanyWithName);
 
     return existingCompanyWithName;
   }

@@ -1,14 +1,6 @@
-import { EmailType } from '@/common/enums';
 import { SendEmailDto } from '@/modules/emails/dto';
+import { EmailStrategyRegistry } from '@/modules/emails/email-strategy.registry';
 import { createEmailTransporter } from '@/modules/emails/factories';
-import {
-  EmailStrategy,
-  LockAccountStrategy,
-  PasswordResetOtpStrategy,
-  UnlockAccountStrategy,
-  VerificationOtpStrategy,
-  WelcomeStrategy,
-} from '@/modules/emails/strategies';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
@@ -18,7 +10,10 @@ export class EmailsService {
   private readonly logger = new Logger(EmailsService.name);
   private readonly transporter: nodemailer.Transporter;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly strategyRegistry: EmailStrategyRegistry,
+  ) {
     this.transporter = createEmailTransporter(configService);
   }
 
@@ -27,7 +22,7 @@ export class EmailsService {
       this.configService.get<string>('mail_from') ??
       this.configService.get<string>('mail_user');
 
-    const strategy = this.getStrategy(dto.type);
+    const strategy = this.strategyRegistry.get(dto.type);
 
     const { subject, text, html } = strategy.build(dto.to, dto.payload);
 
@@ -43,23 +38,5 @@ export class EmailsService {
       this.logger.error('Gửi email thất bại: ', error as Error);
       throw error;
     }
-  }
-
-  private getStrategy(type: EmailType): EmailStrategy {
-    const strategies: Record<EmailType, EmailStrategy> = {
-      [EmailType.VERIFICATION_OTP]: new VerificationOtpStrategy(),
-      [EmailType.PASSWORD_RESET_OTP]: new PasswordResetOtpStrategy(),
-      [EmailType.WELCOME]: new WelcomeStrategy(),
-      [EmailType.LOCK_ACCOUNT]: new LockAccountStrategy(),
-      [EmailType.UNLOCK_ACCOUNT]: new UnlockAccountStrategy(),
-    };
-
-    const strategy = strategies[type];
-
-    if (!strategy) {
-      throw new Error(`Loại email không được hỗ trợ: ${type}`);
-    }
-
-    return strategy;
   }
 }

@@ -1,16 +1,34 @@
-import { EmailStrategy } from './emails.strategy';
+import { EmailType } from '@/common/enums';
+import { Injectable } from '@nestjs/common';
+import { BaseEmailStrategy } from './base-email.strategy';
 
-export class UnlockAccountStrategy implements EmailStrategy<{
+@Injectable()
+export class UnlockAccountStrategy extends BaseEmailStrategy<{
   contactPhone: string;
   contactEmail: string;
 }> {
-  build(to: string, payload: { contactPhone: string; contactEmail: string }) {
+  readonly type = EmailType.UNLOCK_ACCOUNT;
+
+  protected buildSubject() {
+    return 'Tài khoản của bạn đã được mở khóa';
+  }
+
+  protected buildText(
+    to: string,
+    payload: { contactPhone: string; contactEmail: string },
+  ) {
     const { contactPhone, contactEmail } = payload;
 
-    return {
-      subject: 'Tài khoản của bạn đã được mở khóa',
-      text: `Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập lại. Nếu cần hỗ trợ, vui lòng liên hệ ${contactPhone} hoặc ${contactEmail}.`,
-      html: `
+    return `Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập lại. Nếu cần hỗ trợ, vui lòng liên hệ ${contactPhone} hoặc ${contactEmail}.`;
+  }
+
+  protected buildHtml(
+    to: string,
+    payload: { contactPhone: string; contactEmail: string },
+  ) {
+    const { contactPhone, contactEmail } = payload;
+
+    return `
         <p>Xin chào,</p>
 
         <p>
@@ -28,7 +46,6 @@ export class UnlockAccountStrategy implements EmailStrategy<{
         </ul>
 
         <p>Trân trọng.</p>
-      `,
-    };
+      `;
   }
 }

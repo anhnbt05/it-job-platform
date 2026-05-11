@@ -3,6 +3,12 @@ import { KafkaService } from '@/modules/kafka/kafka.service';
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientsModule } from '@nestjs/microservices';
+import {
+  BranchSnapshotEventFactory,
+  CategorySnapshotEventFactory,
+  CompanySnapshotEventFactory,
+  SnapshotEventPublisher,
+} from './snapshot-events';
 
 @Global()
 @Module({
@@ -16,7 +22,13 @@ import { ClientsModule } from '@nestjs/microservices';
       },
     ]),
   ],
-  providers: [KafkaService],
-  exports: [KafkaService, ClientsModule],
+  providers: [
+    KafkaService,
+    SnapshotEventPublisher,
+    CompanySnapshotEventFactory,
+    BranchSnapshotEventFactory,
+    CategorySnapshotEventFactory,
+  ],
+  exports: [KafkaService, SnapshotEventPublisher, ClientsModule],
 })
 export class KafkaModule {}

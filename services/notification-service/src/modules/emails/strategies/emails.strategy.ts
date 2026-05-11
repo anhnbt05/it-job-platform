@@ -1,10 +1,12 @@
+import { EmailType } from '@/common/enums';
+
+export type EmailContent = {
+  subject: string;
+  text: string;
+  html: string;
+};
+
 export interface EmailStrategy<T = any> {
-  build(
-    to: string,
-    payload: T,
-  ): {
-    subject: string;
-    text: string;
-    html: string;
-  };
+  readonly type: EmailType;
+  build(to: string, payload: T): EmailContent;
 }
