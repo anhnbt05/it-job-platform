@@ -21,6 +21,10 @@ export class MetricsInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    if (context.getType() !== 'http') {
+      return next.handle();
+    }
+
     const start = Date.now();
 
     const req = context.switchToHttp().getRequest();
@@ -30,27 +34,48 @@ export class MetricsInterceptor implements NestInterceptor {
     const route = req.route?.path || req.url;
 
     return next.handle().pipe(
-      tap(() => {
-        const status = res.statusCode.toString();
-        const duration = (Date.now() - start) / 1000;
-
-        this.requestCounter.inc({
-          service: this.service,
-          method,
-          route,
-          status,
-        });
-
-        this.requestDuration.observe(
-          {
-            service: this.service,
+      tap({
+        next: () => {
+          this.recordMetrics(
             method,
             route,
-            status,
-          },
-          duration,
-        );
+            res.statusCode.toString(),
+            (Date.now() - start) / 1000,
+          );
+        },
+        error: (error) => {
+          this.recordMetrics(
+            method,
+            route,
+            String(error?.status ?? error?.statusCode ?? 500),
+            (Date.now() - start) / 1000,
+          );
+        },
       }),
+    );
+  }
+
+  private recordMetrics(
+    method: string,
+    route: string,
+    status: string,
+    duration: number,
+  ) {
+    this.requestCounter.inc({
+      service: this.service,
+      method,
+      route,
+      status,
+    });
+
+    this.requestDuration.observe(
+      {
+        service: this.service,
+        method,
+        route,
+        status,
+      },
+      duration,
     );
   }
 }

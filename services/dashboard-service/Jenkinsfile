@@ -1,0 +1,42 @@
+pipeline {
+  agent {
+    label 'linux'
+  }
+
+  environment {
+    SERVICE_NAME = 'dashboard-service'
+    SERVICE_DIR = 'services/dashboard-service'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Run Tests') {
+      steps {
+        dir("${SERVICE_DIR}") {
+          sh 'mvn -B clean test'
+        }
+      }
+    }
+
+    stage('Build Application') {
+      steps {
+        dir("${SERVICE_DIR}") {
+          sh 'mvn -B package -DskipTests'
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        dir("${SERVICE_DIR}") {
+          sh 'docker build -t ${SERVICE_NAME}:${BUILD_NUMBER} -t ${SERVICE_NAME}:latest .'
+        }
+      }
+    }
+  }
+}

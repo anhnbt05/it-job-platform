@@ -14,4 +14,9 @@ export const metricsProviders = [
     help: 'Thời gian xử lý HTTP request (tính bằng giây)',
     labelNames: ['method', 'route', 'status', 'service'],
   }),
+  makeCounterProvider({
+    name: 'organization_mutations_total',
+    help: 'Tổng số thao tác ghi trên dữ liệu tổ chức',
+    labelNames: ['entity', 'action', 'service'],
+  }),
 ];

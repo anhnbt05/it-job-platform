@@ -11,6 +11,7 @@ import com.itjob.applicationservice.exception.ForbiddenException;
 import com.itjob.applicationservice.exception.ResourceNotFoundException;
 import com.itjob.applicationservice.kafka.ApplicationEventProducer;
 import com.itjob.applicationservice.repository.ApplicationRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class ApplicationService {
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationEventProducer eventProducer;
+    private final MeterRegistry meterRegistry;
 
     /**
      * Lấy danh sách đơn ứng tuyển của candidate
@@ -105,6 +107,7 @@ public class ApplicationService {
         event.put("candidateName", candidateName);
         event.put("recruiterId", recruiterId);
         eventProducer.sendApplicationCreated(event);
+        incrementApplicationMetric("create", "pending");
 
         return mapToResponse(app);
     }
@@ -123,6 +126,7 @@ public class ApplicationService {
 
         app.setDeletedAt(LocalDateTime.now());
         applicationRepository.save(app);
+        incrementApplicationMetric("delete", "deleted");
     }
 
     /**
@@ -149,6 +153,7 @@ public class ApplicationService {
                 event.put("status", "accepted");
                 event.put("recruiterId", recruiterId);
                 eventProducer.sendApplicationStatusChanged(event);
+                incrementApplicationMetric("process", "accepted");
             }
         }
 
@@ -169,6 +174,7 @@ public class ApplicationService {
                 event.put("reason", ra.getReason() != null ? ra.getReason() : "");
                 event.put("recruiterId", recruiterId);
                 eventProducer.sendApplicationStatusChanged(event);
+                incrementApplicationMetric("process", "rejected");
             }
         }
     }
@@ -234,5 +240,13 @@ public class ApplicationService {
                 .status(app.getStatus())
                 .appliedAt(app.getAppliedAt())
                 .build();
+    }
+
+    private void incrementApplicationMetric(String action, String outcome) {
+        meterRegistry.counter(
+                "application_events_total",
+                "action", action,
+                "outcome", outcome
+        ).increment();
     }
 }

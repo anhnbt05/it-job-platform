@@ -12,6 +12,7 @@ import com.itjob.jobservice.exception.ForbiddenException;
 import com.itjob.jobservice.exception.ResourceNotFoundException;
 import com.itjob.jobservice.kafka.JobEventProducer;
 import com.itjob.jobservice.repository.*;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class JobService {
     private final CategorySnapshotRepository categorySnapshotRepository;
     private final JobCategoryRepository jobCategoryRepository;
     private final JobEventProducer jobEventProducer;
+    private final MeterRegistry meterRegistry;
 
     /**
      * Lấy danh sách jobs theo role
@@ -160,6 +162,7 @@ public class JobService {
         event.put("recruiterId", recruiterId);
         event.put("status", "pending");
         jobEventProducer.sendJobCreated(event);
+        incrementMutationMetric("create", "pending");
 
         return mapToJobDetailResponse(savedJob);
     }
@@ -228,6 +231,7 @@ public class JobService {
         }
 
         jobRepository.save(job);
+        incrementMutationMetric("update", job.getStatus().name().toLowerCase());
         return mapToJobDetailResponse(job);
     }
 
@@ -247,6 +251,7 @@ public class JobService {
         job.setDeletedAt(LocalDateTime.now());
         job.setStatus(JobStatus.closed);
         jobRepository.save(job);
+        incrementMutationMetric("delete", "closed");
     }
 
     /**
@@ -269,6 +274,7 @@ public class JobService {
                 event.put("recruiterId", job.getRecruiterId().toString());
                 event.put("status", "approved");
                 jobEventProducer.sendJobStatusChanged(event);
+                incrementMutationMetric("process", "approved");
             }
         }
 
@@ -288,6 +294,7 @@ public class JobService {
                 event.put("status", "rejected");
                 event.put("reason", rj.getReason() != null ? rj.getReason() : "");
                 jobEventProducer.sendJobStatusChanged(event);
+                incrementMutationMetric("process", "rejected");
             }
         }
     }
@@ -442,5 +449,13 @@ public class JobService {
                 throw new BadRequestException("Định dạng ngày không hợp lệ: " + dateStr);
             }
         }
+    }
+
+    private void incrementMutationMetric(String action, String outcome) {
+        meterRegistry.counter(
+                "job_mutations_total",
+                "action", action,
+                "outcome", outcome
+        ).increment();
     }
 }

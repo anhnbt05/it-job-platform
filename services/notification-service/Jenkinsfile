@@ -1,35 +1,50 @@
 pipeline {
-  agent any
+  agent {
+    label 'linux'
+  }
 
   environment {
-    SERVICE_NAME = "notification-service"
+    SERVICE_NAME = 'notification-service'
+    SERVICE_DIR = 'services/notification-service'
   }
 
   stages {
-
     stage('Checkout') {
       steps {
         checkout scm
       }
     }
 
-    stage('Install dependencies') {
+    stage('Install Dependencies') {
       steps {
-        sh 'npm install'
+        dir("${SERVICE_DIR}") {
+          sh 'npm ci'
+        }
       }
     }
 
-    stage('Run tests') {
+    stage('Run Tests') {
       steps {
-        sh 'npm run test'
+        dir("${SERVICE_DIR}") {
+          sh 'npm run test'
+        }
+      }
+    }
+
+    stage('Build Application') {
+      steps {
+        dir("${SERVICE_DIR}") {
+          sh 'npm run build'
+        }
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        sh 'docker build -t $SERVICE_NAME .'
+        dir("${SERVICE_DIR}") {
+          sh 'docker build -t ${SERVICE_NAME}:${BUILD_NUMBER} -t ${SERVICE_NAME}:latest .'
+        }
       }
     }
-
   }
 }

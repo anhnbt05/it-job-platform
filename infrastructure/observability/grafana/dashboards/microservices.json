@@ -1,38 +1,349 @@
 {
-  "title": "Tổng Quan Microservices",
-  "timezone": "browser",
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
   "panels": [
     {
-      "type": "timeseries",
-      "title": "Số Lượng HTTP Request",
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
-          "expr": "http_requests_total",
-          "legendFormat": "{{service}}"
+          "expr": "sum by (service) (rate(http_requests_total[5m]))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (rate(http_server_requests_seconds_count{job=~\"job-service|application-service|dashboard-service\"}[5m]))",
+          "legendFormat": "{{job}}",
+          "refId": "B"
         }
-      ]
+      ],
+      "title": "Request Rate By Service",
+      "type": "timeseries"
     },
     {
-      "type": "timeseries",
-      "title": "Thời Gian Xử Lý Request",
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
-          "expr": "http_request_duration_seconds",
-          "legendFormat": "{{service}}"
+          "expr": "histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, job) (rate(http_server_requests_seconds_bucket{job=~\"job-service|application-service|dashboard-service\"}[5m])))",
+          "legendFormat": "{{job}}",
+          "refId": "B"
         }
-      ]
+      ],
+      "title": "P95 Latency By Service",
+      "type": "timeseries"
     },
     {
-      "type": "timeseries",
-      "title": "Tỷ Lệ Lỗi Server",
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
       "targets": [
         {
-          "expr": "http_requests_total{status=~\"5..\"}",
-          "legendFormat": "Lỗi 5xx"
+          "expr": "sum by (service) (rate(http_requests_total{status=~\"5..\"}[5m]))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (rate(http_server_requests_seconds_count{job=~\"job-service|application-service|dashboard-service\",status=~\"5..\"}[5m]))",
+          "legendFormat": "{{job}}",
+          "refId": "B"
         }
-      ]
+      ],
+      "title": "5xx Error Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (service, action, outcome) (increase(auth_events_total[1h]))",
+          "legendFormat": "{{service}} {{action}} {{outcome}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (service, entity, action) (increase(organization_mutations_total[1h]))",
+          "legendFormat": "{{service}} {{entity}} {{action}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (service, type, status) (increase(email_jobs_total[1h]))",
+          "legendFormat": "{{service}} {{type}} {{status}}",
+          "refId": "C"
+        },
+        {
+          "expr": "sum by (service, type) (increase(notifications_created_total[1h]))",
+          "legendFormat": "{{service}} {{type}}",
+          "refId": "D"
+        }
+      ],
+      "title": "Nest Business Events (1h)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (job, action, outcome) (increase(job_mutations_total[1h]))",
+          "legendFormat": "{{job}} {{action}} {{outcome}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job, action, outcome) (increase(application_events_total[1h]))",
+          "legendFormat": "{{job}} {{action}} {{outcome}}",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (job, action, format) (increase(dashboard_operations_total[1h]))",
+          "legendFormat": "{{job}} {{action}} {{format}}",
+          "refId": "C"
+        }
+      ],
+      "title": "Spring Business Events (1h)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum by (job) (up{job=~\"identity-service|organization-service|notification-service|job-service|application-service|dashboard-service\"})",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Target Health",
+      "type": "stat"
     }
   ],
-  "schemaVersion": 36,
-  "version": 1
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "microservices",
+    "prometheus"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Microservices Overview",
+  "uid": "microservices-overview",
+  "version": 2,
+  "weekStart": ""
 }

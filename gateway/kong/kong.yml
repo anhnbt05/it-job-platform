@@ -27,7 +27,7 @@ services:
         strip_path: true
 
   - name: job-service
-    url: http://host.docker.internal:8081
+    url: http://host.docker.internal:8082
     routes:
       - name: job-route
         paths:
@@ -35,7 +35,7 @@ services:
         strip_path: false
 
   - name: application-service
-    url: http://host.docker.internal:8082
+    url: http://host.docker.internal:8083
     routes:
       - name: application-route
         paths:
@@ -43,7 +43,7 @@ services:
         strip_path: false
 
   - name: dashboard-service
-    url: http://host.docker.internal:8083
+    url: http://host.docker.internal:8084
     routes:
       - name: dashboard-route
         paths:

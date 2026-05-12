@@ -6,6 +6,7 @@ import com.itjob.dashboardservice.dto.response.DashboardSummaryResponse;
 import com.itjob.dashboardservice.enums.ReportType;
 import com.itjob.dashboardservice.report.ReportContext;
 import com.itjob.dashboardservice.report.ReportStrategy;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class DashboardService {
     private final JobServiceClient jobServiceClient;
     private final ApplicationServiceClient applicationServiceClient;
     private final ReportContext reportContext;
+    private final MeterRegistry meterRegistry;
 
     /**
      * Lấy tổng hợp thống kê
@@ -30,6 +32,7 @@ public class DashboardService {
 
         Map<String, Object> jobStats = jobServiceClient.getJobSummary(startDate, endDate);
         Map<String, Object> appStats = applicationServiceClient.getApplicationSummary(startDate, endDate);
+        incrementDashboardMetric("summary", "none");
 
         return DashboardSummaryResponse.builder()
                 .jobStats(jobStats)
@@ -51,7 +54,9 @@ public class DashboardService {
         data.put("applicationStats", appStats);
 
         ReportStrategy strategy = reportContext.getStrategy(type);
-        return strategy.generate(data, type, startDate, endDate);
+        byte[] report = strategy.generate(data, type, startDate, endDate);
+        incrementDashboardMetric("report", type.name().toLowerCase());
+        return report;
     }
 
     /**
@@ -66,5 +71,13 @@ public class DashboardService {
      */
     public String getReportFileExtension(ReportType type) {
         return reportContext.getStrategy(type).getFileExtension();
+    }
+
+    private void incrementDashboardMetric(String action, String format) {
+        meterRegistry.counter(
+                "dashboard_operations_total",
+                "action", action,
+                "format", format
+        ).increment();
     }
 }

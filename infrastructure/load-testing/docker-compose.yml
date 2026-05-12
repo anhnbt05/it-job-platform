@@ -3,15 +3,38 @@ services:
     image: grafana/k6:latest
     container_name: k6
     volumes:
+      - ./config:/config
       - ./scripts:/scripts
       - ./scenarios:/scenarios
     environment:
-      - BASE_URL=http://host.docker.internal:3000
-      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
-    command: >
-      run
-      -o experimental-prometheus-rw
-      /scenarios/stress.js
+      - SCENARIO=${SCENARIO:-smoke}
+      - GATEWAY_BASE_URL=${GATEWAY_BASE_URL:-http://host.docker.internal:8000}
+      - IDENTITY_BASE_URL=${IDENTITY_BASE_URL:-http://host.docker.internal:8000/identity}
+      - ORGANIZATION_BASE_URL=${ORGANIZATION_BASE_URL:-http://host.docker.internal:8000/organization}
+      - JOB_BASE_URL=${JOB_BASE_URL:-http://host.docker.internal:8082/api}
+      - APPLICATION_BASE_URL=${APPLICATION_BASE_URL:-http://host.docker.internal:8083/api}
+      - DASHBOARD_BASE_URL=${DASHBOARD_BASE_URL:-http://host.docker.internal:8084/api}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - CANDIDATE_EMAIL=${CANDIDATE_EMAIL:-candidate@example.com}
+      - CANDIDATE_PASSWORD=${CANDIDATE_PASSWORD:-candidate123}
+      - RECRUITER_EMAIL=${RECRUITER_EMAIL:-recruiter@example.com}
+      - RECRUITER_PASSWORD=${RECRUITER_PASSWORD:-recruiter123}
+      - ADMIN_USER_ID=${ADMIN_USER_ID:-33333333-3333-3333-3333-333333333333}
+      - CANDIDATE_USER_ID=${CANDIDATE_USER_ID:-44444444-4444-4444-4444-444444444444}
+      - RECRUITER_USER_ID=${RECRUITER_USER_ID:-66666666-6666-6666-6666-666666666666}
+      - COMPANY_ID=${COMPANY_ID:-11111111-1111-1111-1111-111111111111}
+      - BRANCH_ID=${BRANCH_ID:-22222222-2222-2222-2222-222222222222}
+      - OPEN_JOB_ID=${OPEN_JOB_ID:-90000000-0000-0000-0000-000000000001}
+      - TEST_ID=${TEST_ID:-manual}
+      - K6_PROMETHEUS_RW_SERVER_URL=${K6_PROMETHEUS_RW_SERVER_URL:-http://prometheus:9090/api/v1/write}
+      - K6_PROMETHEUS_RW_TREND_STATS=${K6_PROMETHEUS_RW_TREND_STATS:-p(95),p(99),avg,max}
+      - K6_PROMETHEUS_RW_STALE_MARKERS=${K6_PROMETHEUS_RW_STALE_MARKERS:-true}
+      - FAIL_FAST=${FAIL_FAST:-false}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - k6 run --tag testid=$${TEST_ID} --tag suite=$${SCENARIO} -o experimental-prometheus-rw /scenarios/$${SCENARIO}.js
     networks:
       - observability
 

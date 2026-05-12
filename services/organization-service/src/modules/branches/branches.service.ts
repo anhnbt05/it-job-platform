@@ -1,112 +1,44 @@
 import { CreateBranchDto, UpdateBranchDto } from '@/modules/branches/dto';
-import { Branches } from '@/modules/branches/entities';
-import { Companies } from '@/modules/companies/entities';
-import { SnapshotEventPublisher } from '@/modules/kafka/snapshot-events';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import {
+  CreateBranchUseCase,
+  FindBranchByIdUseCase,
+  GetBranchUseCase,
+  GetBranchesUseCase,
+  UpdateBranchUseCase,
+} from './application/use-cases';
 
 @Injectable()
 export class BranchesService {
   constructor(
-    @InjectRepository(Branches)
-    private readonly brancheRepo: Repository<Branches>,
-    @InjectRepository(Companies)
-    private readonly companyRepo: Repository<Companies>,
-    private readonly snapshotEventPublisher: SnapshotEventPublisher,
+    private readonly createBranchUseCase: CreateBranchUseCase,
+    private readonly findBranchByIdUseCase: FindBranchByIdUseCase,
+    private readonly getBranchUseCase: GetBranchUseCase,
+    private readonly getBranchesUseCase: GetBranchesUseCase,
+    private readonly updateBranchUseCase: UpdateBranchUseCase,
   ) {}
 
   async getBranches(companyId?: string) {
-    return this.brancheRepo.find({
-      where: companyId
-        ? {
-            company: {
-              id: companyId,
-            },
-          }
-        : {},
-      relations: {
-        company: true,
-      },
-      order: {
-        updatedAt: 'DESC',
-      },
-    });
+    const branches = await this.getBranchesUseCase.execute(companyId);
+    return branches.map((branch) => branch.toPrimitives());
   }
 
   async getBranch(id: string) {
-    const branch = await this.brancheRepo.findOne({
-      where: {
-        id,
-      },
-      relations: {
-        company: true,
-      },
-    });
-
-    if (!branch) {
-      throw new NotFoundException('Không tìm thấy thông tin chi nhánh.');
-    }
-
-    return branch;
+    const branch = await this.getBranchUseCase.execute(id);
+    return branch.toPrimitives();
   }
 
   async updateBranch(id: string, dto: UpdateBranchDto) {
-    const branch = await this.getBranch(id);
-
-    Object.assign(branch, dto);
-
-    const savedBranch = await this.brancheRepo.save(branch);
-
-    this.snapshotEventPublisher.publishBranchUpdated(
-      savedBranch,
-      branch.company.id,
-    );
-
-    return {
-      success: true,
-      message: 'Cập nhật thông tin chi nhánh thành công',
-    };
+    return this.updateBranchUseCase.execute(id, dto);
   }
 
   async findBranchById(dto: { id: string }) {
-    return (
-      (await this.brancheRepo.findOne({
-        where: {
-          id: dto.id,
-        },
-        relations: {
-          company: true,
-        },
-      })) ?? null
-    );
+    const branch = await this.findBranchByIdUseCase.execute(dto.id);
+    return branch?.toPrimitives() ?? null;
   }
 
   async createBranch(dto: CreateBranchDto) {
-    const { company_id } = dto;
-
-    const company = await this.companyRepo.findOne({
-      where: {
-        id: company_id,
-      },
-    });
-
-    if (!company) {
-      throw new NotFoundException('Không tìm thấy thông tin công ty.');
-    }
-
-    const newBranch = await this.brancheRepo.save(
-      this.brancheRepo.create({
-        name: dto.name,
-        country: dto.country,
-        city: dto.city,
-        company,
-        address: dto.address,
-      }),
-    );
-
-    this.snapshotEventPublisher.publishBranchCreated(newBranch, company_id);
-
-    return newBranch;
+    const branch = await this.createBranchUseCase.execute(dto);
+    return branch.toPrimitives();
   }
 }

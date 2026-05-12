@@ -17,6 +17,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ClientKafka } from '@nestjs/microservices';
@@ -24,6 +25,7 @@ import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { Prisma } from 'generated/prisma/client';
 import { UserStatus } from 'generated/prisma/enums';
+import { Counter } from 'prom-client';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()
@@ -33,6 +35,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
+    @InjectMetric('auth_events_total')
+    private readonly authEventsCounter: Counter<string>,
   ) {}
 
   async signOut(userSession: TUserSession) {
@@ -45,6 +49,8 @@ export class AuthService {
         revoked: true,
       },
     });
+
+    this.trackAuthEvent('sign_out', 'success');
 
     return {
       success: true,
@@ -68,10 +74,12 @@ export class AuthService {
     });
 
     if (!user) {
+      this.trackAuthEvent('sign_in', 'failure');
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
 
     if (user.status === UserStatus.inactive) {
+      this.trackAuthEvent('sign_in', 'failure');
       throw new ForbiddenException(
         'Tài khoản cũng bạn đã bị khoá. Vui lòng kiểm tra email để biết thêm thông tin.',
       );
@@ -80,6 +88,7 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
+      this.trackAuthEvent('sign_in', 'failure');
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
 
@@ -90,6 +99,8 @@ export class AuthService {
       status: user.status,
       is_email_verified: user.is_email_verified,
     };
+
+    this.trackAuthEvent('sign_in', 'success');
 
     return this.issueTokenPair(payload);
   }
@@ -112,25 +123,26 @@ export class AuthService {
     });
 
     if (!user) {
+      this.trackAuthEvent('refresh_token', 'failure');
       throw new UnauthorizedException('Không tìm thấy thông tin tài khoản.');
     }
 
-    const existingRefreshToken = await this.prismaService.refreshToken.findUnique(
-      {
+    const existingRefreshToken =
+      await this.prismaService.refreshToken.findUnique({
         where: {
           user_id_token: {
             user_id: user.id,
             token: refreshToken,
           },
         },
-      },
-    );
+      });
 
     if (
       !existingRefreshToken ||
       existingRefreshToken.revoked ||
       existingRefreshToken.expires_at < new Date()
     ) {
+      this.trackAuthEvent('refresh_token', 'failure');
       throw new UnauthorizedException('Refresh token không hợp lệ.');
     }
 
@@ -142,7 +154,7 @@ export class AuthService {
       is_email_verified: user.is_email_verified,
     };
 
-    return this.prismaService.$transaction(async (tx) => {
+    const tokenPair = await this.prismaService.$transaction(async (tx) => {
       await tx.refreshToken.update({
         where: {
           user_id_token: {
@@ -157,6 +169,10 @@ export class AuthService {
 
       return this.issueTokenPair(payload, tx);
     });
+
+    this.trackAuthEvent('refresh_token', 'success');
+
+    return tokenPair;
   }
 
   async signUp(signUpDto: SignUpDto) {
@@ -362,6 +378,8 @@ export class AuthService {
       },
     });
 
+    this.trackAuthEvent('sign_up', 'success');
+
     return {
       message:
         'Vui lòng kiểm tra email để xác thực tài khoản bằng mã OTP đã được gửi.',
@@ -381,6 +399,7 @@ export class AuthService {
 
     // Không tiết lộ thông tin user tồn tại hay không để tránh lộ dữ liệu
     if (!user) {
+      this.trackAuthEvent('forgot_password', 'success');
       return {
         message:
           'Nếu email tồn tại trong hệ thống, chúng tôi đã gửi mã OTP đặt lại mật khẩu.',
@@ -417,6 +436,8 @@ export class AuthService {
         expiresInMinutes: otpExpiresInMinutes,
       },
     });
+
+    this.trackAuthEvent('forgot_password', 'success');
 
     return {
       message:
@@ -463,6 +484,8 @@ export class AuthService {
           },
         });
 
+        this.trackAuthEvent('verify_otp', 'success');
+
         return {
           message: 'Email đã được xác thực trước đó.',
         };
@@ -495,6 +518,8 @@ export class AuthService {
         });
       });
 
+      this.trackAuthEvent('verify_otp', 'success');
+
       return {
         message: 'Xác thực email thành công.',
       };
@@ -523,6 +548,8 @@ export class AuthService {
           ),
         },
       });
+
+      this.trackAuthEvent('verify_otp', 'success');
 
       return {
         message:
@@ -604,10 +631,20 @@ export class AuthService {
       });
     });
 
+    this.trackAuthEvent('reset_password', 'success');
+
     return {
       message:
         'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.',
     };
+  }
+
+  private trackAuthEvent(action: string, outcome: string) {
+    this.authEventsCounter.inc({
+      service: 'identity-service',
+      action,
+      outcome,
+    });
   }
 
   private async hashPassword(password: string): Promise<string> {

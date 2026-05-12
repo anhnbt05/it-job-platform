@@ -1,4 +1,4 @@
-import { Categories } from '@/modules/categories/entities';
+import { Category } from '@/modules/categories/domain/category';
 import { Injectable } from '@nestjs/common';
 import {
   CategoryDeletedPayload,
@@ -9,7 +9,7 @@ import {
 @Injectable()
 export class CategorySnapshotEventFactory {
   createCreated(
-    category: Categories,
+    category: Category,
   ): SnapshotEventMessage<CategorySnapshotPayload> {
     return {
       topic: 'category-snapshot.created',
@@ -18,7 +18,7 @@ export class CategorySnapshotEventFactory {
   }
 
   createUpdated(
-    category: Categories,
+    category: Category,
   ): SnapshotEventMessage<CategorySnapshotPayload> {
     return {
       topic: 'category-snapshot.updated',
@@ -33,11 +33,11 @@ export class CategorySnapshotEventFactory {
     };
   }
 
-  private createPayload(category: Categories): CategorySnapshotPayload {
+  private createPayload(category: Category): CategorySnapshotPayload {
     return {
-      id: category.id,
+      id: category.id!,
       name: category.name,
-      updated_at: new Date(category.updatedAt),
+      updated_at: new Date(category.updatedAt ?? new Date()),
     };
   }
 }

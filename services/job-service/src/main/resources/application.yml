@@ -25,6 +25,10 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+app:
+  observability:
+    log-file: ${OBSERVABILITY_LOG_FILE:../../runtime-logs/job-service.log}
+
 # Feign clients
 application-service:
   url: ${APPLICATION_SERVICE_URL:http://localhost:8083/api}
@@ -34,7 +38,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
 
 # Swagger
 springdoc:

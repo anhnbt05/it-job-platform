@@ -1,6 +1,6 @@
-import { Branches } from '@/modules/branches/entities';
-import { Categories } from '@/modules/categories/entities';
-import { Companies } from '@/modules/companies/entities';
+import { Branch } from '@/modules/branches/domain/branch';
+import { Category } from '@/modules/categories/domain/category';
+import { Company } from '@/modules/companies/domain/company';
 import { Injectable } from '@nestjs/common';
 import { KafkaService } from '../kafka.service';
 import { BranchSnapshotEventFactory } from './branch-snapshot-event.factory';
@@ -17,27 +17,27 @@ export class SnapshotEventPublisher {
     private readonly categoryFactory: CategorySnapshotEventFactory,
   ) {}
 
-  publishCompanyCreated(company: Companies) {
+  publishCompanyCreated(company: Company) {
     return this.publish(this.companyFactory.createCreated(company));
   }
 
-  publishCompanyUpdated(company: Companies) {
+  publishCompanyUpdated(company: Company) {
     return this.publish(this.companyFactory.createUpdated(company));
   }
 
-  publishBranchCreated(branch: Branches, companyId: string) {
-    return this.publish(this.branchFactory.createCreated(branch, companyId));
+  publishBranchCreated(branch: Branch) {
+    return this.publish(this.branchFactory.createCreated(branch));
   }
 
-  publishBranchUpdated(branch: Branches, companyId: string) {
-    return this.publish(this.branchFactory.createUpdated(branch, companyId));
+  publishBranchUpdated(branch: Branch) {
+    return this.publish(this.branchFactory.createUpdated(branch));
   }
 
-  publishCategoryCreated(category: Categories) {
+  publishCategoryCreated(category: Category) {
     return this.publish(this.categoryFactory.createCreated(category));
   }
 
-  publishCategoryUpdated(category: Categories) {
+  publishCategoryUpdated(category: Category) {
     return this.publish(this.categoryFactory.createUpdated(category));
   }
 

@@ -7,9 +7,7 @@ import {
 } from './company-snapshot-command.interface';
 
 @Injectable()
-export class UpdateCompanySnapshotCommand
-  implements CompanySnapshotCommand<UpdateCompanyDto>
-{
+export class UpdateCompanySnapshotCommand implements CompanySnapshotCommand<UpdateCompanyDto> {
   readonly event = CompanySnapshotEvent.COMPANY_UPDATED;
 
   constructor(private readonly companiesService: CompaniesService) {}

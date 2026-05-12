@@ -5,3 +5,5 @@ target/
 out/
 node_modules/
 .DS_Store
+runtime-logs/*.log
+runtime-logs/*.jsonl

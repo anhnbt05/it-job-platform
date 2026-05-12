@@ -7,6 +7,14 @@ import { BaseEmailStrategy } from './base-email.strategy';
 export class WelcomeStrategy extends BaseEmailStrategy<WelcomePayload> {
   readonly type = EmailType.WELCOME;
 
+  private resolveLoginUrl(loginUrl?: string) {
+    return (
+      loginUrl ??
+      process.env.FRONTEND_LOGIN_URL ??
+      'http://localhost:3000/login'
+    );
+  }
+
   protected buildSubject(payload: WelcomePayload) {
     if (payload.role === RoleEnum.RECRUITER) {
       return 'Chào mừng bạn đến với nền tảng tuyển dụng IT';
@@ -18,7 +26,7 @@ export class WelcomeStrategy extends BaseEmailStrategy<WelcomePayload> {
   protected buildText(to: string, payload: WelcomePayload) {
     const { name, role, loginUrl } = payload;
     const greeting = name ? `Xin chào ${name},` : 'Xin chào,';
-    const url = loginUrl ?? 'https://your-it-job-platform.vn/login';
+    const url = this.resolveLoginUrl(loginUrl);
 
     if (role === RoleEnum.CANDIDATE) {
       return `
@@ -60,7 +68,7 @@ Chúc bạn sớm tìm được ứng viên phù hợp!
   protected buildHtml(to: string, payload: WelcomePayload) {
     const { name, role, loginUrl } = payload;
     const greeting = name ? `Xin chào ${name},` : 'Xin chào,';
-    const url = loginUrl ?? 'https://your-it-job-platform.vn/login';
+    const url = this.resolveLoginUrl(loginUrl);
 
     if (role === RoleEnum.CANDIDATE) {
       return `

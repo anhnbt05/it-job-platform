@@ -2,8 +2,10 @@ import { SendEmailDto } from '@/modules/emails/dto';
 import { EmailStrategyRegistry } from '@/modules/emails/email-strategy.registry';
 import { createEmailTransporter } from '@/modules/emails/factories';
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class EmailsService {
@@ -13,6 +15,8 @@ export class EmailsService {
   constructor(
     private readonly configService: ConfigService,
     private readonly strategyRegistry: EmailStrategyRegistry,
+    @InjectMetric('email_jobs_total')
+    private readonly emailJobsCounter: Counter<string>,
   ) {
     this.transporter = createEmailTransporter(configService);
   }
@@ -34,7 +38,17 @@ export class EmailsService {
         text,
         html,
       });
+      this.emailJobsCounter.inc({
+        service: 'notification-service',
+        type: dto.type,
+        status: 'sent',
+      });
     } catch (error) {
+      this.emailJobsCounter.inc({
+        service: 'notification-service',
+        type: dto.type,
+        status: 'failed',
+      });
       this.logger.error('Gửi email thất bại: ', error as Error);
       throw error;
     }

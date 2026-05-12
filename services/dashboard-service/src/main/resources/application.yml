@@ -7,6 +7,10 @@ spring:
   application:
     name: dashboard-service
 
+app:
+  observability:
+    log-file: ${OBSERVABILITY_LOG_FILE:../../runtime-logs/dashboard-service.log}
+
 # Feign clients
 job-service:
   url: ${JOB_SERVICE_URL:http://localhost:8082/api}
@@ -17,7 +21,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
 
 springdoc:
   api-docs:

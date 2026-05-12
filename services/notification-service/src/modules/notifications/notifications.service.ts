@@ -25,6 +25,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class NotificationsService {
@@ -33,6 +35,8 @@ export class NotificationsService {
     private readonly userNotificationRepo: IUserNotificationsRepository,
     @Inject(NOTIFICATION_REPOSITORY_TOKEN)
     private readonly notificationRepo: INotificationsRepository,
+    @InjectMetric('notifications_created_total')
+    private readonly notificationsCreatedCounter: Counter<string>,
   ) {}
 
   async deleteUserNotifications(
@@ -106,6 +110,11 @@ export class NotificationsService {
       userId,
       contents,
       notification: existingNotification,
+    });
+
+    this.notificationsCreatedCounter.inc({
+      service: 'notification-service',
+      type,
     });
   }
 

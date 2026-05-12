@@ -1,4 +1,7 @@
-import { MetricsInterceptor } from '@/modules/observability/interceptors';
+import {
+  LoggingInterceptor,
+  MetricsInterceptor,
+} from '@/modules/observability/interceptors';
 import { Module } from '@nestjs/common';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { metricsProviders } from './providers/metrics.provider';
@@ -11,7 +14,7 @@ import { metricsProviders } from './providers/metrics.provider';
       },
     }),
   ],
-  providers: [...metricsProviders, MetricsInterceptor],
-  exports: [...metricsProviders, MetricsInterceptor],
+  providers: [...metricsProviders, MetricsInterceptor, LoggingInterceptor],
+  exports: [...metricsProviders, MetricsInterceptor, LoggingInterceptor],
 })
 export class MetricsModule {}

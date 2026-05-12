@@ -1,0 +1,85 @@
+# Load Testing
+
+Thư mục này dùng `k6` để chạy smoke, spike và stress test dựa trên endpoint thật trong source code.
+
+## Flows hiện có
+
+- `smoke`
+  - đăng nhập bằng 3 user seed: `candidate`, `recruiter`, `admin`
+  - gọi các read flow chính của `identity`, `organization`, `job`, `application`, `dashboard`
+  - tạo 1 report dashboard dạng `pdf`
+- `spike`
+  - tăng đột biến số lượng VU trong thời gian ngắn
+  - mix candidate/recruiter/admin journeys
+- `stress`
+  - tăng tải dần rồi giữ tải lâu hơn
+  - mix candidate/recruiter/admin journeys
+
+## Seed data mặc định
+
+Các giá trị mặc định lấy từ source code seed hiện có:
+
+- `admin@example.com` / `admin123`
+- `candidate@example.com` / `candidate123`
+- `recruiter@example.com` / `recruiter123`
+- company id: `11111111-1111-1111-1111-111111111111`
+- branch id: `22222222-2222-2222-2222-222222222222`
+- candidate user id: `44444444-4444-4444-4444-444444444444`
+- recruiter user id: `66666666-6666-6666-6666-666666666666`
+- open job id: `90000000-0000-0000-0000-000000000001`
+
+## Base URLs
+
+- `identity-service` và `organization-service` mặc định đi qua Kong:
+  - `http://host.docker.internal:8000/identity`
+  - `http://host.docker.internal:8000/organization`
+- `job-service`, `application-service`, `dashboard-service` mặc định gọi trực tiếp:
+  - `http://host.docker.internal:8082/api`
+  - `http://host.docker.internal:8083/api`
+  - `http://host.docker.internal:8084/api`
+
+Lý do: các Spring services hiện có `server.servlet.context-path=/api`, nên direct base URL ổn định hơn cho load test.
+
+## Cách chạy
+
+Chạy smoke:
+
+```bash
+cd infrastructure/load-testing
+TEST_ID=smoke-local ./run.sh smoke
+```
+
+Chạy spike:
+
+```bash
+SCENARIO=spike TEST_ID=spike-local docker compose up --abort-on-container-exit --exit-code-from k6
+```
+
+Chạy stress:
+
+```bash
+SCENARIO=stress TEST_ID=stress-local docker compose up --abort-on-container-exit --exit-code-from k6
+```
+
+## Biến môi trường hay dùng
+
+- `SCENARIO`
+- `TEST_ID`
+- `GATEWAY_BASE_URL`
+- `IDENTITY_BASE_URL`
+- `ORGANIZATION_BASE_URL`
+- `JOB_BASE_URL`
+- `APPLICATION_BASE_URL`
+- `DASHBOARD_BASE_URL`
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+- `CANDIDATE_EMAIL`, `CANDIDATE_PASSWORD`
+- `RECRUITER_EMAIL`, `RECRUITER_PASSWORD`
+- `FAIL_FAST=true`
+- `K6_PROMETHEUS_RW_TREND_STATS`
+
+## Lưu ý
+
+- `k6` đang dùng output `experimental-prometheus-rw`, nên Prometheus cần bật remote write receiver.
+- Mỗi run sẽ được gắn tag `testid=<TEST_ID>` và `suite=<SCENARIO>` để lọc trên dashboard Grafana.
+- Dashboard Grafana cho k6 nằm ở `infrastructure/observability/grafana/dashboards/k6-load-testing.json`.
+- Load test giả định các service target đã được chạy local và có seed data tương ứng.
