@@ -1,112 +1,170 @@
-# IT Job Platform
+# IT Job Platform Backend
 
-Monorepo cho nền tảng tuyển dụng IT theo hướng microservices.
+Monorepo backend cho nen tang tim viec lam nganh IT tai Viet Nam. Repo nay di cung frontend tai `../it-job-platform-fe`.
 
-## Service map
+## Muc tieu cua README nay
 
-- `identity-service` (`3001`): auth, user profile, candidate data
-- `organization-service` (`3002`): companies, branches, categories
-- `notification-service` (`3003`): emails, notifications
-- `job-service` (`8082`): job posting và thống kê jobs
-- `application-service` (`8083`): application workflow trên MongoDB
-- `dashboard-service` (`8084`): tổng hợp báo cáo từ job/application services
-- `gateway/kong` (`8000`): API gateway cho toàn bộ service
+README nay uu tien mot muc tieu: giup ban dung duoc ban demo local nhanh, on dinh va it do vo nhat.
 
-## Hạ tầng local
+Neu can runbook ngan gon cho buoi trinh bay, xem them [DEMO.md](./DEMO.md).
 
-Root `docker-compose.yml` dùng để chạy các thành phần hạ tầng và gateway:
+## Kien truc nhanh
 
-- Kafka + Kafka UI
-- PostgreSQL / MySQL / MongoDB
-- Redis
-- Prometheus / Grafana / Loki / Jaeger
-- Kong Gateway
+- `identity-service` (`3001`): auth, user, profile, candidate, recruiter
+- `organization-service` (`3002`): company, branch, category
+- `notification-service` (`3003`): notification, email
+- `job-service` (`8082`): dang tin va quan ly job
+- `application-service` (`8083`): workflow ung tuyen
+- `dashboard-service` (`8084`): tong hop bao cao
+- `gateway/kong` (`8000`): API gateway de frontend goi
 
-Lưu ý: compose ở root hiện tập trung vào **infrastructure + gateway**. App services được kỳ vọng chạy local từ từng thư mục service.
+## Dieu kien can
 
-## Khởi động nhanh
+- Docker Desktop
+- Node.js 20+
+- npm 10+
+- Java 17
+- Maven 3.9+
 
-```bash
-docker compose up -d
-```
+## Port local mac dinh
 
-Sau đó chạy từng service từ thư mục tương ứng.
-
-Thứ tự khuyến nghị để local end-to-end ổn định:
-
-1. `docker compose up -d` ở root để bật database, Kafka, Redis, observability, Kong.
-2. Chạy 3 Nest services:
-   - `services/identity-service`
-   - `services/organization-service`
-   - `services/notification-service`
-3. Chạy 3 Spring services:
-   - `services/job-service`
-   - `services/application-service`
-   - `services/dashboard-service`
-4. Mở Kong/Grafana/Kafka UI để kiểm tra routing, metrics, logs.
-
-Node/Nest services:
-
-```bash
-npm install
-npm run start:dev
-```
-
-Spring services:
-
-```bash
-mvn spring-boot:run
-```
-
-## CI coverage
-
-Mỗi service hiện đã có `Jenkinsfile` riêng trong chính thư mục service:
-
-- `identity-service`: Node/Nest pipeline với `npm ci`, test, build, Docker image
-- `organization-service`: Node/Nest pipeline với `npm ci`, test, build, Docker image
-- `notification-service`: Node/Nest pipeline với `npm ci`, test, build, Docker image
-- `job-service`: Maven test, package, Docker image
-- `application-service`: Maven test, package, Docker image
-- `dashboard-service`: Maven test, package, Docker image
-
-Giả định hiện tại:
-
-- Jenkins agent chạy Linux
-- agent có sẵn `docker`
-- Node services cần `npm`
-- Spring services cần `mvn`
-
-## Hạ tầng và port mặc định
-
+- Frontend: `3000`
+- Identity service: `3001`
+- Organization service: `3002`
+- Notification service: `3003`
+- Job service: `8082`
+- Application service: `8083`
+- Dashboard service: `8084`
 - Kong proxy: `8000`
-- Kong admin: `8001`
 - Kafka UI: `8080`
 - Prometheus: `9090`
 - Grafana: `3005`
 - Jaeger: `16686`
-- Identity DB: `5432`
-- Job DB: `5433`
-- Notification DB: `5434`
-- Application Mongo: `27018`
-- Organization MySQL: `3306`
-- Redis: `6379`
 
-## Ghi chú
+## 1. Tao env cho cac service Nest
 
-- `dashboard-service` hiện là stateless aggregator, không cần database riêng.
-- `infrastructure/databases/dasboard-db` được giữ lại để tránh làm gãy tham chiếu cũ trong repo history, nhưng không còn là DB active.
-- `infrastructure/redis` đã có sẵn cho các use case cache/queue trong tương lai, hiện chưa có service runtime phụ thuộc trực tiếp.
-- Observability dashboards được provision sẵn trong `infrastructure/observability`; xem thêm `infrastructure/observability/README.md`.
+Copy cac file mau sau thanh `.env`:
 
-## Done Locally Checklist
+- `services/identity-service/.env.example`
+- `services/organization-service/.env.example`
+- `services/notification-service/.env.example`
 
-Có thể xem local stack là "khá hoàn chỉnh" khi các mục sau đều pass:
+Ghi chu:
 
-- `docker compose up -d` ở root chạy sạch, không container infra nào crash loop
-- cả 6 service boot thành công với env local hiện tại
-- Kong route được ít nhất `identity` và `organization`
-- Prometheus scrape đủ 6 target app
-- Grafana xem được dashboard metrics và log panels
-- Kafka topic được tạo và consumer/producer chính hoạt động
-- k6 smoke test trong `infrastructure/load-testing` chạy qua các flow chính
-- 6 `Jenkinsfile` đều build được trên Linux agent có Docker
+- 3 service Spring Boot hien da co default trong `application.yml`, khong bat buoc phai co `.env`.
+- Frontend co file mau rieng trong repo `it-job-platform-fe/.env.example`.
+
+## 2. Khoi dong ha tang va gateway
+
+Chay trong root `it-job-platform`:
+
+```powershell
+docker compose up -d
+```
+
+Compose nay bat:
+
+- PostgreSQL / MySQL / MongoDB
+- Kafka + Kafka UI
+- Redis
+- Prometheus / Grafana / Loki / Jaeger
+- Kong Gateway
+
+## 3. Seed du lieu demo
+
+Windows PowerShell:
+
+```powershell
+.\scripts\db\seed.ps1
+```
+
+Bash:
+
+```bash
+./scripts/db/seed.sh
+```
+
+Script seed se:
+
+- migrate + seed `organization-service`
+- migrate + seed `identity-service`
+- migrate + seed `notification-service`
+- seed `job-service`
+- seed `application-service`
+
+Neu chi muon seed lai mot service:
+
+```powershell
+.\scripts\db\seed.ps1 identity-service
+```
+
+## 4. Chay cac app service
+
+Mo 6 terminal.
+
+Node/Nest:
+
+```powershell
+cd services\identity-service
+npm run start:dev
+```
+
+```powershell
+cd services\organization-service
+npm run start:dev
+```
+
+```powershell
+cd services\notification-service
+npm run start:dev
+```
+
+Spring Boot:
+
+```powershell
+cd services\job-service
+mvn spring-boot:run
+```
+
+```powershell
+cd services\application-service
+mvn spring-boot:run
+```
+
+```powershell
+cd services\dashboard-service
+mvn spring-boot:run
+```
+
+## 5. Kiem tra nhanh backend da san sang demo
+
+- `http://localhost:8000/identity` phan hoi qua Kong
+- `http://localhost:8080` mo duoc Kafka UI
+- `http://localhost:3005` mo duoc Grafana
+- 6 service boot khong crash
+
+## 6. Tai khoan demo da seed san
+
+- Admin: `admin@example.com` / `admin123`
+- Recruiter: `recruiter@example.com` / `recruiter123`
+- Candidate: `candidate@example.com` / `candidate123`
+
+Frontend login page da co nut dien nhanh 3 tai khoan nay.
+
+## 7. Luong demo de xuat
+
+1. Dang nhap `candidate@example.com` va demo tim viec.
+2. Dang nhap `recruiter@example.com` va demo quan ly bai dang.
+3. Dang nhap `admin@example.com` va demo dashboard, categories, companies.
+
+## 8. Ngoai pham vi demo co ban
+
+- Tinh nang gui email can cau hinh SMTP thuc te
+- Tinh nang upload avatar / resume can cau hinh ImageKit thuc te
+- Quan sat metrics/logs da co stack local, nhung khong bat buoc cho demo co ban
+
+## 9. Luu y quan trong
+
+- Kong dang route vao `host.docker.internal`, vi vay app services duoc ky vong chay tren may host.
+- Neu dung Windows, `scripts/db/seed.ps1` se tien hon `seed.sh`.
+- Neu `mvn` chua co trong PATH, cac Spring services va script seed cho Java se khong chay duoc.
