@@ -48,10 +48,14 @@ Copy cac file mau sau thanh `.env`:
 - `services/identity-service/.env.example`
 - `services/organization-service/.env.example`
 - `services/notification-service/.env.example`
+- `services/job-service/.env.example`
+- `services/application-service/.env.example`
+- `services/dashboard-service/.env.example`
 
 Ghi chu:
 
-- 3 service Spring Boot hien da co default trong `application.yml`, khong bat buoc phai co `.env`.
+- 3 service Spring Boot hien da co default trong `application.yml`, nen van co the chay ngay ca khi khong dung `.env`.
+- Repo hien tai khong tu dong nap `.env` cho Spring Boot khi chay `mvn spring-boot:run`; cac file `.env` o 3 service Spring duoc them de luu cau hinh local/demo va tham chieu nhanh.
 - Frontend co file mau rieng trong repo `it-job-platform-fe/.env.example`.
 
 ## 2. Khoi dong ha tang va gateway
