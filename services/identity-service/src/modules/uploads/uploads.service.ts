@@ -10,30 +10,38 @@ import ImageKit from 'imagekit';
 
 @Injectable()
 export class UploadsService {
+  private static readonly IMAGEKIT_URL_ENDPOINT_FALLBACK =
+    'https://ik.imagekit.io/local-demo';
   private readonly imagekit: ImageKit;
+  private readonly defaultFolder: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
   ) {
+    this.defaultFolder =
+      this.configService.get<string>('imagekit.folder') ?? '/captures';
+
     this.imagekit = new ImageKit({
       publicKey: this.configService.get<string>('imagekit.public_key') ?? '',
       privateKey: this.configService.get<string>('imagekit.private_key') ?? '',
       urlEndpoint:
-        this.configService.get<string>('imagekit.url_endpoint') ?? '',
+        this.configService.get<string>('imagekit.url_endpoint') ||
+        UploadsService.IMAGEKIT_URL_ENDPOINT_FALLBACK,
     });
   }
 
   async uploadImage(
     file: Express.Multer.File,
-    folder: string = '/identity-service',
+    folder?: string,
   ): Promise<UploadedImage> {
     const base64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    const targetFolder = folder?.trim() || this.defaultFolder;
 
     const uploadResult = await this.imagekit.upload({
       file: base64,
       fileName: file.originalname,
-      folder,
+      folder: targetFolder,
     });
 
     return {

@@ -9,6 +9,7 @@ export default () => ({
     public_key: process.env.IMAGEKIT_PUBLIC_KEY || '',
     private_key: process.env.IMAGEKIT_PRIVATE_KEY || '',
     url_endpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
+    folder: process.env.IMAGEKIT_FOLDER || '/captures',
   },
   kafka: {
     client_id: process.env.KAFKA_CLIENT_ID || '',
