@@ -12,9 +12,13 @@ import {
   Notifications,
   UserNotifications,
 } from '@/modules/notifications/entities';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserNotifications, Notifications])],
+  imports: [
+    TypeOrmModule.forFeature([UserNotifications, Notifications]),
+    MetricsModule,
+  ],
   controllers: [NotificationsController],
   providers: [
     NotificationsService,

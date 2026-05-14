@@ -24,6 +24,9 @@ function Invoke-NpmScript {
     Push-Location (Join-Path $servicesDir $TargetService)
     try {
         npm run $ScriptName
+        if ($LASTEXITCODE -ne 0) {
+            throw "[$TargetService] npm run $ScriptName failed with exit code $LASTEXITCODE."
+        }
     }
     finally {
         Pop-Location
@@ -55,6 +58,9 @@ function Invoke-MavenSeed {
         $previousSpringApplicationJson = $env:SPRING_APPLICATION_JSON
         $env:SPRING_APPLICATION_JSON = '{"app":{"seed":true},"spring":{"main":{"web-application-type":"none"},"kafka":{"listener":{"auto-startup":false}},"task":{"scheduling":{"enabled":false}}}}'
         & $mavenCommand -q -DskipTests spring-boot:run
+        if ($LASTEXITCODE -ne 0) {
+            throw "[$TargetService] Maven seed failed with exit code $LASTEXITCODE."
+        }
     }
     finally {
         $env:SPRING_APPLICATION_JSON = $previousSpringApplicationJson

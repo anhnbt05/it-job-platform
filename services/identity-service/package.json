@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts"
   },
   "scripts": {
     "build": "nest build",
@@ -28,7 +28,7 @@
     "prisma:reset": "prisma migrate reset --schema=prisma/schema.prisma",
     "prisma:push": "prisma db push --schema=prisma/schema.prisma",
     "db:dev": "prisma migrate dev --schema=prisma/schema.prisma && prisma db seed",
-    "db:seed": "prisma db seed",
+    "db:seed": "ts-node prisma/seed.ts",
     "db:reset": "prisma migrate reset --schema=prisma/schema.prisma"
   },
   "dependencies": {

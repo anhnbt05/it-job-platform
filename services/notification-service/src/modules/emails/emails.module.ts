@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 import { EmailStrategyRegistry } from './email-strategy.registry';
 import { EmailsService } from './emails.service';
 import {
@@ -11,6 +12,7 @@ import {
 
 @Global()
 @Module({
+  imports: [MetricsModule],
   providers: [
     EmailsService,
     EmailStrategyRegistry,

@@ -3,10 +3,13 @@ import { JobsService } from './jobs.service';
 import { GraphileWorkerModule } from 'nestjs-graphile-worker';
 import { ConfigService } from '@nestjs/config';
 import { SendEmailTask } from '@/modules/jobs/tasks';
-import { EmailsService } from '@/modules/emails/emails.service';
+import { EmailsModule } from '@/modules/emails/emails.module';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 
 @Module({
   imports: [
+    EmailsModule,
+    MetricsModule,
     GraphileWorkerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -16,7 +19,7 @@ import { EmailsService } from '@/modules/emails/emails.service';
       }),
     }),
   ],
-  providers: [JobsService, SendEmailTask, EmailsService],
+  providers: [JobsService, SendEmailTask],
   exports: [JobsService],
 })
 export class JobsModule {}
