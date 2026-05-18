@@ -1,4 +1,5 @@
 import envConfig from '@/config/env.config';
+import { HealthController } from '@/health.controller';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { CompaniesModule } from '@/modules/companies/companies.module';
 import { KafkaModule } from '@/modules/kafka/kafka.module';
@@ -11,6 +12,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,

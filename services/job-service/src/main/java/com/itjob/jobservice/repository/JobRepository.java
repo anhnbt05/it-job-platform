@@ -31,12 +31,18 @@ public interface JobRepository extends JpaRepository<Job, UUID> {
     @Query("SELECT j FROM Job j WHERE j.expiredAt > :now AND j.expiredAt <= :soonDate AND j.status = 'open'")
     List<Job> findExpiringSoonJobs(@Param("now") LocalDateTime now, @Param("soonDate") LocalDateTime soonDate);
 
-    @Query("SELECT COUNT(j) FROM Job j WHERE j.status = :status AND (:startDate IS NULL OR j.postedAt >= :startDate) AND (:endDate IS NULL OR j.postedAt <= :endDate)")
-    long countByStatusAndDateRange(@Param("status") JobStatus status, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    long countByStatus(JobStatus status);
 
-    @Query("SELECT COUNT(j) FROM Job j WHERE (:startDate IS NULL OR j.postedAt >= :startDate) AND (:endDate IS NULL OR j.postedAt <= :endDate)")
-    long countByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    long countByPostedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    long countByPostedAtGreaterThanEqual(LocalDateTime startDate);
+    long countByPostedAtLessThanEqual(LocalDateTime endDate);
 
-    @Query("SELECT COUNT(j) FROM Job j WHERE j.expiredAt < :now AND (:startDate IS NULL OR j.postedAt >= :startDate) AND (:endDate IS NULL OR j.postedAt <= :endDate)")
-    long countExpiredByDateRange(@Param("now") LocalDateTime now, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+    long countByStatusAndPostedAtBetween(JobStatus status, LocalDateTime startDate, LocalDateTime endDate);
+    long countByStatusAndPostedAtGreaterThanEqual(JobStatus status, LocalDateTime startDate);
+    long countByStatusAndPostedAtLessThanEqual(JobStatus status, LocalDateTime endDate);
+
+    long countByExpiredAtLessThan(LocalDateTime now);
+    long countByExpiredAtLessThanAndPostedAtBetween(LocalDateTime now, LocalDateTime startDate, LocalDateTime endDate);
+    long countByExpiredAtLessThanAndPostedAtGreaterThanEqual(LocalDateTime now, LocalDateTime startDate);
+    long countByExpiredAtLessThanAndPostedAtLessThanEqual(LocalDateTime now, LocalDateTime endDate);
 }

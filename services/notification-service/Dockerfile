@@ -1,18 +1,20 @@
+# syntax=docker/dockerfile:1.7
+# ===== Dependencies stage =====
+FROM node:20-alpine AS deps
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+
 # ===== Build stage =====
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# copy package files
-COPY package*.json ./
-
-# install dependencies
-RUN npm install
-
-# copy source code
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# build NestJS
 RUN npm run build
 
 
@@ -21,17 +23,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# copy package files
 COPY package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
 
-# install only production deps
-RUN npm install --omit=dev
-
-# copy build output
 COPY --from=builder /app/dist ./dist
 
-# port của service
 EXPOSE 3003
 
-# start app
 CMD ["node", "dist/main.js"]

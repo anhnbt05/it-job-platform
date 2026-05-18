@@ -1,0 +1,178 @@
+services:
+  identity-service:
+    build:
+      context: ./services/identity-service
+      dockerfile: Dockerfile
+    container_name: identity-service
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@identity-postgres:5432/identity_db?schema=public
+      JWT_SECRET: it-job-demo-jwt-secret
+      JWT_REFRESH_SECRET: it-job-demo-jwt-refresh-secret
+      JWT_EXPIRATION_TIME: 120s
+      JWT_REFRESH_EXPIRATION_TIME: 7d
+      KAFKA_CLIENT_ID: identity-service
+      KAFKA_GROUP_ID: identity-service-group
+      KAFKA_BROKERS: kafka:9092
+      FRONTEND_LOGIN_URL: http://localhost:3000/login
+      IMAGEKIT_PUBLIC_KEY: public_jR+qP0WbyCh9fHVI8mZXPMQe3qE=
+      IMAGEKIT_PRIVATE_KEY: private_tsBf7rGl8sQCgX2WTxbJtRKFMbk=
+      IMAGEKIT_FOLDER: /captures
+      OBSERVABILITY_LOG_FILE: /app/runtime-logs/identity-service.log
+      KAFKAJS_NO_PARTITIONER_WARNING: "1"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./runtime-logs:/app/runtime-logs
+    depends_on:
+      - identity-postgres
+      - kafka
+    networks:
+      - it-job-network
+
+  organization-service:
+    build:
+      context: ./services/organization-service
+      dockerfile: Dockerfile
+    container_name: organization-service
+    restart: unless-stopped
+    environment:
+      PORT: 3002
+      DATABASE_URL: mysql://organization:organization@organization-mysql:3306/organization_db
+      JWT_SECRET: it-job-demo-jwt-secret
+      JWT_REFRESH_SECRET: it-job-demo-jwt-refresh-secret
+      JWT_EXPIRATION_TIME: 120s
+      JWT_REFRESH_EXPIRATION_TIME: 7d
+      KAFKA_CLIENT_ID: organization-service
+      KAFKA_GROUP_ID: organization-service-group
+      KAFKA_BROKERS: kafka:9092
+      OBSERVABILITY_LOG_FILE: /app/runtime-logs/organization-service.log
+      KAFKAJS_NO_PARTITIONER_WARNING: "1"
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./runtime-logs:/app/runtime-logs
+    depends_on:
+      - organization-mysql
+      - kafka
+    networks:
+      - it-job-network
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: unless-stopped
+    environment:
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:postgres@notification-postgres:5432/notification_db
+      JWT_SECRET: it-job-demo-jwt-secret
+      JWT_REFRESH_SECRET: it-job-demo-jwt-refresh-secret
+      JWT_EXPIRATION_TIME: 120s
+      JWT_REFRESH_EXPIRATION_TIME: 7d
+      KAFKA_CLIENT_ID: notification-service
+      KAFKA_GROUP_ID: notification-service-group
+      KAFKA_BROKERS: kafka:9092
+      MAIL_HOST: host.docker.internal
+      MAIL_PORT: 1025
+      MAIL_SECURE: "false"
+      MAIL_USER: ""
+      MAIL_PASS: ""
+      MAIL_FROM: no-reply@itjob.local
+      FRONTEND_LOGIN_URL: http://localhost:3000/login
+      OBSERVABILITY_LOG_FILE: /app/runtime-logs/notification-service.log
+      KAFKAJS_NO_PARTITIONER_WARNING: "1"
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./runtime-logs:/app/runtime-logs
+    depends_on:
+      - notification-postgres
+      - kafka
+    networks:
+      - it-job-network
+
+  job-service:
+    build:
+      context: ./services/job-service
+      dockerfile: Dockerfile
+    container_name: job-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: job-postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APPLICATION_SERVICE_URL: http://application-service:8083/api
+      OBSERVABILITY_LOG_FILE: /app/runtime-logs/job-service.log
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./runtime-logs:/app/runtime-logs
+    depends_on:
+      - job-postgres
+      - kafka
+    networks:
+      - it-job-network
+
+  application-service:
+    build:
+      context: ./services/application-service
+      dockerfile: Dockerfile
+    container_name: application-service
+    restart: unless-stopped
+    environment:
+      MONGO_HOST: application-mongo
+      MONGO_PORT: 27017
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JOB_SERVICE_URL: http://job-service:8082/api
+      OBSERVABILITY_LOG_FILE: /app/runtime-logs/application-service.log
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./runtime-logs:/app/runtime-logs
+    depends_on:
+      - application-mongo
+      - kafka
+    networks:
+      - it-job-network
+
+  dashboard-service:
+    build:
+      context: ./services/dashboard-service
+      dockerfile: Dockerfile
+    container_name: dashboard-service
+    restart: unless-stopped
+    environment:
+      JOB_SERVICE_URL: http://job-service:8082/api
+      APPLICATION_SERVICE_URL: http://application-service:8083/api
+      OBSERVABILITY_LOG_FILE: /app/runtime-logs/dashboard-service.log
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./runtime-logs:/app/runtime-logs
+    depends_on:
+      - job-service
+      - application-service
+    networks:
+      - it-job-network
+
+  frontend:
+    build:
+      context: ../it-job-platform-fe
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    container_name: it-job-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - kong
+    networks:
+      - it-job-network

@@ -67,7 +67,8 @@ public class ApplicationDataSeeder implements ApplicationRunner {
             log.error("Application service seed failed.", exception);
         }
 
-        System.exit(SpringApplication.exit(applicationContext, () -> exitCode));
+        final int finalExitCode = exitCode;
+        System.exit(SpringApplication.exit(applicationContext, () -> finalExitCode));
     }
 
     private void seedApplications() {

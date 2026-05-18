@@ -1,5 +1,6 @@
 import { JwtStrategy, RtStrategy } from '@/common/providers/passport';
 import envConfig from '@/config/env.config';
+import { HealthController } from '@/health.controller';
 import { BranchesModule } from '@/modules/branches/branches.module';
 import { CategoriesModule } from '@/modules/categories/categories.module';
 import { CompaniesModule } from '@/modules/companies/companies.module';
@@ -11,6 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,

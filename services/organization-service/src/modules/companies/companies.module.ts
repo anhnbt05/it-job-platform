@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Companies } from '@/modules/companies/entities';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 import { COMPANY_REPOSITORY } from './domain';
 import {
   CreateCompanyUseCase,
@@ -20,7 +21,7 @@ import { CompanyTypeOrmRepository } from './infrastructure/persistence';
 import { KafkaCompanySnapshotPublisher } from './infrastructure/publishers';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Companies])],
+  imports: [TypeOrmModule.forFeature([Companies]), MetricsModule],
   controllers: [CompaniesController],
   providers: [
     CompaniesService,

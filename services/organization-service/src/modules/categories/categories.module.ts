@@ -3,6 +3,7 @@ import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Categories } from '@/modules/categories/entities';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 import { CATEGORY_REPOSITORY } from './domain';
 import {
   CATEGORY_MUTATION_TRACKER,
@@ -20,7 +21,7 @@ import { CategoryTypeOrmRepository } from './infrastructure/persistence';
 import { KafkaCategorySnapshotPublisher } from './infrastructure/publishers';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Categories])],
+  imports: [TypeOrmModule.forFeature([Categories]), MetricsModule],
   controllers: [CategoriesController],
   providers: [
     CategoriesService,

@@ -1,4 +1,5 @@
 import { JwtStrategy, RtStrategy } from '@/common/providers/passport';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -22,6 +23,7 @@ import { AuthService } from './auth.service';
         },
       }),
     }),
+    MetricsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, RtStrategy, JwtStrategy],

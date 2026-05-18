@@ -313,12 +313,12 @@ public class JobService {
      * Thống kê jobs (cho Dashboard Service)
      */
     public JobSummaryResponse getJobSummary(LocalDateTime startDate, LocalDateTime endDate) {
-        long total = jobRepository.countByDateRange(startDate, endDate);
-        long open = jobRepository.countByStatusAndDateRange(JobStatus.open, startDate, endDate);
-        long pending = jobRepository.countByStatusAndDateRange(JobStatus.pending, startDate, endDate);
-        long closed = jobRepository.countByStatusAndDateRange(JobStatus.closed, startDate, endDate);
-        long rejected = jobRepository.countByStatusAndDateRange(JobStatus.rejected, startDate, endDate);
-        long expired = jobRepository.countExpiredByDateRange(LocalDateTime.now(), startDate, endDate);
+        long total = countJobsInRange(startDate, endDate);
+        long open = countJobsByStatusInRange(JobStatus.open, startDate, endDate);
+        long pending = countJobsByStatusInRange(JobStatus.pending, startDate, endDate);
+        long closed = countJobsByStatusInRange(JobStatus.closed, startDate, endDate);
+        long rejected = countJobsByStatusInRange(JobStatus.rejected, startDate, endDate);
+        long expired = countExpiredJobsInRange(LocalDateTime.now(), startDate, endDate);
 
         return JobSummaryResponse.builder()
                 .total(total)
@@ -457,5 +457,44 @@ public class JobService {
                 "action", action,
                 "outcome", outcome
         ).increment();
+    }
+
+    private long countJobsInRange(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate != null && endDate != null) {
+            return jobRepository.countByPostedAtBetween(startDate, endDate);
+        }
+        if (startDate != null) {
+            return jobRepository.countByPostedAtGreaterThanEqual(startDate);
+        }
+        if (endDate != null) {
+            return jobRepository.countByPostedAtLessThanEqual(endDate);
+        }
+        return jobRepository.count();
+    }
+
+    private long countJobsByStatusInRange(JobStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate != null && endDate != null) {
+            return jobRepository.countByStatusAndPostedAtBetween(status, startDate, endDate);
+        }
+        if (startDate != null) {
+            return jobRepository.countByStatusAndPostedAtGreaterThanEqual(status, startDate);
+        }
+        if (endDate != null) {
+            return jobRepository.countByStatusAndPostedAtLessThanEqual(status, endDate);
+        }
+        return jobRepository.countByStatus(status);
+    }
+
+    private long countExpiredJobsInRange(LocalDateTime now, LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate != null && endDate != null) {
+            return jobRepository.countByExpiredAtLessThanAndPostedAtBetween(now, startDate, endDate);
+        }
+        if (startDate != null) {
+            return jobRepository.countByExpiredAtLessThanAndPostedAtGreaterThanEqual(now, startDate);
+        }
+        if (endDate != null) {
+            return jobRepository.countByExpiredAtLessThanAndPostedAtLessThanEqual(now, endDate);
+        }
+        return jobRepository.countByExpiredAtLessThan(now);
     }
 }

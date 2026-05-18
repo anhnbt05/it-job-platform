@@ -1,6 +1,39 @@
 _format_version: "3.0"
 _transform: true
 
+plugins:
+  - name: cors
+    config:
+      origins:
+        - http://localhost:3000
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Accept-Version
+        - Authorization
+        - Content-Length
+        - Content-MD5
+        - Content-Type
+        - Date
+        - Origin
+        - X-Auth-Token
+        - X-User-Id
+        - X-User-Role
+        - X-User-Name
+        - X-Job-Title
+        - X-Recruiter-Id
+      exposed_headers:
+        - Authorization
+        - Content-Disposition
+      credentials: true
+      max_age: 3600
+
 services:
   - name: identity-service
     url: http://host.docker.internal:3001
@@ -27,7 +60,7 @@ services:
         strip_path: true
 
   - name: job-service
-    url: http://host.docker.internal:8082
+    url: http://host.docker.internal:8082/api
     routes:
       - name: job-route
         paths:
@@ -35,7 +68,7 @@ services:
         strip_path: false
 
   - name: application-service
-    url: http://host.docker.internal:8083
+    url: http://host.docker.internal:8083/api
     routes:
       - name: application-route
         paths:
@@ -43,7 +76,7 @@ services:
         strip_path: false
 
   - name: dashboard-service
-    url: http://host.docker.internal:8084
+    url: http://host.docker.internal:8084/api
     routes:
       - name: dashboard-route
         paths:

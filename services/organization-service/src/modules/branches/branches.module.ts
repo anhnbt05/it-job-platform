@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BranchesController } from './branches.controller';
 import { BranchesService } from './branches.service';
 import { CompaniesModule } from '@/modules/companies/companies.module';
+import { MetricsModule } from '@/modules/observability/metrics.module';
 import { BRANCH_REPOSITORY } from './domain';
 import {
   BRANCH_MUTATION_TRACKER,
@@ -21,7 +22,7 @@ import { BranchTypeOrmRepository } from './infrastructure/persistence';
 import { KafkaBranchSnapshotPublisher } from './infrastructure/publishers';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Branches]), CompaniesModule],
+  imports: [TypeOrmModule.forFeature([Branches]), CompaniesModule, MetricsModule],
   controllers: [BranchesController],
   providers: [
     BranchesService,

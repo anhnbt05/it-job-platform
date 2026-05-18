@@ -230,7 +230,8 @@ public class JobDataSeeder implements ApplicationRunner {
             log.error("Job service seed failed.", exception);
         }
 
-        System.exit(SpringApplication.exit(applicationContext, () -> exitCode));
+        final int finalExitCode = exitCode;
+        System.exit(SpringApplication.exit(applicationContext, () -> finalExitCode));
     }
 
     private void seedCategorySnapshots() {
