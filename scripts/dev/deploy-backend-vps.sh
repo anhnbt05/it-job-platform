@@ -5,6 +5,7 @@ ROOT_DIR="${ROOT_DIR:-/opt/it-job/it-job-platform}"
 RUN_SEED="${RUN_SEED:-0}"
 START_OBSERVABILITY="${START_OBSERVABILITY:-1}"
 VERIFY_FRONTEND="${VERIFY_FRONTEND:-1}"
+FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
 cd "$ROOT_DIR"
 
@@ -124,7 +125,7 @@ wait_http http://127.0.0.1:8084/api/health dashboard-service
 wait_http http://127.0.0.1:8000/identity/health kong-identity
 
 if [[ "$VERIFY_FRONTEND" == "1" ]]; then
-  wait_http http://127.0.0.1/ frontend
+  wait_http "http://127.0.0.1:${FRONTEND_PORT}" frontend
 fi
 
 log "backend deployment completed"

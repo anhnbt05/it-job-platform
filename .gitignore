@@ -3,6 +3,9 @@
 target/
 out/
 node_modules/
+.env
+.env.*
+!.env.example
 .DS_Store
 runtime-logs/*.log
 runtime-logs/*.jsonl

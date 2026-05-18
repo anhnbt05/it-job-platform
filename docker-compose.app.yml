@@ -19,6 +19,7 @@ services:
       IMAGEKIT_PUBLIC_KEY: public_jR+qP0WbyCh9fHVI8mZXPMQe3qE=
       IMAGEKIT_PRIVATE_KEY: private_tsBf7rGl8sQCgX2WTxbJtRKFMbk=
       IMAGEKIT_FOLDER: /captures
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/identity-service.log
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
     ports:
@@ -47,6 +48,7 @@ services:
       KAFKA_CLIENT_ID: organization-service
       KAFKA_GROUP_ID: organization-service-group
       KAFKA_BROKERS: kafka:9092
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/organization-service.log
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
     ports:
@@ -82,6 +84,7 @@ services:
       MAIL_PASS: ""
       MAIL_FROM: no-reply@itjob.local
       FRONTEND_LOGIN_URL: ${FRONTEND_LOGIN_URL:-http://localhost:3000/login}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/notification-service.log
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
     ports:
@@ -165,11 +168,12 @@ services:
       context: ../it-job-platform-fe
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     container_name: it-job-frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://kong:8000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
