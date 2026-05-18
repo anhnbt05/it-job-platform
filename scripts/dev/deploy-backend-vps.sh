@@ -102,32 +102,6 @@ wait_kafka() {
   log "kafka broker is ready for admin operations"
 }
 
-normalize_postgres_password() {
-  local container="$1"
-  local user="$2"
-  local password="$3"
-  local escaped_password="${password//\'/\'\'}"
-
-  docker exec -i "$container" psql -U postgres -d postgres \
-    -c "ALTER USER \"$user\" WITH PASSWORD '$escaped_password';" >/dev/null
-
-  log "normalized postgres password for ${container}/${user}"
-}
-
-normalize_database_credentials() {
-  normalize_postgres_password "identity-postgres" \
-    "${IDENTITY_POSTGRES_USER:-postgres}" \
-    "${IDENTITY_POSTGRES_PASSWORD:-postgres}"
-
-  normalize_postgres_password "job-postgres" \
-    "${JOB_POSTGRES_USER:-postgres}" \
-    "${JOB_POSTGRES_PASSWORD:-postgres}"
-
-  normalize_postgres_password "notification-postgres" \
-    "${NOTIFICATION_POSTGRES_USER:-postgres}" \
-    "${NOTIFICATION_POSTGRES_PASSWORD:-postgres}"
-}
-
 install_seed_dependencies() {
   for svc in identity-service organization-service notification-service; do
     log "npm install for ${svc}"
@@ -162,9 +136,10 @@ wait_tcp 127.0.0.1 "${ORGANIZATION_MYSQL_PORT:-3306}" organization-mysql
 wait_tcp 127.0.0.1 "${APPLICATION_MONGO_PORT:-27018}" application-mongo
 wait_tcp 127.0.0.1 "${REDIS_PORT:-6379}" redis
 wait_tcp 127.0.0.1 "${KAFKA_EXTERNAL_PORT:-29092}" kafka-external
-wait_http "http://127.0.0.1:${KONG_PROXY_PORT:-8000}" kong
+wait_tcp 127.0.0.1 "${KONG_PROXY_PORT:-8000}" kong-proxy
+wait_tcp 127.0.0.1 "${KONG_ADMIN_PORT:-8001}" kong-admin
 
-normalize_database_credentials
+bash ./scripts/dev/normalize-db-passwords.sh
 wait_kafka
 
 log "creating kafka topics"

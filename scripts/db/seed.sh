@@ -11,6 +11,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SERVICES_DIR="$ROOT_DIR/services"
+ROOT_ENV_FILE="$ROOT_DIR/.env"
 
 SEEDABLE_SERVICES=(
   "identity-service"
@@ -19,6 +20,83 @@ SEEDABLE_SERVICES=(
   "job-service"
   "application-service"
 )
+
+load_root_env() {
+  if [[ -f "$ROOT_ENV_FILE" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$ROOT_ENV_FILE"
+    set +a
+  fi
+}
+
+prepare_identity_env() {
+  export PORT="${IDENTITY_SERVICE_PORT:-3001}"
+  export DATABASE_URL="postgresql://${IDENTITY_POSTGRES_USER:-postgres}:${IDENTITY_POSTGRES_PASSWORD:-postgres}@localhost:${IDENTITY_POSTGRES_PORT:-5432}/${IDENTITY_POSTGRES_DB:-identity_db}?schema=public"
+  export JWT_SECRET="${JWT_SECRET:-it-job-demo-jwt-secret}"
+  export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}"
+  export JWT_EXPIRATION_TIME="${JWT_EXPIRATION_TIME:-120s}"
+  export JWT_REFRESH_EXPIRATION_TIME="${JWT_REFRESH_EXPIRATION_TIME:-7d}"
+  export KAFKA_CLIENT_ID="identity-service"
+  export KAFKA_GROUP_ID="identity-service-group"
+  export KAFKA_BROKERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
+  export FRONTEND_LOGIN_URL="${FRONTEND_LOGIN_URL:-http://localhost:3000/login}"
+  export IMAGEKIT_PUBLIC_KEY="${IMAGEKIT_PUBLIC_KEY:-public_jR+qP0WbyCh9fHVI8mZXPMQe3qE=}"
+  export IMAGEKIT_PRIVATE_KEY="${IMAGEKIT_PRIVATE_KEY:-private_tsBf7rGl8sQCgX2WTxbJtRKFMbk=}"
+  export IMAGEKIT_FOLDER="${IMAGEKIT_FOLDER:-/captures}"
+  export OBSERVABILITY_LOG_FILE="../../runtime-logs/identity-service.log"
+}
+
+prepare_organization_env() {
+  export PORT="${ORGANIZATION_SERVICE_PORT:-3002}"
+  export DATABASE_URL="mysql://${ORGANIZATION_MYSQL_USER:-organization}:${ORGANIZATION_MYSQL_PASSWORD:-organization}@localhost:${ORGANIZATION_MYSQL_PORT:-3306}/${ORGANIZATION_MYSQL_DB:-organization_db}"
+  export JWT_SECRET="${JWT_SECRET:-it-job-demo-jwt-secret}"
+  export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}"
+  export JWT_EXPIRATION_TIME="${JWT_EXPIRATION_TIME:-120s}"
+  export JWT_REFRESH_EXPIRATION_TIME="${JWT_REFRESH_EXPIRATION_TIME:-7d}"
+  export KAFKA_CLIENT_ID="organization-service"
+  export KAFKA_GROUP_ID="organization-service-group"
+  export KAFKA_BROKERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
+  export OBSERVABILITY_LOG_FILE="../../runtime-logs/organization-service.log"
+}
+
+prepare_notification_env() {
+  export PORT="${NOTIFICATION_SERVICE_PORT:-3003}"
+  export DATABASE_URL="postgresql://${NOTIFICATION_POSTGRES_USER:-postgres}:${NOTIFICATION_POSTGRES_PASSWORD:-postgres}@localhost:${NOTIFICATION_POSTGRES_PORT:-5434}/${NOTIFICATION_POSTGRES_DB:-notification_db}"
+  export JWT_SECRET="${JWT_SECRET:-it-job-demo-jwt-secret}"
+  export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}"
+  export JWT_EXPIRATION_TIME="${JWT_EXPIRATION_TIME:-120s}"
+  export JWT_REFRESH_EXPIRATION_TIME="${JWT_REFRESH_EXPIRATION_TIME:-7d}"
+  export KAFKA_CLIENT_ID="notification-service"
+  export KAFKA_GROUP_ID="notification-service-group"
+  export KAFKA_BROKERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
+  export MAIL_HOST="${MAIL_HOST:-localhost}"
+  export MAIL_PORT="${MAIL_PORT:-1025}"
+  export MAIL_SECURE="${MAIL_SECURE:-false}"
+  export MAIL_USER="${MAIL_USER:-}"
+  export MAIL_PASS="${MAIL_PASS:-}"
+  export MAIL_FROM="${MAIL_FROM:-no-reply@itjob.local}"
+  export FRONTEND_LOGIN_URL="${FRONTEND_LOGIN_URL:-http://localhost:3000/login}"
+  export OBSERVABILITY_LOG_FILE="../../runtime-logs/notification-service.log"
+}
+
+prepare_job_env() {
+  export DB_HOST="localhost"
+  export DB_PORT="${JOB_POSTGRES_PORT:-5433}"
+  export DB_USERNAME="${JOB_POSTGRES_USER:-postgres}"
+  export DB_PASSWORD="${JOB_POSTGRES_PASSWORD:-postgres}"
+  export KAFKA_BOOTSTRAP_SERVERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
+  export APPLICATION_SERVICE_URL="http://localhost:${APPLICATION_SERVICE_PORT:-8083}/api"
+  export OBSERVABILITY_LOG_FILE="../../runtime-logs/job-service.log"
+}
+
+prepare_application_env() {
+  export MONGO_HOST="localhost"
+  export MONGO_PORT="${APPLICATION_MONGO_PORT:-27018}"
+  export KAFKA_BOOTSTRAP_SERVERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
+  export JOB_SERVICE_URL="http://localhost:${JOB_SERVICE_PORT:-8082}/api"
+  export OBSERVABILITY_LOG_FILE="../../runtime-logs/application-service.log"
+}
 
 run_npm_script() {
   local svc="$1"
@@ -50,19 +128,27 @@ seed_service() {
 
   case "$svc" in
     organization-service)
+      prepare_organization_env
       run_npm_script "$svc" "migration:run"
       run_npm_script "$svc" "db:seed"
       ;;
     identity-service)
+      prepare_identity_env
       run_npm_script "$svc" "prisma:generate"
       run_npm_script "$svc" "prisma:deploy"
       run_npm_script "$svc" "db:seed"
       ;;
     notification-service)
+      prepare_notification_env
       run_npm_script "$svc" "migration:run"
       run_npm_script "$svc" "db:seed"
       ;;
-    job-service|application-service)
+    job-service)
+      prepare_job_env
+      run_maven_seed "$svc"
+      ;;
+    application-service)
+      prepare_application_env
       run_maven_seed "$svc"
       ;;
     *)
@@ -71,6 +157,12 @@ seed_service() {
       ;;
   esac
 }
+
+load_root_env
+
+if command -v docker >/dev/null 2>&1; then
+  bash "$ROOT_DIR/scripts/dev/normalize-db-passwords.sh"
+fi
 
 if [[ $# -eq 1 ]]; then
   seed_service "$1"

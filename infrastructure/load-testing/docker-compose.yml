@@ -8,12 +8,12 @@ services:
       - ./scenarios:/scenarios
     environment:
       - SCENARIO=${SCENARIO:-smoke}
-      - GATEWAY_BASE_URL=${GATEWAY_BASE_URL:-http://host.docker.internal:8000}
-      - IDENTITY_BASE_URL=${IDENTITY_BASE_URL:-http://host.docker.internal:8000/identity}
-      - ORGANIZATION_BASE_URL=${ORGANIZATION_BASE_URL:-http://host.docker.internal:8000/organization}
-      - JOB_BASE_URL=${JOB_BASE_URL:-http://host.docker.internal:8082/api}
-      - APPLICATION_BASE_URL=${APPLICATION_BASE_URL:-http://host.docker.internal:8083/api}
-      - DASHBOARD_BASE_URL=${DASHBOARD_BASE_URL:-http://host.docker.internal:8084/api}
+      - GATEWAY_BASE_URL=${GATEWAY_BASE_URL:-http://kong-gateway:8000}
+      - IDENTITY_BASE_URL=${IDENTITY_BASE_URL:-http://kong-gateway:8000/identity}
+      - ORGANIZATION_BASE_URL=${ORGANIZATION_BASE_URL:-http://kong-gateway:8000/organization}
+      - JOB_BASE_URL=${JOB_BASE_URL:-http://job-service:8082/api}
+      - APPLICATION_BASE_URL=${APPLICATION_BASE_URL:-http://application-service:8083/api}
+      - DASHBOARD_BASE_URL=${DASHBOARD_BASE_URL:-http://dashboard-service:8084/api}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
       - CANDIDATE_EMAIL=${CANDIDATE_EMAIL:-candidate@example.com}
@@ -36,8 +36,11 @@ services:
       - -c
       - k6 run --tag testid=$${TEST_ID} --tag suite=$${SCENARIO} -o experimental-prometheus-rw /scenarios/$${SCENARIO}.js
     networks:
+      - it-job-network
       - observability
 
 networks:
+  it-job-network:
+    external: true
   observability:
     external: true

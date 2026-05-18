@@ -6,24 +6,24 @@ services:
     container_name: identity-service
     restart: unless-stopped
     environment:
-      PORT: 3001
-      DATABASE_URL: postgresql://postgres:postgres@identity-postgres:5432/identity_db?schema=public
-      JWT_SECRET: it-job-demo-jwt-secret
-      JWT_REFRESH_SECRET: it-job-demo-jwt-refresh-secret
-      JWT_EXPIRATION_TIME: 120s
-      JWT_REFRESH_EXPIRATION_TIME: 7d
+      PORT: ${IDENTITY_SERVICE_PORT:-3001}
+      DATABASE_URL: postgresql://${IDENTITY_POSTGRES_USER:-postgres}:${IDENTITY_POSTGRES_PASSWORD:-postgres}@identity-postgres:5432/${IDENTITY_POSTGRES_DB:-identity_db}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-it-job-demo-jwt-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-120s}
+      JWT_REFRESH_EXPIRATION_TIME: ${JWT_REFRESH_EXPIRATION_TIME:-7d}
       KAFKA_CLIENT_ID: identity-service
       KAFKA_GROUP_ID: identity-service-group
-      KAFKA_BROKERS: kafka:9092
+      KAFKA_BROKERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
       FRONTEND_LOGIN_URL: ${FRONTEND_LOGIN_URL:-http://localhost:3000/login}
-      IMAGEKIT_PUBLIC_KEY: public_jR+qP0WbyCh9fHVI8mZXPMQe3qE=
-      IMAGEKIT_PRIVATE_KEY: private_tsBf7rGl8sQCgX2WTxbJtRKFMbk=
-      IMAGEKIT_FOLDER: /captures
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      IMAGEKIT_PUBLIC_KEY: ${IMAGEKIT_PUBLIC_KEY:-public_jR+qP0WbyCh9fHVI8mZXPMQe3qE=}
+      IMAGEKIT_PRIVATE_KEY: ${IMAGEKIT_PRIVATE_KEY:-private_tsBf7rGl8sQCgX2WTxbJtRKFMbk=}
+      IMAGEKIT_FOLDER: ${IMAGEKIT_FOLDER:-/captures}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://jaeger:4318/v1/traces}
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/identity-service.log
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
     ports:
-      - "3001:3001"
+      - "${IDENTITY_SERVICE_PORT:-3001}:3001"
     volumes:
       - ./runtime-logs:/app/runtime-logs
     depends_on:
@@ -39,20 +39,20 @@ services:
     container_name: organization-service
     restart: unless-stopped
     environment:
-      PORT: 3002
-      DATABASE_URL: mysql://organization:organization@organization-mysql:3306/organization_db
-      JWT_SECRET: it-job-demo-jwt-secret
-      JWT_REFRESH_SECRET: it-job-demo-jwt-refresh-secret
-      JWT_EXPIRATION_TIME: 120s
-      JWT_REFRESH_EXPIRATION_TIME: 7d
+      PORT: ${ORGANIZATION_SERVICE_PORT:-3002}
+      DATABASE_URL: mysql://${ORGANIZATION_MYSQL_USER:-organization}:${ORGANIZATION_MYSQL_PASSWORD:-organization}@organization-mysql:3306/${ORGANIZATION_MYSQL_DB:-organization_db}
+      JWT_SECRET: ${JWT_SECRET:-it-job-demo-jwt-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-120s}
+      JWT_REFRESH_EXPIRATION_TIME: ${JWT_REFRESH_EXPIRATION_TIME:-7d}
       KAFKA_CLIENT_ID: organization-service
       KAFKA_GROUP_ID: organization-service-group
-      KAFKA_BROKERS: kafka:9092
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      KAFKA_BROKERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://jaeger:4318/v1/traces}
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/organization-service.log
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
     ports:
-      - "3002:3002"
+      - "${ORGANIZATION_SERVICE_PORT:-3002}:3002"
     volumes:
       - ./runtime-logs:/app/runtime-logs
     depends_on:
@@ -68,27 +68,27 @@ services:
     container_name: notification-service
     restart: unless-stopped
     environment:
-      PORT: 3003
-      DATABASE_URL: postgresql://postgres:postgres@notification-postgres:5432/notification_db
-      JWT_SECRET: it-job-demo-jwt-secret
-      JWT_REFRESH_SECRET: it-job-demo-jwt-refresh-secret
-      JWT_EXPIRATION_TIME: 120s
-      JWT_REFRESH_EXPIRATION_TIME: 7d
+      PORT: ${NOTIFICATION_SERVICE_PORT:-3003}
+      DATABASE_URL: postgresql://${NOTIFICATION_POSTGRES_USER:-postgres}:${NOTIFICATION_POSTGRES_PASSWORD:-postgres}@notification-postgres:5432/${NOTIFICATION_POSTGRES_DB:-notification_db}
+      JWT_SECRET: ${JWT_SECRET:-it-job-demo-jwt-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}
+      JWT_EXPIRATION_TIME: ${JWT_EXPIRATION_TIME:-120s}
+      JWT_REFRESH_EXPIRATION_TIME: ${JWT_REFRESH_EXPIRATION_TIME:-7d}
       KAFKA_CLIENT_ID: notification-service
       KAFKA_GROUP_ID: notification-service-group
-      KAFKA_BROKERS: kafka:9092
-      MAIL_HOST: host.docker.internal
-      MAIL_PORT: 1025
-      MAIL_SECURE: "false"
-      MAIL_USER: ""
-      MAIL_PASS: ""
-      MAIL_FROM: no-reply@itjob.local
+      KAFKA_BROKERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
+      MAIL_HOST: ${MAIL_HOST:-host.docker.internal}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_SECURE: "${MAIL_SECURE:-false}"
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASS: ${MAIL_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@itjob.local}
       FRONTEND_LOGIN_URL: ${FRONTEND_LOGIN_URL:-http://localhost:3000/login}
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://jaeger:4318/v1/traces}
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/notification-service.log
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
     ports:
-      - "3003:3003"
+      - "${NOTIFICATION_SERVICE_PORT:-3003}:3003"
     volumes:
       - ./runtime-logs:/app/runtime-logs
     depends_on:
@@ -106,13 +106,13 @@ services:
     environment:
       DB_HOST: job-postgres
       DB_PORT: 5432
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      DB_USERNAME: ${JOB_POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${JOB_POSTGRES_PASSWORD:-postgres}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
       APPLICATION_SERVICE_URL: http://application-service:8083/api
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/job-service.log
     ports:
-      - "8082:8082"
+      - "${JOB_SERVICE_PORT:-8082}:8082"
     volumes:
       - ./runtime-logs:/app/runtime-logs
     depends_on:
@@ -130,11 +130,11 @@ services:
     environment:
       MONGO_HOST: application-mongo
       MONGO_PORT: 27017
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
       JOB_SERVICE_URL: http://job-service:8082/api
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/application-service.log
     ports:
-      - "8083:8083"
+      - "${APPLICATION_SERVICE_PORT:-8083}:8083"
     volumes:
       - ./runtime-logs:/app/runtime-logs
     depends_on:
@@ -154,7 +154,7 @@ services:
       APPLICATION_SERVICE_URL: http://application-service:8083/api
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/dashboard-service.log
     ports:
-      - "8084:8084"
+      - "${DASHBOARD_SERVICE_PORT:-8084}:8084"
     volumes:
       - ./runtime-logs:/app/runtime-logs
     depends_on:

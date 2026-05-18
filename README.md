@@ -41,9 +41,33 @@ Neu can runbook ngan gon cho buoi trinh bay, xem them [DEMO.md](./DEMO.md).
 - Grafana: `3005`
 - Jaeger: `16686`
 
-## 1. Tao env cho cac service Nest
+## 1. Tao env cho Docker va local service
 
-Copy cac file mau sau thanh `.env`:
+### Docker Compose / VPS
+
+Copy file mau o root repo:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Hoac bash:
+
+```bash
+cp .env.example .env
+```
+
+`docker compose` se doc file root `.env` nay cho toan bo infra + app containers.
+
+Ghi chu quan trong:
+
+- Khi chay bang Docker, cac service **khong doc** `services/*/.env` mot cach tu dong.
+- Runtime trong container lay bien tu `docker-compose.yml` va `docker-compose.app.yml`, duoc noi suy tu root `.env`.
+- Day la nguon cau hinh chinh cho local Docker, VPS va GitHub deploy script.
+
+### Chay tung service tren host
+
+Neu ban muon chay rieng tung service tren may host, copy cac file mau sau thanh `.env`:
 
 - `services/identity-service/.env.example`
 - `services/organization-service/.env.example`
@@ -54,8 +78,8 @@ Copy cac file mau sau thanh `.env`:
 
 Ghi chu:
 
-- 3 service Spring Boot hien da co default trong `application.yml`, nen van co the chay ngay ca khi khong dung `.env`.
-- Repo hien tai khong tu dong nap `.env` cho Spring Boot khi chay `mvn spring-boot:run`; cac file `.env` o 3 service Spring duoc them de luu cau hinh local/demo va tham chieu nhanh.
+- 3 service Spring Boot hien da co default trong `application.yml`, nhung `.env.example` da duoc dien san cho mode local host.
+- Script `scripts/db/seed.sh` hien nay tu suy dien env tu root `.env`, nen khong con phu thuoc vao `services/*/.env` de seed tren VPS.
 - Frontend co file mau rieng trong repo `it-job-platform-fe/.env.example`.
 
 ## 2. Khoi dong ha tang va gateway

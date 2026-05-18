@@ -30,15 +30,17 @@ Các giá trị mặc định lấy từ source code seed hiện có:
 
 ## Base URLs
 
-- `identity-service` và `organization-service` mặc định đi qua Kong:
-  - `http://host.docker.internal:8000/identity`
-  - `http://host.docker.internal:8000/organization`
-- `job-service`, `application-service`, `dashboard-service` mặc định gọi trực tiếp:
-  - `http://host.docker.internal:8082/api`
-  - `http://host.docker.internal:8083/api`
-  - `http://host.docker.internal:8084/api`
+Mặc định `k6` sẽ gọi service nội bộ qua Docker network:
 
-Lý do: các Spring services hiện có `server.servlet.context-path=/api`, nên direct base URL ổn định hơn cho load test.
+- `identity-service` và `organization-service` đi qua Kong:
+  - `http://kong-gateway:8000/identity`
+  - `http://kong-gateway:8000/organization`
+- `job-service`, `application-service`, `dashboard-service` gọi trực tiếp:
+  - `http://job-service:8082/api`
+  - `http://application-service:8083/api`
+  - `http://dashboard-service:8084/api`
+
+Nếu muốn chạy từ môi trường khác, bạn chỉ cần override các biến `*_BASE_URL`.
 
 ## Cách chạy
 
@@ -47,6 +49,21 @@ Chạy smoke:
 ```bash
 cd infrastructure/load-testing
 TEST_ID=smoke-local ./run.sh smoke
+```
+
+Chạy smoke trên VPS stack đang chạy sẵn:
+
+```bash
+cd /opt/it-job/it-job-platform
+bash ./scripts/dev/run-smoke-vps.sh smoke demo-smoke-001
+```
+
+Mặc định script này sẽ tự chạy migrate/seed cho `identity-service`, `organization-service`, `notification-service` trước khi bắn k6 để bảo đảm demo data cơ bản tồn tại trên VPS.
+Nếu bạn đã chuẩn bị dữ liệu từ trước và muốn bỏ qua bước đó:
+
+```bash
+cd /opt/it-job/it-job-platform
+PREPARE_DEMO_DATA=false bash ./scripts/dev/run-smoke-vps.sh smoke demo-smoke-001
 ```
 
 Chạy spike:
@@ -83,3 +100,5 @@ SCENARIO=stress TEST_ID=stress-local docker compose up --abort-on-container-exit
 - Mỗi run sẽ được gắn tag `testid=<TEST_ID>` và `suite=<SCENARIO>` để lọc trên dashboard Grafana.
 - Dashboard Grafana cho k6 nằm ở `infrastructure/observability/grafana/dashboards/k6-load-testing.json`.
 - Load test giả định các service target đã được chạy local và có seed data tương ứng.
+- Trên VPS, `run-smoke-vps.sh` sẽ dùng network nội bộ `it-job-network` và `observability`.
+- Workflow `Smoke Test VPS` cũng bật sẵn `PREPARE_DEMO_DATA=true`, nên không phụ thuộc việc deploy gần nhất có chạy `run_seed` hay không.

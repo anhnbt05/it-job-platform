@@ -1,5 +1,8 @@
 # Demo Runbook
 
+Tai lieu demo automation test + observability tren VPS nam o [DEMO_AUTOMATION_OBSERVABILITY.md](/E:/it-job/it-job-platform/DEMO_AUTOMATION_OBSERVABILITY.md).
+File nay da gom day du kich ban bang tieng Viet: mo dau bang tinh nang he thong, sau do sang automation test, observability, failure demo va recovery.
+
 Tai lieu nay danh cho luc can dung nhanh ban demo local.
 
 ## 1. Truoc buoi demo

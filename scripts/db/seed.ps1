@@ -6,6 +6,7 @@ $ErrorActionPreference = "Stop"
 
 $rootDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $servicesDir = Join-Path $rootDir "services"
+$rootEnvFile = Join-Path $rootDir ".env"
 $seedableServices = @(
     "organization-service",
     "identity-service",
@@ -13,6 +14,40 @@ $seedableServices = @(
     "job-service",
     "application-service"
 )
+
+function Import-EnvFile {
+    param(
+        [string]$Path
+    )
+
+    if (-not (Test-Path $Path)) {
+        return
+    }
+
+    foreach ($line in Get-Content $Path) {
+        $trimmed = $line.Trim()
+        if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith("#")) {
+            continue
+        }
+
+        $separatorIndex = $trimmed.IndexOf("=")
+        if ($separatorIndex -lt 1) {
+            continue
+        }
+
+        $name = $trimmed.Substring(0, $separatorIndex).Trim()
+        $value = $trimmed.Substring($separatorIndex + 1).Trim()
+
+        if (
+            ($value.StartsWith('"') -and $value.EndsWith('"')) -or
+            ($value.StartsWith("'") -and $value.EndsWith("'"))
+        ) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+
+        Set-Item -Path "Env:$name" -Value $value
+    }
+}
 
 function Invoke-NpmScript {
     param(
@@ -97,6 +132,13 @@ function Invoke-ServiceSeed {
             throw "'$TargetService' is not a supported seed target."
         }
     }
+}
+
+Import-EnvFile -Path $rootEnvFile
+
+& (Join-Path $rootDir "scripts\dev\sync-db-passwords.ps1")
+if ($LASTEXITCODE -ne 0) {
+    throw "Database credential sync failed with exit code $LASTEXITCODE."
 }
 
 if ($Service) {

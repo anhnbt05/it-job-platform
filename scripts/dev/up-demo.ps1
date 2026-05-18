@@ -12,7 +12,75 @@ $rootDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $infraComposeFile = Join-Path $rootDir "docker-compose.yml"
 $appComposeFile = Join-Path $rootDir "docker-compose.app.yml"
 $seedScript = Join-Path $rootDir "scripts\db\seed.ps1"
+$syncDbPasswordsScript = Join-Path $rootDir "scripts\dev\sync-db-passwords.ps1"
+$rootEnvFile = Join-Path $rootDir ".env"
 $frontendDir = Join-Path (Split-Path -Parent $rootDir) "it-job-platform-fe"
+
+function Import-EnvFile {
+    param(
+        [string]$Path
+    )
+
+    if (-not (Test-Path $Path)) {
+        return
+    }
+
+    foreach ($line in Get-Content $Path) {
+        $trimmed = $line.Trim()
+        if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith("#")) {
+            continue
+        }
+
+        $separatorIndex = $trimmed.IndexOf("=")
+        if ($separatorIndex -lt 1) {
+            continue
+        }
+
+        $name = $trimmed.Substring(0, $separatorIndex).Trim()
+        $value = $trimmed.Substring($separatorIndex + 1).Trim()
+
+        if (
+            ($value.StartsWith('"') -and $value.EndsWith('"')) -or
+            ($value.StartsWith("'") -and $value.EndsWith("'"))
+        ) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+
+        Set-Item -Path "Env:$name" -Value $value
+    }
+}
+
+function Get-EnvValue {
+    param(
+        [string]$Name,
+        [string]$Default
+    )
+
+    $value = [Environment]::GetEnvironmentVariable($Name)
+    if ([string]::IsNullOrWhiteSpace($value)) {
+        return $Default
+    }
+
+    return $value
+}
+
+Import-EnvFile -Path $rootEnvFile
+
+$identityPostgresPort = [int](Get-EnvValue -Name "IDENTITY_POSTGRES_PORT" -Default "5432")
+$jobPostgresPort = [int](Get-EnvValue -Name "JOB_POSTGRES_PORT" -Default "5433")
+$notificationPostgresPort = [int](Get-EnvValue -Name "NOTIFICATION_POSTGRES_PORT" -Default "5434")
+$organizationMysqlPort = [int](Get-EnvValue -Name "ORGANIZATION_MYSQL_PORT" -Default "3306")
+$applicationMongoPort = [int](Get-EnvValue -Name "APPLICATION_MONGO_PORT" -Default "27018")
+$redisPort = [int](Get-EnvValue -Name "REDIS_PORT" -Default "6379")
+$kafkaExternalPort = [int](Get-EnvValue -Name "KAFKA_EXTERNAL_PORT" -Default "29092")
+$kongProxyPort = [int](Get-EnvValue -Name "KONG_PROXY_PORT" -Default "8000")
+$identityServicePort = [int](Get-EnvValue -Name "IDENTITY_SERVICE_PORT" -Default "3001")
+$organizationServicePort = [int](Get-EnvValue -Name "ORGANIZATION_SERVICE_PORT" -Default "3002")
+$notificationServicePort = [int](Get-EnvValue -Name "NOTIFICATION_SERVICE_PORT" -Default "3003")
+$jobServicePort = [int](Get-EnvValue -Name "JOB_SERVICE_PORT" -Default "8082")
+$applicationServicePort = [int](Get-EnvValue -Name "APPLICATION_SERVICE_PORT" -Default "8083")
+$dashboardServicePort = [int](Get-EnvValue -Name "DASHBOARD_SERVICE_PORT" -Default "8084")
+$frontendPort = [int](Get-EnvValue -Name "FRONTEND_PORT" -Default "3000")
 
 $infraServices = @(
     "identity-postgres",
@@ -55,25 +123,25 @@ $appImageNames = @{
 }
 
 $infraWaitTargets = @(
-    @{ Name = "identity-postgres"; Address = "127.0.0.1"; Port = 5432 },
-    @{ Name = "job-postgres"; Address = "127.0.0.1"; Port = 5433 },
-    @{ Name = "notification-postgres"; Address = "127.0.0.1"; Port = 5434 },
-    @{ Name = "organization-mysql"; Address = "127.0.0.1"; Port = 3306 },
-    @{ Name = "application-mongo"; Address = "127.0.0.1"; Port = 27018 },
-    @{ Name = "redis"; Address = "127.0.0.1"; Port = 6379 },
-    @{ Name = "kafka-external"; Address = "127.0.0.1"; Port = 29092 },
-    @{ Name = "kong"; Address = "127.0.0.1"; Port = 8000 }
+    @{ Name = "identity-postgres"; Address = "127.0.0.1"; Port = $identityPostgresPort },
+    @{ Name = "job-postgres"; Address = "127.0.0.1"; Port = $jobPostgresPort },
+    @{ Name = "notification-postgres"; Address = "127.0.0.1"; Port = $notificationPostgresPort },
+    @{ Name = "organization-mysql"; Address = "127.0.0.1"; Port = $organizationMysqlPort },
+    @{ Name = "application-mongo"; Address = "127.0.0.1"; Port = $applicationMongoPort },
+    @{ Name = "redis"; Address = "127.0.0.1"; Port = $redisPort },
+    @{ Name = "kafka-external"; Address = "127.0.0.1"; Port = $kafkaExternalPort },
+    @{ Name = "kong"; Address = "127.0.0.1"; Port = $kongProxyPort }
 )
 
 $healthChecks = @(
-    @{ Name = "identity-service"; Url = "http://127.0.0.1:3001/health" },
-    @{ Name = "organization-service"; Url = "http://127.0.0.1:3002/health" },
-    @{ Name = "notification-service"; Url = "http://127.0.0.1:3003/health" },
-    @{ Name = "job-service"; Url = "http://127.0.0.1:8082/api/health" },
-    @{ Name = "application-service"; Url = "http://127.0.0.1:8083/api/health" },
-    @{ Name = "dashboard-service"; Url = "http://127.0.0.1:8084/api/health" },
-    @{ Name = "kong"; Url = "http://127.0.0.1:8000/identity/health" },
-    @{ Name = "frontend"; Url = "http://127.0.0.1:3000" }
+    @{ Name = "identity-service"; Url = "http://127.0.0.1:$identityServicePort/health" },
+    @{ Name = "organization-service"; Url = "http://127.0.0.1:$organizationServicePort/health" },
+    @{ Name = "notification-service"; Url = "http://127.0.0.1:$notificationServicePort/health" },
+    @{ Name = "job-service"; Url = "http://127.0.0.1:$jobServicePort/api/health" },
+    @{ Name = "application-service"; Url = "http://127.0.0.1:$applicationServicePort/api/health" },
+    @{ Name = "dashboard-service"; Url = "http://127.0.0.1:$dashboardServicePort/api/health" },
+    @{ Name = "kong"; Url = "http://127.0.0.1:$kongProxyPort/identity/health" },
+    @{ Name = "frontend"; Url = "http://127.0.0.1:$frontendPort" }
 )
 
 function Invoke-Docker {
@@ -229,7 +297,19 @@ function Initialize-KafkaTopics {
     Write-Host "=== Creating Kafka topics ==="
     Wait-KafkaBrokerReady
     Invoke-Docker -CommandArgs @("compose", "-f", $infraComposeFile, "rm", "-f", "kafka-init") -AllowFailure
-    Invoke-Docker -CommandArgs @("compose", "-f", $infraComposeFile, "up", "kafka-init")
+    Invoke-Docker -CommandArgs @("compose", "-f", $infraComposeFile, "run", "--rm", "--no-deps", "kafka-init")
+}
+
+function Sync-DatabaseCredentials {
+    if (-not (Test-Path $syncDbPasswordsScript)) {
+        throw "Sync script not found: $syncDbPasswordsScript"
+    }
+
+    Write-Host "=== Syncing persisted database credentials ==="
+    & $syncDbPasswordsScript
+    if ($LASTEXITCODE -ne 0) {
+        throw "Database credential sync failed with exit code $LASTEXITCODE."
+    }
 }
 
 function Run-Seeds {
@@ -301,6 +381,7 @@ Push-Location $rootDir
 try {
     Build-AppImagesIfNeeded -TargetServices $servicesToBuild
     Start-InfraStack
+    Sync-DatabaseCredentials
     Initialize-KafkaTopics
     Run-Seeds
     Start-AppStack -TargetServices $servicesToRun
@@ -308,11 +389,11 @@ try {
 
     Write-Host ""
     Write-Host "=== Demo stack is ready ==="
-    Write-Host "Frontend: http://localhost:3000"
-    Write-Host "Kong: http://localhost:8000"
-    Write-Host "Kafka UI: http://localhost:8080"
-    Write-Host "Grafana: http://localhost:3005 (admin/admin)"
-    Write-Host "Jaeger: http://localhost:16686"
+    Write-Host "Frontend: http://localhost:$frontendPort"
+    Write-Host "Kong: http://localhost:$kongProxyPort"
+    Write-Host "Kafka UI: http://localhost:$(Get-EnvValue -Name 'KAFKA_UI_PORT' -Default '8080')"
+    Write-Host "Grafana: http://localhost:$(Get-EnvValue -Name 'GRAFANA_PORT' -Default '3005') ($(Get-EnvValue -Name 'GRAFANA_ADMIN_USER' -Default 'admin')/$(Get-EnvValue -Name 'GRAFANA_ADMIN_PASSWORD' -Default 'admin'))"
+    Write-Host "Jaeger: http://localhost:$(Get-EnvValue -Name 'JAEGER_UI_PORT' -Default '16686')"
 }
 finally {
     Pop-Location

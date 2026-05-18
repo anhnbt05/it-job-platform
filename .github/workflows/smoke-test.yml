@@ -1,0 +1,68 @@
+name: Smoke Test VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: k6 scenario to run
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - spike
+          - stress
+      test_id:
+        description: Tag used in Grafana/Prometheus
+        required: false
+        default: github-manual
+        type: string
+      fail_fast:
+        description: Stop early on failed checks
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-test-vps
+  cancel-in-progress: false
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    env:
+      VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
+      SCENARIO_INPUT: ${{ github.event.inputs.scenario }}
+      TEST_ID_INPUT: ${{ github.event.inputs.test_id }}
+      FAIL_FAST_INPUT: ${{ github.event.inputs.fail_fast }}
+    steps:
+      - name: Run k6 smoke test on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          command_timeout: 45m
+          script: |
+            set -euo pipefail
+
+            BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
+            SCENARIO="${SCENARIO_INPUT:-smoke}"
+            TEST_ID="${TEST_ID_INPUT:-github-manual}"
+            FAIL_FAST_FLAG=false
+
+            if [ "${FAIL_FAST_INPUT:-true}" = "true" ]; then
+              FAIL_FAST_FLAG=true
+            fi
+
+            cd "$BACKEND_PATH"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            PREPARE_DEMO_DATA=true FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-smoke-vps.sh "$SCENARIO" "$TEST_ID"

@@ -25,6 +25,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -217,6 +218,7 @@ public class JobDataSeeder implements ApplicationRunner {
     private final ConfigurableApplicationContext applicationContext;
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         int exitCode = 0;
 
