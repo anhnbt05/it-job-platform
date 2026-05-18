@@ -54,6 +54,7 @@ seed_service() {
       run_npm_script "$svc" "db:seed"
       ;;
     identity-service)
+      run_npm_script "$svc" "prisma:generate"
       run_npm_script "$svc" "prisma:deploy"
       run_npm_script "$svc" "db:seed"
       ;;

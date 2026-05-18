@@ -15,7 +15,7 @@ services:
       KAFKA_CLIENT_ID: identity-service
       KAFKA_GROUP_ID: identity-service-group
       KAFKA_BROKERS: kafka:9092
-      FRONTEND_LOGIN_URL: http://localhost:3000/login
+      FRONTEND_LOGIN_URL: ${FRONTEND_LOGIN_URL:-http://localhost:3000/login}
       IMAGEKIT_PUBLIC_KEY: public_jR+qP0WbyCh9fHVI8mZXPMQe3qE=
       IMAGEKIT_PRIVATE_KEY: private_tsBf7rGl8sQCgX2WTxbJtRKFMbk=
       IMAGEKIT_FOLDER: /captures
@@ -81,7 +81,7 @@ services:
       MAIL_USER: ""
       MAIL_PASS: ""
       MAIL_FROM: no-reply@itjob.local
-      FRONTEND_LOGIN_URL: http://localhost:3000/login
+      FRONTEND_LOGIN_URL: ${FRONTEND_LOGIN_URL:-http://localhost:3000/login}
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/notification-service.log
       KAFKAJS_NO_PARTITIONER_WARNING: "1"
     ports:
@@ -165,13 +165,13 @@ services:
       context: ../it-job-platform-fe
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     container_name: it-job-frontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
       - kong
     networks:

@@ -6,6 +6,8 @@ plugins:
     config:
       origins:
         - http://localhost:3000
+        - http://103.153.74.191
+        - http://103.153.74.191:3000
       methods:
         - GET
         - POST
@@ -36,7 +38,7 @@ plugins:
 
 services:
   - name: identity-service
-    url: http://host.docker.internal:3001
+    url: http://identity-service:3001
     routes:
       - name: identity-route
         paths:
@@ -44,7 +46,7 @@ services:
         strip_path: true
 
   - name: organization-service
-    url: http://host.docker.internal:3002
+    url: http://organization-service:3002
     routes:
       - name: organization-route
         paths:
@@ -52,7 +54,7 @@ services:
         strip_path: true
 
   - name: notification-service
-    url: http://host.docker.internal:3003
+    url: http://notification-service:3003
     routes:
       - name: notification-route
         paths:
@@ -60,7 +62,7 @@ services:
         strip_path: true
 
   - name: job-service
-    url: http://host.docker.internal:8082/api
+    url: http://job-service:8082/api
     routes:
       - name: job-route
         paths:
@@ -68,7 +70,7 @@ services:
         strip_path: false
 
   - name: application-service
-    url: http://host.docker.internal:8083/api
+    url: http://application-service:8083/api
     routes:
       - name: application-route
         paths:
@@ -76,7 +78,7 @@ services:
         strip_path: false
 
   - name: dashboard-service
-    url: http://host.docker.internal:8084/api
+    url: http://dashboard-service:8084/api
     routes:
       - name: dashboard-route
         paths:

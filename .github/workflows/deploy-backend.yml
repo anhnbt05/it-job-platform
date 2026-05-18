@@ -1,0 +1,52 @@
+name: Deploy Backend VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      run_seed:
+        description: Run migrate and seed after deploy
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-backend-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
+      RUN_SEED_INPUT: ${{ github.event.inputs.run_seed }}
+    steps:
+      - name: Deploy backend stack over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          command_timeout: 60m
+          script: |
+            set -euo pipefail
+
+            BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
+            RUN_SEED_FLAG=0
+            if [ "${RUN_SEED_INPUT:-false}" = "true" ]; then
+              RUN_SEED_FLAG=1
+            fi
+
+            cd "$BACKEND_PATH"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            RUN_SEED="$RUN_SEED_FLAG" bash ./scripts/dev/deploy-backend-vps.sh

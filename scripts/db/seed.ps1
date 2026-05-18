@@ -79,6 +79,7 @@ function Invoke-ServiceSeed {
             Invoke-NpmScript $TargetService "db:seed"
         }
         "identity-service" {
+            Invoke-NpmScript $TargetService "prisma:generate"
             Invoke-NpmScript $TargetService "prisma:deploy"
             Invoke-NpmScript $TargetService "db:seed"
         }
