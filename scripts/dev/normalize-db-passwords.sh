@@ -62,8 +62,9 @@ normalize_postgres_password() {
 
   docker exec -i "$container" psql -h 127.0.0.1 -U "$user" -d postgres \
     -v db_user="$user" \
-    -v db_password="$password" \
-    -c "ALTER USER :\"db_user\" WITH PASSWORD :'db_password';" >/dev/null
+    -v db_password="$password" >/dev/null <<'SQL'
+SELECT format('ALTER USER %I WITH PASSWORD %L', :'db_user', :'db_password') \gexec
+SQL
 
   log "normalized postgres password for ${container}/${user}"
   verify_postgres_password "$container" "$user" "$password"

@@ -72,8 +72,19 @@ function Sync-PostgresPassword {
         [string]$Password
     )
 
-    $sql = "ALTER USER :""db_user"" WITH PASSWORD :'db_password';"
-    Invoke-Docker -CommandArgs @(
+    $sql = @"
+SELECT format('ALTER USER %I WITH PASSWORD %L', :'db_user', :'db_password') \gexec
+"@
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = "docker"
+    $startInfo.UseShellExecute = $false
+    $startInfo.RedirectStandardInput = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $startInfo.CreateNoWindow = $true
+
+    foreach ($argument in @(
         "exec", "-i", $Container,
         "psql",
         "-h", "127.0.0.1",
@@ -81,8 +92,31 @@ function Sync-PostgresPassword {
         "-d", "postgres",
         "-v", "db_user=$UserName",
         "-v", "db_password=$Password",
-        "-c", $sql
-    )
+        "-f", "-"
+    )) {
+        [void]$startInfo.ArgumentList.Add($argument)
+    }
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    [void]$process.Start()
+
+    $process.StandardInput.WriteLine($sql)
+    $process.StandardInput.Close()
+    $stdout = $process.StandardOutput.ReadToEnd()
+    $stderr = $process.StandardError.ReadToEnd()
+    $process.WaitForExit()
+
+    if ($process.ExitCode -ne 0) {
+        if (-not [string]::IsNullOrWhiteSpace($stdout)) {
+            Write-Host $stdout
+        }
+        if (-not [string]::IsNullOrWhiteSpace($stderr)) {
+            Write-Host $stderr
+        }
+        throw "Docker command failed with exit code $($process.ExitCode): docker exec -i $Container psql ..."
+    }
+
     Write-Host ">>> [$Container] normalized postgres password for $UserName"
 
     $containerIp = (& docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" $Container).Trim()
