@@ -21,30 +21,141 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build_matrix: ${{ steps.changes.outputs.build_matrix }}
+      changed_service_count: ${{ steps.changes.outputs.changed_service_count }}
+      has_service_changes: ${{ steps.changes.outputs.has_service_changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed backend services
+        id: changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ALL_SERVICES_JSON='[
+            {"service":"identity-service","context":"./services/identity-service","image_repo":"it-job-platform-identity-service"},
+            {"service":"organization-service","context":"./services/organization-service","image_repo":"it-job-platform-organization-service"},
+            {"service":"notification-service","context":"./services/notification-service","image_repo":"it-job-platform-notification-service"},
+            {"service":"job-service","context":"./services/job-service","image_repo":"it-job-platform-job-service"},
+            {"service":"application-service","context":"./services/application-service","image_repo":"it-job-platform-application-service"},
+            {"service":"dashboard-service","context":"./services/dashboard-service","image_repo":"it-job-platform-dashboard-service"}
+          ]'
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "build_matrix={\"include\":$ALL_SERVICES_JSON}" >> "$GITHUB_OUTPUT"
+            echo "changed_service_count=6" >> "$GITHUB_OUTPUT"
+            echo "has_service_changes=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BEFORE_SHA="${{ github.event.before }}"
+          CURRENT_SHA="${{ github.sha }}"
+
+          if [[ -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+            echo "build_matrix={\"include\":$ALL_SERVICES_JSON}" >> "$GITHUB_OUTPUT"
+            echo "changed_service_count=6" >> "$GITHUB_OUTPUT"
+            echo "has_service_changes=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mapfile -t changed_files < <(git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA")
+
+          declare -A changed_services=()
+          ordered_services=(
+            identity-service
+            organization-service
+            notification-service
+            job-service
+            application-service
+            dashboard-service
+          )
+
+          append_service_metadata() {
+            local service="$1"
+
+            case "$service" in
+              identity-service)
+                service_entries+=('{"service":"identity-service","context":"./services/identity-service","image_repo":"it-job-platform-identity-service"}')
+                ;;
+              organization-service)
+                service_entries+=('{"service":"organization-service","context":"./services/organization-service","image_repo":"it-job-platform-organization-service"}')
+                ;;
+              notification-service)
+                service_entries+=('{"service":"notification-service","context":"./services/notification-service","image_repo":"it-job-platform-notification-service"}')
+                ;;
+              job-service)
+                service_entries+=('{"service":"job-service","context":"./services/job-service","image_repo":"it-job-platform-job-service"}')
+                ;;
+              application-service)
+                service_entries+=('{"service":"application-service","context":"./services/application-service","image_repo":"it-job-platform-application-service"}')
+                ;;
+              dashboard-service)
+                service_entries+=('{"service":"dashboard-service","context":"./services/dashboard-service","image_repo":"it-job-platform-dashboard-service"}')
+                ;;
+            esac
+          }
+
+          for path in "${changed_files[@]}"; do
+            case "$path" in
+              services/identity-service/*)
+                changed_services["identity-service"]=1
+                ;;
+              services/organization-service/*)
+                changed_services["organization-service"]=1
+                ;;
+              services/notification-service/*)
+                changed_services["notification-service"]=1
+                ;;
+              services/job-service/*)
+                changed_services["job-service"]=1
+                ;;
+              services/application-service/*)
+                changed_services["application-service"]=1
+                ;;
+              services/dashboard-service/*)
+                changed_services["dashboard-service"]=1
+                ;;
+            esac
+          done
+
+          service_entries=()
+          for service in "${ordered_services[@]}"; do
+            if [[ -n "${changed_services[$service]:-}" ]]; then
+              append_service_metadata "$service"
+            fi
+          done
+
+          changed_count="${#service_entries[@]}"
+          if (( changed_count == 0 )); then
+            changed_json='{"include":[]}'
+          else
+            joined_entries="$(IFS=,; echo "${service_entries[*]}")"
+            changed_json="{\"include\":[${joined_entries}]}"
+          fi
+
+          echo "build_matrix=$changed_json" >> "$GITHUB_OUTPUT"
+          echo "changed_service_count=$changed_count" >> "$GITHUB_OUTPUT"
+
+          if [[ "$changed_count" == "0" ]]; then
+            echo "has_service_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_service_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build-and-push:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_service_changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - service: identity-service
-            context: ./services/identity-service
-            image_repo: it-job-platform-identity-service
-          - service: organization-service
-            context: ./services/organization-service
-            image_repo: it-job-platform-organization-service
-          - service: notification-service
-            context: ./services/notification-service
-            image_repo: it-job-platform-notification-service
-          - service: job-service
-            context: ./services/job-service
-            image_repo: it-job-platform-job-service
-          - service: application-service
-            context: ./services/application-service
-            image_repo: it-job-platform-application-service
-          - service: dashboard-service
-            context: ./services/dashboard-service
-            image_repo: it-job-platform-dashboard-service
+      matrix: ${{ fromJson(needs.detect-changes.outputs.build_matrix) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -77,7 +188,10 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.image_repo }}
 
   deploy:
-    needs: build-and-push
+    needs:
+      - detect-changes
+      - build-and-push
+    if: always() && needs.detect-changes.result == 'success' && (needs.build-and-push.result == 'success' || needs.build-and-push.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
