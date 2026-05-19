@@ -39,6 +39,11 @@ BACKEND_SERVICES=(
   application-service
   dashboard-service
 )
+MIGRATABLE_SERVICES=(
+  identity-service
+  organization-service
+  notification-service
+)
 CHANGED_BUILD_SERVICES=()
 
 print_diagnostics() {
@@ -252,6 +257,57 @@ install_seed_dependencies() {
   done
 }
 
+install_service_dependencies() {
+  local svc="$1"
+  log "npm install for ${svc}"
+  (
+    cd "services/${svc}"
+    npm install --no-fund --no-audit
+  )
+}
+
+run_service_migration() {
+  local svc="$1"
+  log "running migrations for ${svc}"
+
+  (
+    cd "services/${svc}"
+    case "$svc" in
+      identity-service)
+        npm run prisma:generate
+        npm run prisma:deploy
+        ;;
+      organization-service|notification-service)
+        npm run migration:run
+        ;;
+      *)
+        log "no migration handler configured for ${svc}"
+        ;;
+    esac
+  )
+}
+
+run_changed_service_migrations() {
+  local migratable_changed=()
+  local svc
+
+  for svc in "${CHANGED_BUILD_SERVICES[@]}"; do
+    if service_in_list "$svc" "${MIGRATABLE_SERVICES[@]}"; then
+      migratable_changed+=("$svc")
+    fi
+  done
+
+  if (( ${#migratable_changed[@]} == 0 )); then
+    log "no migratable backend service changes detected"
+    return
+  fi
+
+  for svc in "${migratable_changed[@]}"; do
+    install_service_dependencies "$svc"
+    run_service_migration "$svc"
+  done
+}
+
 log "starting infrastructure"
 docker compose up -d \
   identity-postgres \
@@ -282,6 +338,8 @@ wait_tcp 127.0.0.1 "${KONG_ADMIN_PORT:-8001}" kong-admin
 bash ./scripts/dev/normalize-db-passwords.sh
 wait_kafka
 
+detect_changed_backend_build_services
+
 declare -A existing_topic_lookup=()
 ensure_kafka_topics
 
@@ -291,9 +349,9 @@ if [[ "$RUN_SEED" == "1" ]]; then
 
   log "running migrate + seed"
   bash ./scripts/db/seed.sh
+else
+  run_changed_service_migrations
 fi
-
-detect_changed_backend_build_services
 
 if (( ${#CHANGED_BUILD_SERVICES[@]} > 0 )); then
   log "building changed backend services: ${CHANGED_BUILD_SERVICES[*]}"
