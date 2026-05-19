@@ -815,7 +815,7 @@
           "refId": "A"
         }
       ],
-      "title": "Latest Automation Test Results",
+      "title": "Latest Results",
       "type": "logs"
     }
   ],
@@ -925,6 +925,6 @@
   "timezone": "browser",
   "title": "Automation Test",
   "uid": "automation-test",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
