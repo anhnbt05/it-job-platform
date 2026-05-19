@@ -45,6 +45,7 @@ MIGRATABLE_SERVICES=(
   notification-service
 )
 CHANGED_BACKEND_SERVICES=()
+OBSERVABILITY_CHANGED=0
 
 print_diagnostics() {
   log "diagnostics: docker compose ps"
@@ -95,22 +96,26 @@ append_unique_service() {
 
 detect_changed_backend_services() {
   CHANGED_BACKEND_SERVICES=()
+  OBSERVABILITY_CHANGED=0
 
   if [[ -z "$PREVIOUS_DEPLOY_SHA" || -z "$CURRENT_DEPLOY_SHA" ]]; then
     log "missing deploy SHAs, falling back to full backend migration scan"
     CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
+    OBSERVABILITY_CHANGED=1
     return
   fi
 
   if ! git rev-parse --verify "${PREVIOUS_DEPLOY_SHA}^{commit}" >/dev/null 2>&1; then
     log "previous deploy SHA is unavailable locally, falling back to full backend migration scan"
     CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
+    OBSERVABILITY_CHANGED=1
     return
   fi
 
   if ! git rev-parse --verify "${CURRENT_DEPLOY_SHA}^{commit}" >/dev/null 2>&1; then
     log "current deploy SHA is unavailable locally, falling back to full backend migration scan"
     CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
+    OBSERVABILITY_CHANGED=1
     return
   fi
 
@@ -127,6 +132,9 @@ detect_changed_backend_services() {
   local path
   for path in "${changed_files[@]}"; do
     case "$path" in
+      docker-compose.yml|infrastructure/observability/*)
+        OBSERVABILITY_CHANGED=1
+        ;;
       docker-compose.app.yml)
         log "docker-compose.app.yml changed, falling back to full backend migration scan"
         CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
@@ -366,6 +374,11 @@ wait_kafka
 
 detect_changed_backend_services
 
+if [[ "$START_OBSERVABILITY" == "1" && "$OBSERVABILITY_CHANGED" == "1" ]]; then
+  log "observability configuration changed, recreating observability services"
+  docker compose up -d --force-recreate prometheus loki promtail grafana jaeger
+fi
+
 declare -A existing_topic_lookup=()
 ensure_kafka_topics
 
@@ -402,6 +415,10 @@ done
 
 if [[ "$DEPLOY_FRONTEND" == "1" && "$VERIFY_FRONTEND" == "1" ]]; then
   wait_http "http://127.0.0.1:${FRONTEND_PORT}" frontend
+fi
+
+if [[ "$START_OBSERVABILITY" == "1" ]]; then
+  wait_http "http://127.0.0.1:${GRAFANA_PORT:-3005}/api/health" grafana
 fi
 
 log "backend deployment completed"
