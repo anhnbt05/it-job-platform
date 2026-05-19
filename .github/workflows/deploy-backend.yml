@@ -45,10 +45,15 @@ jobs:
             fi
 
             cd "$BACKEND_PATH"
+            PREVIOUS_HEAD="$(git rev-parse HEAD 2>/dev/null || true)"
             git fetch origin main
             git checkout main
             git reset --hard origin/main
             git clean -fd
+            CURRENT_HEAD="$(git rev-parse HEAD)"
 
-            RUN_SEED="$RUN_SEED_FLAG" bash ./scripts/dev/deploy-backend-vps.sh
+            PREVIOUS_DEPLOY_SHA="$PREVIOUS_HEAD" \
+            CURRENT_DEPLOY_SHA="$CURRENT_HEAD" \
+            RUN_SEED="$RUN_SEED_FLAG" \
+            bash ./scripts/dev/deploy-backend-vps.sh
             docker image prune -f

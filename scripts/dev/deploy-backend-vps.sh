@@ -6,6 +6,8 @@ RUN_SEED="${RUN_SEED:-0}"
 START_OBSERVABILITY="${START_OBSERVABILITY:-1}"
 VERIFY_FRONTEND="${VERIFY_FRONTEND:-1}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+PREVIOUS_DEPLOY_SHA="${PREVIOUS_DEPLOY_SHA:-}"
+CURRENT_DEPLOY_SHA="${CURRENT_DEPLOY_SHA:-}"
 ROOT_ENV_FILE="$ROOT_DIR/.env"
 TCP_WAIT_TIMEOUT_SECONDS="${TCP_WAIT_TIMEOUT_SECONDS:-180}"
 HTTP_WAIT_TIMEOUT_SECONDS="${HTTP_WAIT_TIMEOUT_SECONDS:-180}"
@@ -24,6 +26,16 @@ fi
 log() {
   printf '>>> [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
+
+BACKEND_SERVICES=(
+  identity-service
+  organization-service
+  notification-service
+  job-service
+  application-service
+  dashboard-service
+)
+CHANGED_BUILD_SERVICES=()
 
 print_diagnostics() {
   log "diagnostics: docker compose ps"
@@ -50,6 +62,88 @@ on_error() {
 }
 
 trap on_error ERR
+
+service_in_list() {
+  local target="$1"
+  shift
+
+  local item
+  for item in "$@"; do
+    if [[ "$item" == "$target" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+append_unique_service() {
+  local target="$1"
+  if ! service_in_list "$target" "${CHANGED_BUILD_SERVICES[@]}"; then
+    CHANGED_BUILD_SERVICES+=("$target")
+  fi
+}
+
+detect_changed_backend_build_services() {
+  CHANGED_BUILD_SERVICES=()
+
+  if [[ -z "$PREVIOUS_DEPLOY_SHA" || -z "$CURRENT_DEPLOY_SHA" ]]; then
+    log "missing deploy SHAs, falling back to full backend build"
+    CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+    return
+  fi
+
+  if ! git rev-parse --verify "${PREVIOUS_DEPLOY_SHA}^{commit}" >/dev/null 2>&1; then
+    log "previous deploy SHA is unavailable locally, falling back to full backend build"
+    CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+    return
+  fi
+
+  if ! git rev-parse --verify "${CURRENT_DEPLOY_SHA}^{commit}" >/dev/null 2>&1; then
+    log "current deploy SHA is unavailable locally, falling back to full backend build"
+    CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+    return
+  fi
+
+  local changed_files=()
+  mapfile -t changed_files < <(git diff --name-only "$PREVIOUS_DEPLOY_SHA" "$CURRENT_DEPLOY_SHA")
+
+  if (( ${#changed_files[@]} == 0 )); then
+    log "no file changes detected between ${PREVIOUS_DEPLOY_SHA} and ${CURRENT_DEPLOY_SHA}"
+    return
+  fi
+
+  log "detected ${#changed_files[@]} changed files between ${PREVIOUS_DEPLOY_SHA} and ${CURRENT_DEPLOY_SHA}"
+
+  local path
+  for path in "${changed_files[@]}"; do
+    case "$path" in
+      docker-compose.app.yml)
+        log "docker-compose.app.yml changed, falling back to full backend build"
+        CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+        return
+        ;;
+      services/identity-service/*)
+        append_unique_service identity-service
+        ;;
+      services/organization-service/*)
+        append_unique_service organization-service
+        ;;
+      services/notification-service/*)
+        append_unique_service notification-service
+        ;;
+      services/job-service/*)
+        append_unique_service job-service
+        ;;
+      services/application-service/*)
+        append_unique_service application-service
+        ;;
+      services/dashboard-service/*)
+        append_unique_service dashboard-service
+        ;;
+    esac
+  done
+}
 
 wait_tcp() {
   local host="$1"
@@ -154,14 +248,14 @@ if [[ "$RUN_SEED" == "1" ]]; then
   bash ./scripts/db/seed.sh
 fi
 
-log "building backend application images"
-docker compose -f docker-compose.yml -f docker-compose.app.yml build \
-  identity-service \
-  organization-service \
-  notification-service \
-  job-service \
-  application-service \
-  dashboard-service
+detect_changed_backend_build_services
+
+if (( ${#CHANGED_BUILD_SERVICES[@]} > 0 )); then
+  log "building changed backend services: ${CHANGED_BUILD_SERVICES[*]}"
+  docker compose -f docker-compose.yml -f docker-compose.app.yml build "${CHANGED_BUILD_SERVICES[@]}"
+else
+  log "skipping backend image build because no backend service files changed"
+fi
 
 log "starting backend application stack"
 docker compose -f docker-compose.yml -f docker-compose.app.yml up -d \
