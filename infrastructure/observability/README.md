@@ -21,14 +21,11 @@ Stack local trong thư mục này gồm:
   - HTTP request logs
   - warning/error logs
   - bộ đếm lỗi trong 1 giờ gần nhất
-- `K6 Load Testing`
-  - p95/p99 latency
-  - request rate, error rate, checks pass rate
-  - lọc theo `testid`, `scenario`, `service`
-- `Automation Test Results`
-  - tổng số run pass/fail của `api-automation`, `ui-e2e`, `k6`
-  - failure rate và duration trend
-  - log chi tiết từng lần chạy workflow/test suite
+- `Automation Test`
+  - tổng hợp cả 3 suite `api-automation`, `ui-e2e`, `k6-load-testing`
+  - phần Loki: pass/fail, failure rate, duration trend, log chi tiết từng lần chạy
+  - phần Prometheus/k6: p95 latency, error rate, checks pass rate, request rate
+  - lọc theo `suite`, `testid`, `scenario`, `service`
 
 ## Log parsing
 

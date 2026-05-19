@@ -71,6 +71,66 @@
       },
       "targets": [
         {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Runs Last 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
           "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\", status=\"passed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
@@ -107,10 +167,10 @@
       "gridPos": {
         "h": 6,
         "w": 6,
-        "x": 6,
+        "x": 12,
         "y": 0
       },
-      "id": 2,
+      "id": 3,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -167,10 +227,10 @@
       "gridPos": {
         "h": 6,
         "w": 6,
-        "x": 12,
+        "x": 18,
         "y": 0
       },
-      "id": 3,
+      "id": 4,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -227,10 +287,10 @@
       "gridPos": {
         "h": 6,
         "w": 6,
-        "x": 18,
-        "y": 0
+        "x": 0,
+        "y": 6
       },
-      "id": 4,
+      "id": 5,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -256,6 +316,175 @@
       "type": "stat"
     },
     {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 300
+              },
+              {
+                "color": "red",
+                "value": 1500
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 6
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(avg(k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}) or on() vector(0))",
+          "refId": "A"
+        }
+      ],
+      "title": "K6 P95 Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 6
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "((sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\",expected_response=\"false\"}[$__rate_interval])) / clamp_min(sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__rate_interval])), 0.0001)) or on() vector(0))",
+          "refId": "A"
+        }
+      ],
+      "title": "K6 Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(avg(k6_checks_rate{testid=~\"$testid\",scenario=~\"$scenario\"}) or on() vector(0))",
+          "refId": "A"
+        }
+      ],
+      "title": "K6 Checks Pass Rate",
+      "type": "stat"
+    },
+    {
       "datasource": "Loki",
       "fieldConfig": {
         "defaults": {
@@ -269,9 +498,9 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 6
+        "y": 12
       },
-      "id": 5,
+      "id": 9,
       "options": {
         "legend": {
           "calcs": [],
@@ -291,7 +520,7 @@
           "refId": "A"
         }
       ],
-      "title": "Runs By Suite And Status",
+      "title": "Automation Runs By Suite And Status",
       "type": "timeseries"
     },
     {
@@ -309,9 +538,9 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 6
+        "y": 12
       },
-      "id": 6,
+      "id": 10,
       "options": {
         "legend": {
           "calcs": [],
@@ -331,8 +560,234 @@
           "refId": "A"
         }
       ],
-      "title": "Run Duration Trend",
+      "title": "Automation Duration Trend",
       "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (service, operation) (rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "{{service}} {{operation}}",
+          "refId": "A"
+        }
+      ],
+      "title": "K6 Request Rate By Operation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "avg by (service, operation) (k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "legendFormat": "{{service}} {{operation}}",
+          "refId": "A"
+        }
+      ],
+      "title": "K6 P95 Latency By Operation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 29
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "avg(k6_vus{testid=~\"$testid\",scenario=~\"$scenario\"})",
+          "legendFormat": "vus",
+          "refId": "A"
+        },
+        {
+          "expr": "avg(k6_vus_max{testid=~\"$testid\",scenario=~\"$scenario\"})",
+          "legendFormat": "vus_max",
+          "refId": "B"
+        }
+      ],
+      "title": "K6 Virtual Users",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1500
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 29
+      },
+      "id": 14,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "expr": "avg by (service, operation) (k6_http_req_duration_avg{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "avg",
+          "refId": "A"
+        },
+        {
+          "expr": "avg by (service, operation) (k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "avg by (service, operation) (k6_http_req_duration_p99{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "K6 Latency Table By Operation",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "service"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value #A": "avg",
+              "Value #B": "p95",
+              "Value #C": "p99"
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "Loki",
@@ -340,9 +795,9 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 37
       },
-      "id": 7,
+      "id": 15,
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
@@ -364,13 +819,15 @@
       "type": "logs"
     }
   ],
-  "refresh": "30s",
+  "refresh": "15s",
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
     "automation",
     "tests",
-    "loki"
+    "loki",
+    "prometheus",
+    "k6"
   ],
   "templating": {
     "list": [
@@ -394,6 +851,69 @@
         "skipUrlSync": false,
         "sort": 1,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(k6_vus, testid)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "K6 Test ID",
+        "multi": false,
+        "name": "testid",
+        "options": [],
+        "query": "label_values(k6_vus, testid)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(k6_vus{testid=~\"$testid\"}, scenario)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "K6 Scenario",
+        "multi": false,
+        "name": "scenario",
+        "options": [],
+        "query": "label_values(k6_vus{testid=~\"$testid\"}, scenario)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\"}, service)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "K6 Service",
+        "multi": false,
+        "name": "service",
+        "options": [],
+        "query": "label_values(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\"}, service)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
       }
     ]
   },
@@ -403,8 +923,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Automation Test Results",
-  "uid": "automation-test-results",
-  "version": 1,
+  "title": "Automation Test",
+  "uid": "automation-test",
+  "version": 2,
   "weekStart": ""
 }
