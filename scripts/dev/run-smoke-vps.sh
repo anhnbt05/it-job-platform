@@ -47,6 +47,7 @@ prepare_demo_data() {
 
 cd "$ROOT_DIR"
 prepare_demo_data
+bash "$ROOT_DIR/scripts/dev/wait-app-stack-vps.sh" --skip-frontend
 cd "$ROOT_DIR/infrastructure/load-testing"
 
 log "running k6 scenario=$SCENARIO test_id=$TEST_ID"

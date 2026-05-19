@@ -20,6 +20,7 @@ prepare_demo_data() {
 
 cd "$ROOT_DIR"
 prepare_demo_data
+bash "$ROOT_DIR/scripts/dev/wait-app-stack-vps.sh" --skip-frontend
 
 log "running API automation tests"
 node --test ./tests/api/*.test.mjs
