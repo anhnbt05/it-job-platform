@@ -1,5 +1,8 @@
 package com.itjob.jobservice.service;
 
+import com.itjob.jobservice.client.CreateOrganizationCategoryRequest;
+import com.itjob.jobservice.client.OrganizationCategoryClient;
+import com.itjob.jobservice.client.OrganizationCategoryResponse;
 import com.itjob.jobservice.dto.request.*;
 import com.itjob.jobservice.dto.response.JobDetailResponse;
 import com.itjob.jobservice.dto.response.JobResponse;
@@ -12,6 +15,7 @@ import com.itjob.jobservice.exception.ForbiddenException;
 import com.itjob.jobservice.exception.ResourceNotFoundException;
 import com.itjob.jobservice.kafka.JobEventProducer;
 import com.itjob.jobservice.repository.*;
+import feign.FeignException;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +38,7 @@ public class JobService {
     private final JobBenefitRepository jobBenefitRepository;
     private final CategorySnapshotRepository categorySnapshotRepository;
     private final JobCategoryRepository jobCategoryRepository;
+    private final OrganizationCategoryClient organizationCategoryClient;
     private final JobEventProducer jobEventProducer;
     private final MeterRegistry meterRegistry;
 
@@ -333,10 +338,12 @@ public class JobService {
     // ========== Helper methods ==========
 
     private void saveJobCategories(Job job, List<String> categoryNames) {
-        List<CategorySnapshot> categories = categorySnapshotRepository.findByCategoryNameIn(categoryNames);
-        if (categories.size() != categoryNames.size()) {
+        List<String> normalizedCategoryNames = normalizeCategoryNames(categoryNames);
+        List<CategorySnapshot> categories = ensureCategorySnapshots(normalizedCategoryNames);
+
+        if (categories.size() != normalizedCategoryNames.size()) {
             Set<String> found = categories.stream().map(CategorySnapshot::getCategoryName).collect(Collectors.toSet());
-            List<String> missing = categoryNames.stream().filter(n -> !found.contains(n)).collect(Collectors.toList());
+            List<String> missing = normalizedCategoryNames.stream().filter(n -> !found.contains(n)).collect(Collectors.toList());
             throw new ResourceNotFoundException("Không tìm thấy danh mục: " + String.join(", ", missing));
         }
 
@@ -347,6 +354,86 @@ public class JobService {
                         .build())
                 .collect(Collectors.toList());
         jobCategoryRepository.saveAll(jobCategories);
+    }
+
+    private List<String> normalizeCategoryNames(List<String> categoryNames) {
+        return categoryNames.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(name -> !name.isBlank())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private List<CategorySnapshot> ensureCategorySnapshots(List<String> categoryNames) {
+        List<CategorySnapshot> categories = categorySnapshotRepository.findByCategoryNameIn(categoryNames);
+        Set<String> foundNames = categories.stream()
+                .map(CategorySnapshot::getCategoryName)
+                .collect(Collectors.toSet());
+
+        List<String> missingNames = categoryNames.stream()
+                .filter(name -> !foundNames.contains(name))
+                .collect(Collectors.toList());
+
+        if (!missingNames.isEmpty()) {
+            syncMissingCategoriesFromOrganizationService(missingNames);
+            categories = categorySnapshotRepository.findByCategoryNameIn(categoryNames);
+        }
+
+        return categories;
+    }
+
+    private void syncMissingCategoriesFromOrganizationService(List<String> missingNames) {
+        Map<String, OrganizationCategoryResponse> organizationCategoriesByName = organizationCategoryClient.getCategories().stream()
+                .filter(category -> category.getName() != null && !category.getName().isBlank())
+                .collect(Collectors.toMap(
+                        category -> category.getName().trim(),
+                        category -> category,
+                        (left, right) -> left
+                ));
+
+        for (String missingName : missingNames) {
+            OrganizationCategoryResponse organizationCategory = organizationCategoriesByName.get(missingName);
+            if (organizationCategory == null) {
+                organizationCategory = createOrganizationCategory(missingName);
+            }
+
+            if (organizationCategory != null) {
+                upsertCategorySnapshot(organizationCategory);
+            }
+        }
+    }
+
+    private OrganizationCategoryResponse createOrganizationCategory(String categoryName) {
+        try {
+            return organizationCategoryClient.createCategory(new CreateOrganizationCategoryRequest(categoryName));
+        } catch (FeignException.BadRequest exception) {
+            log.info("Category '{}' already exists in organization-service or was created concurrently", categoryName);
+            return organizationCategoryClient.getCategories().stream()
+                    .filter(category -> categoryName.equals(category.getName()))
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
+    private void upsertCategorySnapshot(OrganizationCategoryResponse organizationCategory) {
+        if (organizationCategory.getId() == null || organizationCategory.getName() == null) {
+            return;
+        }
+
+        UUID categoryId = UUID.fromString(organizationCategory.getId());
+        CategorySnapshot snapshot = categorySnapshotRepository.findById(categoryId)
+                .orElseGet(CategorySnapshot::new);
+
+        snapshot.setId(categoryId);
+        snapshot.setCategoryName(organizationCategory.getName().trim());
+        snapshot.setUpdatedAt(
+                organizationCategory.getUpdatedAt() != null
+                        ? organizationCategory.getUpdatedAt()
+                        : LocalDateTime.now()
+        );
+
+        categorySnapshotRepository.save(snapshot);
     }
 
     private void syncJobDescriptions(Job job, List<String> newValues) {
