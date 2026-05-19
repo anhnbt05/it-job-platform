@@ -14,10 +14,10 @@ import java.util.List;
 )
 public interface OrganizationCategoryClient {
 
-    @GetMapping
+    @GetMapping("/internal")
     List<OrganizationCategoryResponse> getCategories();
 
-    @PostMapping
+    @PostMapping("/internal")
     OrganizationCategoryResponse createCategory(
             @RequestBody CreateOrganizationCategoryRequest request
     );

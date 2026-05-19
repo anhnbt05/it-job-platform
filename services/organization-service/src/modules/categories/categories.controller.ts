@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { Public } from '@/common/decorators';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 
@@ -19,8 +20,20 @@ export class CategoriesController {
     return this.categoriesService.createCategory(createCategoryDto);
   }
 
+  @Post('internal')
+  @Public()
+  createInternalCategory(@Body() createCategoryDto: CreateCategoryDto) {
+    return this.categoriesService.createCategory(createCategoryDto);
+  }
+
   @Get()
   getCategories() {
+    return this.categoriesService.getCategories();
+  }
+
+  @Get('internal')
+  @Public()
+  getInternalCategories() {
     return this.categoriesService.getCategories();
   }
 
