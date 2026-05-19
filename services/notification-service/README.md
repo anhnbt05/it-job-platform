@@ -27,6 +27,8 @@ NestJS service xử lý email và thông báo người dùng.
 Xem `.env.example`.
 
 - `DATABASE_URL`
+- `GRAPHILE_WORKER_DATABASE_URL` (optional, mặc định dùng `DATABASE_URL`)
+- `GRAPHILE_WORKER_SCHEMA` (optional, mặc định `graphile_worker`)
 - `KAFKA_CLIENT_ID`
 - `KAFKA_GROUP_ID`
 - `KAFKA_BROKERS`

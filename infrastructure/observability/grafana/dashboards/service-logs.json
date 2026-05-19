@@ -20,7 +20,10 @@
   "graphTooltip": 0,
   "panels": [
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -79,7 +82,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -134,7 +140,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -193,7 +202,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "gridPos": {
         "h": 10,
         "w": 24,
@@ -222,7 +234,10 @@
       "type": "logs"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "gridPos": {
         "h": 10,
         "w": 24,
@@ -251,7 +266,7 @@
       "type": "logs"
     }
   ],
-  "refresh": "10s",
+  "refresh": "30s",
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
@@ -261,15 +276,19 @@
   "templating": {
     "list": [
       {
+        "allValue": ".*",
         "current": {
-          "selected": false,
-          "text": ".*",
-          "value": ".*"
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
         },
-        "datasource": "Loki",
+        "datasource": {
+          "type": "loki",
+          "uid": "P8E80F9AEF21F6940"
+        },
         "definition": "label_values({job=\"host-app\"}, service)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "Service",
         "multi": false,
         "name": "service",
@@ -277,20 +296,20 @@
         "query": "label_values({job=\"host-app\"}, service)",
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
+        "skipUrlSync": true,
         "sort": 1,
         "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Service Logs",
   "uid": "service-logs",
-  "version": 1,
+  "version": 5,
   "weekStart": ""
 }

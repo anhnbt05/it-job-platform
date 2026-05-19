@@ -12,11 +12,22 @@ import { MetricsModule } from '@/modules/observability/metrics.module';
     MetricsModule,
     GraphileWorkerModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connectionString: configService.get<string>('database_url', ''),
-        schema: 'graphile_worker',
-        pollInterval: 1000,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const connectionString = configService.get<string>(
+          'graphile_worker_database_url',
+          '',
+        );
+        const schema = configService.get<string>(
+          'graphile_worker_schema',
+          'graphile_worker',
+        );
+
+        return {
+          connectionString,
+          schema,
+          pollInterval: 1000,
+        };
+      },
     }),
   ],
   providers: [JobsService, SendEmailTask],

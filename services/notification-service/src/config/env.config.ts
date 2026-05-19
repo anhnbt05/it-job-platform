@@ -1,6 +1,11 @@
 export default () => ({
   port: parseInt(process.env.PORT ?? '3003', 10) || 3003,
   database_url: process.env.DATABASE_URL || '',
+  graphile_worker_database_url:
+    process.env.GRAPHILE_WORKER_DATABASE_URL ||
+    process.env.DATABASE_URL ||
+    '',
+  graphile_worker_schema: process.env.GRAPHILE_WORKER_SCHEMA || 'graphile_worker',
   db_pool_max: parseInt(process.env.DB_POOL_MAX ?? '10', 10) || 10,
   db_pool_idle_timeout_ms:
     parseInt(process.env.DB_POOL_IDLE_TIMEOUT_MS ?? '30000', 10) || 30000,
