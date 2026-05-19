@@ -5,6 +5,7 @@ ROOT_DIR="${ROOT_DIR:-/opt/it-job/it-job-platform}"
 RUN_SEED="${RUN_SEED:-0}"
 START_OBSERVABILITY="${START_OBSERVABILITY:-1}"
 VERIFY_FRONTEND="${VERIFY_FRONTEND:-1}"
+DEPLOY_FRONTEND="${DEPLOY_FRONTEND:-0}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 PREVIOUS_DEPLOY_SHA="${PREVIOUS_DEPLOY_SHA:-}"
 CURRENT_DEPLOY_SHA="${CURRENT_DEPLOY_SHA:-}"
@@ -302,14 +303,21 @@ else
 fi
 
 log "starting backend application stack"
+APP_UP_SERVICES=(
+  identity-service
+  organization-service
+  notification-service
+  job-service
+  application-service
+  dashboard-service
+)
+
+if [[ "$DEPLOY_FRONTEND" == "1" ]]; then
+  APP_UP_SERVICES+=(frontend)
+fi
+
 docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate \
-  identity-service \
-  organization-service \
-  notification-service \
-  job-service \
-  application-service \
-  dashboard-service \
-  frontend
+  "${APP_UP_SERVICES[@]}"
 
 wait_http "http://127.0.0.1:${IDENTITY_SERVICE_PORT:-3001}/health" identity-service
 wait_http "http://127.0.0.1:${ORGANIZATION_SERVICE_PORT:-3002}/health" organization-service
@@ -319,7 +327,7 @@ wait_http "http://127.0.0.1:${APPLICATION_SERVICE_PORT:-8083}/api/health" applic
 wait_http "http://127.0.0.1:${DASHBOARD_SERVICE_PORT:-8084}/api/health" dashboard-service
 wait_http "http://127.0.0.1:${KONG_PROXY_PORT:-8000}/identity/health" kong-identity
 
-if [[ "$VERIFY_FRONTEND" == "1" ]]; then
+if [[ "$DEPLOY_FRONTEND" == "1" && "$VERIFY_FRONTEND" == "1" ]]; then
   wait_http "http://127.0.0.1:${FRONTEND_PORT}" frontend
 fi
 
