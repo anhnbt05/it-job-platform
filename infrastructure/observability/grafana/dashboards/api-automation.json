@@ -347,9 +347,9 @@
   "style": "dark",
   "tags": [
     "automation",
-    "tests",
+    "api",
     "loki",
-    "api"
+    "tests"
   ],
   "templating": {
     "list": []
@@ -360,8 +360,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "API Automation",
+  "title": "API Automation Test",
   "uid": "automation-api",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

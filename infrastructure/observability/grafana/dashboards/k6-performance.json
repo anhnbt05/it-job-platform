@@ -710,10 +710,10 @@
   "style": "dark",
   "tags": [
     "automation",
-    "tests",
+    "k6",
     "loki",
     "prometheus",
-    "k6"
+    "tests"
   ],
   "templating": {
     "list": [
@@ -788,8 +788,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "k6 Performance",
+  "title": "k6 Load Test",
   "uid": "automation-k6",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

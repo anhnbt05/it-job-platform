@@ -347,8 +347,8 @@
   "style": "dark",
   "tags": [
     "automation",
-    "tests",
     "loki",
+    "tests",
     "ui-e2e"
   ],
   "templating": {
@@ -360,8 +360,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "UI E2E Automation",
+  "title": "UI E2E Test",
   "uid": "automation-ui-e2e",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
