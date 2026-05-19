@@ -48,6 +48,16 @@ public class JobDataSeeder implements ApplicationRunner {
     private static final UUID FRONTEND_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000003");
     private static final UUID QA_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000004");
     private static final UUID FULLSTACK_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000005");
+    private static final UUID DATA_ENGINEER_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000006");
+    private static final UUID AI_ENGINEER_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000007");
+    private static final UUID MOBILE_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000008");
+    private static final UUID SECURITY_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000009");
+    private static final UUID UIUX_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000010");
+    private static final UUID DBA_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000011");
+    private static final UUID PM_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000012");
+    private static final UUID SUPPORT_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000013");
+    private static final UUID BLOCKCHAIN_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000014");
+    private static final UUID GAME_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000015");
 
     private static final List<CategorySeed> CATEGORY_SEEDS = List.of(
             new CategorySeed(UUID.fromString("10000000-0000-0000-0000-000000000001"), "Software Development"),
@@ -205,6 +215,276 @@ public class JobDataSeeder implements ApplicationRunner {
                             "Thành thạo cả Node.js/NestJS và React/Next.js.",
                             "Có kinh nghiệm làm việc với kiến trúc microservices."
                     )
+            ),
+            new JobSeed(
+                    DATA_ENGINEER_JOB_ID,
+                    "Data Engineer",
+                    "Thiết kế data pipeline phục vụ dashboard tuyển dụng và báo cáo vận hành.",
+                    "Tan Binh District, Ho Chi Minh City",
+                    "2200 - 3200 USD",
+                    2,
+                    JobType.full_time,
+                    "Mon - Fri, 09:00 - 18:00",
+                    JobStatus.open,
+                    14,
+                    30,
+                    Level.senior,
+                    List.of("Data Engineering", "Database Administration"),
+                    List.of(
+                            "Xây dựng pipeline ETL đồng bộ job, ứng tuyển và analytics event.",
+                            "Thiết kế mô hình dữ liệu phục vụ dashboard thời gian thực và báo cáo định kỳ."
+                    ),
+                    List.of(
+                            "Thưởng dự án theo quý và hỗ trợ chứng chỉ dữ liệu.",
+                            "Ngân sách cloud sandbox riêng cho team data."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với SQL nâng cao, Airflow hoặc workflow orchestration.",
+                            "Hiểu về data warehouse, modeling và monitoring dữ liệu."
+                    )
+            ),
+            new JobSeed(
+                    AI_ENGINEER_JOB_ID,
+                    "AI Engineer (RAG Platform)",
+                    "Phát triển hệ thống tìm kiếm và gợi ý công việc bằng LLM, embeddings và RAG.",
+                    "Thu Duc City, Ho Chi Minh City",
+                    "2400 - 3400 USD",
+                    1,
+                    JobType.remote,
+                    "Flexible, overlap 4h with GMT+7",
+                    JobStatus.open,
+                    6,
+                    24,
+                    Level.mid,
+                    List.of("Data Science & AI/ML", "Backend Development"),
+                    List.of(
+                            "Xây dựng API phục vụ semantic search và ranking job.",
+                            "Thử nghiệm prompt, retrieval strategy và theo dõi chất lượng kết quả."
+                    ),
+                    List.of(
+                            "Remote-first và hỗ trợ ngân sách GPU/cloud hằng tháng.",
+                            "Budget hội thảo AI và khóa học chuyên sâu."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với Python, vector database hoặc LLM app.",
+                            "Biết đánh giá chất lượng retrieval, ranking hoặc recommendation."
+                    )
+            ),
+            new JobSeed(
+                    MOBILE_JOB_ID,
+                    "Mobile Developer (Flutter)",
+                    "Xây dựng ứng dụng ứng viên giúp tìm việc, lưu job và theo dõi trạng thái ứng tuyển.",
+                    "District 2, Ho Chi Minh City",
+                    "1300 - 1900 USD",
+                    2,
+                    JobType.full_time,
+                    "Mon - Fri, 08:30 - 17:30",
+                    JobStatus.open,
+                    4,
+                    26,
+                    Level.junior,
+                    List.of("Mobile Development", "Software Development"),
+                    List.of(
+                            "Phát triển màn hình tìm kiếm việc làm, profile ứng viên và thông báo.",
+                            "Tối ưu hiệu năng, trải nghiệm người dùng và tracking analytics trên mobile."
+                    ),
+                    List.of(
+                            "MacBook hoặc laptop Windows cấu hình cao theo nhu cầu.",
+                            "Trợ cấp điện thoại và ngân sách test thiết bị thật."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với Flutter hoặc ứng dụng mobile cross-platform.",
+                            "Biết làm việc với REST API, state management và release flow."
+                    )
+            ),
+            new JobSeed(
+                    SECURITY_JOB_ID,
+                    "Cybersecurity Analyst",
+                    "Tăng cường bảo mật cho gateway, auth flow và hạ tầng cloud của nền tảng.",
+                    "Remote - Vietnam",
+                    "2000 - 2800 USD",
+                    1,
+                    JobType.remote,
+                    "Mon - Fri, flexible",
+                    JobStatus.pending,
+                    2,
+                    18,
+                    Level.mid,
+                    List.of("Cybersecurity", "System & Network Administration"),
+                    List.of(
+                            "Rà soát rủi ro xác thực, secret handling và phân quyền trong hệ thống.",
+                            "Thiết lập baseline kiểm tra bảo mật cho CI/CD và cloud runtime."
+                    ),
+                    List.of(
+                            "Hỗ trợ thi chứng chỉ bảo mật và phòng lab nội bộ.",
+                            "Làm việc sát với DevOps và backend để xử lý security debt."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với web security, IAM hoặc container security.",
+                            "Biết đọc log, điều tra sự cố và đề xuất biện pháp giảm thiểu."
+                    )
+            ),
+            new JobSeed(
+                    UIUX_JOB_ID,
+                    "Product Designer (UI/UX)",
+                    "Thiết kế trải nghiệm recruiter dashboard và candidate journey nhất quán hơn.",
+                    "District 1, Ho Chi Minh City",
+                    "1400 - 2100 USD",
+                    1,
+                    JobType.full_time,
+                    "Mon - Fri, 09:00 - 18:00",
+                    JobStatus.closed,
+                    25,
+                    -5,
+                    Level.mid,
+                    List.of("UI/UX Design", "Frontend Development"),
+                    List.of(
+                            "Thiết kế luồng onboarding recruiter, dashboard summary và trang chi tiết job.",
+                            "Tạo design system cơ bản để đồng bộ giữa admin, recruiter và candidate portal."
+                    ),
+                    List.of(
+                            "Review thiết kế hàng tuần với PM và frontend lead.",
+                            "Hỗ trợ license Figma chuyên nghiệp và thư viện component."
+                    ),
+                    List.of(
+                            "Có portfolio về web app dashboard hoặc sản phẩm B2B.",
+                            "Biết tổ chức user flow, information architecture và prototype."
+                    )
+            ),
+            new JobSeed(
+                    DBA_JOB_ID,
+                    "Database Administrator",
+                    "Tối ưu PostgreSQL, backup strategy và truy vấn tổng hợp cho nền tảng tuyển dụng.",
+                    "District 7, Ho Chi Minh City",
+                    "1900 - 2700 USD",
+                    1,
+                    JobType.full_time,
+                    "Mon - Fri, 09:00 - 18:00",
+                    JobStatus.open,
+                    11,
+                    22,
+                    Level.mid,
+                    List.of("Database Administration", "Backend Development"),
+                    List.of(
+                            "Theo dõi hiệu năng truy vấn, index và growth của dữ liệu nghiệp vụ.",
+                            "Thiết kế chính sách backup/restore và kiểm tra khôi phục định kỳ."
+                    ),
+                    List.of(
+                            "Phụ cấp trực on-call và thưởng reliability.",
+                            "Môi trường có nhiều bài toán tối ưu dữ liệu thực tế."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với PostgreSQL vận hành thực tế.",
+                            "Hiểu về replication, indexing, vacuum và tuning."
+                    )
+            ),
+            new JobSeed(
+                    PM_JOB_ID,
+                    "IT Project Manager",
+                    "Điều phối roadmap sản phẩm tuyển dụng và kết nối giữa business với engineering.",
+                    "District 4, Ho Chi Minh City",
+                    "2500 - 3300 USD",
+                    1,
+                    JobType.full_time,
+                    "Mon - Fri, 09:00 - 18:00",
+                    JobStatus.open,
+                    9,
+                    28,
+                    Level.senior,
+                    List.of("IT Project Management", "Software Development"),
+                    List.of(
+                            "Quản lý scope, timeline và quality gate cho các mốc ra mắt tính năng.",
+                            "Làm việc với stakeholder để cân bằng giữa tốc độ triển khai và độ ổn định."
+                    ),
+                    List.of(
+                            "Thưởng theo mốc dự án và chỉ số delivery.",
+                            "Làm việc trực tiếp với leadership và product owner."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm quản lý dự án phần mềm nhiều team.",
+                            "Biết đọc hiểu technical trade-off và điều phối release."
+                    )
+            ),
+            new JobSeed(
+                    SUPPORT_JOB_ID,
+                    "IT Support & Helpdesk",
+                    "Hỗ trợ nội bộ về tài khoản, thiết bị và các sự cố vận hành văn phòng.",
+                    "Go Vap District, Ho Chi Minh City",
+                    "700 - 950 USD",
+                    2,
+                    JobType.part_time,
+                    "Shift rotation, Mon - Sat",
+                    JobStatus.closed,
+                    18,
+                    -1,
+                    Level.fresher,
+                    List.of("IT Support & Helpdesk", "System & Network Administration"),
+                    List.of(
+                            "Hỗ trợ người dùng nội bộ xử lý sự cố tài khoản, thiết bị và mạng cơ bản.",
+                            "Theo dõi ticket, cập nhật tài sản CNTT và phối hợp vendor khi cần."
+                    ),
+                    List.of(
+                            "Phụ cấp ca trực và đào tạo bài bản cho nhân sự mới.",
+                            "Cơ hội chuyển hướng lên system admin sau 1-2 năm."
+                    ),
+                    List.of(
+                            "Kỹ năng giao tiếp tốt và xử lý sự cố cơ bản.",
+                            "Biết về Windows, Google Workspace hoặc M365 là lợi thế."
+                    )
+            ),
+            new JobSeed(
+                    BLOCKCHAIN_JOB_ID,
+                    "Blockchain Engineer",
+                    "Nghiên cứu mô hình xác thực chứng chỉ ứng viên và hồ sơ số bằng blockchain.",
+                    "Remote - APAC",
+                    "2600 - 3800 USD",
+                    1,
+                    JobType.free_lance,
+                    "Project-based, 20h/week",
+                    JobStatus.rejected,
+                    16,
+                    -3,
+                    Level.senior,
+                    List.of("Blockchain", "Backend Development"),
+                    List.of(
+                            "Đánh giá khả năng áp dụng smart contract cho chứng chỉ kỹ năng và portfolio.",
+                            "Thiết kế proof of concept tích hợp với hệ thống hồ sơ ứng viên."
+                    ),
+                    List.of(
+                            "Thanh toán theo milestone và thưởng nếu PoC đạt KPI.",
+                            "Linh hoạt múi giờ, tập trung theo deliverable."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với EVM, smart contract hoặc signing workflow.",
+                            "Có thể tự đề xuất kiến trúc PoC và phân tích rủi ro."
+                    )
+            ),
+            new JobSeed(
+                    GAME_JOB_ID,
+                    "Game Developer Intern",
+                    "Xây dựng mini game thương hiệu phục vụ chiến dịch tuyển dụng sinh viên.",
+                    "District 10, Ho Chi Minh City",
+                    "300 - 500 USD",
+                    2,
+                    JobType.part_time,
+                    "Mon - Fri, flexible for students",
+                    JobStatus.pending,
+                    1,
+                    12,
+                    Level.intern,
+                    List.of("Game Development", "Frontend Development"),
+                    List.of(
+                            "Phát triển mini game đơn giản dùng cho landing page tuyển dụng campus.",
+                            "Phối hợp với designer để tối ưu trải nghiệm chơi và tracking conversion."
+                    ),
+                    List.of(
+                            "Linh hoạt lịch làm cho sinh viên và có mentor review hằng tuần.",
+                            "Có ngân sách cho game jam nội bộ và hoạt động community."
+                    ),
+                    List.of(
+                            "Biết Unity, C# hoặc web game là lợi thế.",
+                            "Chủ động học nhanh, thích sản phẩm tương tác."
+                    )
             )
     );
 
@@ -280,6 +560,9 @@ public class JobDataSeeder implements ApplicationRunner {
     private void seedFavorites() {
         upsertFavorite(BACKEND_JOB_ID, () -> LocalDateTime.now().minusDays(4));
         upsertFavorite(DEVOPS_JOB_ID, () -> LocalDateTime.now().minusDays(2));
+        upsertFavorite(AI_ENGINEER_JOB_ID, () -> LocalDateTime.now().minusDays(1));
+        upsertFavorite(MOBILE_JOB_ID, () -> LocalDateTime.now().minusDays(6));
+        upsertFavorite(PM_JOB_ID, () -> LocalDateTime.now().minusDays(3));
     }
 
     private void replaceChildren(
