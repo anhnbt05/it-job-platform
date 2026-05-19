@@ -208,6 +208,10 @@ async function main() {
   const cloudRecruiterId = '82828282-9191-a1a1-b2b2-c3c3c3c3c3c3';
   const productRecruiterUserId = '93939393-a4a4-b5b5-c6c6-d7d7d7d7d7d7';
   const productRecruiterId = 'a4a4a4a4-b5b5-c6c6-d7d7-e8e8e8e8e8e8';
+  const horizonRecruiterUserId = 'b1b1b1b1-c2c2-d3d3-e4e4-f5f5f5f5f5f5';
+  const horizonRecruiterId = 'b2b2b2b2-c3c3-d4d4-e5e5-f6f6f6f6f6f6';
+  const greenRecruiterUserId = 'c1c1c1c1-d2d2-e3e3-f4f4-a5a5a5a5a5a5';
+  const greenRecruiterId = 'c2c2c2c2-d3d3-e4e4-f5f5-a6a6a6a6a6a6';
 
   const company = await prisma.companySnapshot.upsert({
     where: { id: companyId },
@@ -1504,6 +1508,126 @@ async function main() {
       device_name: 'Product Recruiter Laptop',
       device_type: 'web',
       ip_address: '10.30.0.41',
+    },
+  ]);
+
+  const horizonRecruiterUser = await prisma.user.upsert({
+    where: { email: 'recruiter.horizon@example.com' },
+    update: {
+      password: hashPassword('recruiter123'),
+      status: 'active',
+      is_email_verified: true,
+    },
+    create: {
+      id: horizonRecruiterUserId,
+      email: 'recruiter.horizon@example.com',
+      password: hashPassword('recruiter123'),
+      role: 'recruiter',
+      status: 'active',
+      is_email_verified: true,
+    },
+  });
+
+  await prisma.userProfile.upsert({
+    where: { user_id: horizonRecruiterUser.id },
+    update: {
+      full_name: 'Bao Ngoc Horizon Recruiter',
+      avatar_url: 'https://i.pravatar.cc/200?img=31',
+      phone_number: '0900000016',
+      bio: 'Recruiter phu trach khoi commerce, BA va customer success cho khu vuc Can Tho va HCMC.',
+    },
+    create: {
+      user_id: horizonRecruiterUser.id,
+      full_name: 'Bao Ngoc Horizon Recruiter',
+      avatar_url: 'https://i.pravatar.cc/200?img=31',
+      phone_number: '0900000016',
+      bio: 'Recruiter phu trach khoi commerce, BA va customer success cho khu vuc Can Tho va HCMC.',
+    },
+  });
+
+  await prisma.recruiter.upsert({
+    where: { user_id: horizonRecruiterUser.id },
+    update: {
+      department: 'Commerce Hiring',
+      company_id: '45454545-4545-4545-4545-454545454545',
+      branch_id: '81818181-8181-8181-8181-818181818181',
+      last_active_at: new Date(),
+    },
+    create: {
+      id: horizonRecruiterId,
+      user_id: horizonRecruiterUser.id,
+      company_id: '45454545-4545-4545-4545-454545454545',
+      branch_id: '81818181-8181-8181-8181-818181818181',
+      department: 'Commerce Hiring',
+      last_active_at: new Date(),
+    },
+  });
+
+  await replaceUserDevices(horizonRecruiterUser.id, [
+    {
+      device_name: 'Horizon Recruiter Laptop',
+      device_type: 'web',
+      ip_address: '10.30.0.51',
+    },
+  ]);
+
+  const greenRecruiterUser = await prisma.user.upsert({
+    where: { email: 'recruiter.green@example.com' },
+    update: {
+      password: hashPassword('recruiter123'),
+      status: 'active',
+      is_email_verified: true,
+    },
+    create: {
+      id: greenRecruiterUserId,
+      email: 'recruiter.green@example.com',
+      password: hashPassword('recruiter123'),
+      role: 'recruiter',
+      status: 'active',
+      is_email_verified: true,
+    },
+  });
+
+  await prisma.userProfile.upsert({
+    where: { user_id: greenRecruiterUser.id },
+    update: {
+      full_name: 'Tuan Anh Green Recruiter',
+      avatar_url: 'https://i.pravatar.cc/200?img=11',
+      phone_number: '0900000017',
+      bio: 'Recruiter phu trach cloud, security va ha tang cho khu vuc Hai Phong.',
+    },
+    create: {
+      user_id: greenRecruiterUser.id,
+      full_name: 'Tuan Anh Green Recruiter',
+      avatar_url: 'https://i.pravatar.cc/200?img=11',
+      phone_number: '0900000017',
+      bio: 'Recruiter phu trach cloud, security va ha tang cho khu vuc Hai Phong.',
+    },
+  });
+
+  await prisma.recruiter.upsert({
+    where: { user_id: greenRecruiterUser.id },
+    update: {
+      department: 'Infrastructure Hiring',
+      company_id: '89898989-8989-8989-8989-898989898989',
+      branch_id: '84848484-8484-8484-8484-848484848484',
+      last_active_at: new Date(),
+    },
+    create: {
+      id: greenRecruiterId,
+      user_id: greenRecruiterUser.id,
+      company_id: '89898989-8989-8989-8989-898989898989',
+      branch_id: '84848484-8484-8484-8484-848484848484',
+      department: 'Infrastructure Hiring',
+      last_active_at: new Date(),
+    },
+  });
+
+  await replaceUserDevices(greenRecruiterUser.id, [
+    {
+      device_name: 'GreenNode Recruiter Laptop',
+      device_type: 'web',
+      ip_address: '10.30.0.61',
     },
   ]);
 

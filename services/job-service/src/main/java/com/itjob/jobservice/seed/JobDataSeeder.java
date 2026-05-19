@@ -43,6 +43,11 @@ public class JobDataSeeder implements ApplicationRunner {
 
     private static final UUID CANDIDATE_USER_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
     private static final UUID RECRUITER_USER_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
+    private static final UUID NOVA_RECRUITER_USER_ID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static final UUID CLOUD_RECRUITER_USER_ID = UUID.fromString("72727272-8181-9191-a2a2-b3b3b3b3b3b3");
+    private static final UUID PRODUCT_RECRUITER_USER_ID = UUID.fromString("93939393-a4a4-b5b5-c6c6-d7d7d7d7d7d7");
+    private static final UUID HORIZON_RECRUITER_USER_ID = UUID.fromString("b1b1b1b1-c2c2-d3d3-e4e4-f5f5f5f5f5f5");
+    private static final UUID GREEN_RECRUITER_USER_ID = UUID.fromString("c1c1c1c1-d2d2-e3e3-f4f4-a5a5a5a5a5a5");
 
     private static final UUID BACKEND_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000001");
     private static final UUID DEVOPS_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000002");
@@ -763,6 +768,7 @@ public class JobDataSeeder implements ApplicationRunner {
         LocalDateTime now = LocalDateTime.now();
 
         for (JobSeed seed : JOB_SEEDS) {
+            LocalDateTime postedAt = now.minusDays(resolvePostedDaysAgo(seed.id(), seed.postedDaysAgo()));
             Job job = jobRepository.findById(seed.id()).orElseGet(Job::new);
             job.setId(seed.id());
             job.setTitle(seed.title());
@@ -773,10 +779,10 @@ public class JobDataSeeder implements ApplicationRunner {
             job.setType(seed.type());
             job.setWorkingTimes(seed.workingTimes());
             job.setStatus(seed.status());
-            job.setPostedAt(now.minusDays(seed.postedDaysAgo()));
-            job.setExpiredAt(now.plusDays(seed.expiresInDays()));
+            job.setPostedAt(postedAt);
+            job.setExpiredAt(postedAt.plusDays(resolveExpirationWindowDays(seed.id(), seed.expiresInDays())));
             job.setLevel(seed.level());
-            job.setRecruiterId(RECRUITER_USER_ID);
+            job.setRecruiterId(resolveRecruiterId(seed.id()));
             job.setDeletedAt(null);
 
             Job savedJob = jobRepository.save(job);
@@ -857,6 +863,92 @@ public class JobDataSeeder implements ApplicationRunner {
         favorite.setSavedAt(savedAtSupplier.get());
 
         jobFavoriteRepository.save(favorite);
+    }
+
+    private UUID resolveRecruiterId(UUID jobId) {
+        if (List.of(BACKEND_JOB_ID, DEVOPS_JOB_ID, QA_JOB_ID, FULLSTACK_JOB_ID, DBA_JOB_ID).contains(jobId)) {
+            return RECRUITER_USER_ID;
+        }
+
+        if (List.of(FRONTEND_JOB_ID, MOBILE_JOB_ID, DATA_ANALYST_JOB_ID).contains(jobId)) {
+            return NOVA_RECRUITER_USER_ID;
+        }
+
+        if (List.of(DATA_ENGINEER_JOB_ID, SECURITY_JOB_ID, SRE_JOB_ID, IOT_JOB_ID).contains(jobId)) {
+            return CLOUD_RECRUITER_USER_ID;
+        }
+
+        if (List.of(AI_ENGINEER_JOB_ID, UIUX_JOB_ID, PM_JOB_ID, GAME_JOB_ID, BLOCKCHAIN_JOB_ID, AI_PM_JOB_ID).contains(jobId)) {
+            return PRODUCT_RECRUITER_USER_ID;
+        }
+
+        if (List.of(BA_JOB_ID, CUSTOMER_SUCCESS_JOB_ID).contains(jobId)) {
+            return HORIZON_RECRUITER_USER_ID;
+        }
+
+        if (List.of(SUPPORT_JOB_ID, CLOUD_SECURITY_JOB_ID).contains(jobId)) {
+            return GREEN_RECRUITER_USER_ID;
+        }
+
+        return RECRUITER_USER_ID;
+    }
+
+    private int resolvePostedDaysAgo(UUID jobId, int fallbackDaysAgo) {
+        return switch (jobId.toString()) {
+            case "90000000-0000-0000-0000-000000000001" -> 6;
+            case "90000000-0000-0000-0000-000000000002" -> 14;
+            case "90000000-0000-0000-0000-000000000003" -> 9;
+            case "90000000-0000-0000-0000-000000000004" -> 48;
+            case "90000000-0000-0000-0000-000000000005" -> 78;
+            case "90000000-0000-0000-0000-000000000006" -> 18;
+            case "90000000-0000-0000-0000-000000000007" -> 12;
+            case "90000000-0000-0000-0000-000000000008" -> 24;
+            case "90000000-0000-0000-0000-000000000009" -> 33;
+            case "90000000-0000-0000-0000-000000000010" -> 96;
+            case "90000000-0000-0000-0000-000000000011" -> 27;
+            case "90000000-0000-0000-0000-000000000012" -> 16;
+            case "90000000-0000-0000-0000-000000000013" -> 120;
+            case "90000000-0000-0000-0000-000000000014" -> 145;
+            case "90000000-0000-0000-0000-000000000015" -> 29;
+            case "90000000-0000-0000-0000-000000000016" -> 5;
+            case "90000000-0000-0000-0000-000000000017" -> 21;
+            case "90000000-0000-0000-0000-000000000018" -> 39;
+            case "90000000-0000-0000-0000-000000000019" -> 132;
+            case "90000000-0000-0000-0000-000000000020" -> 87;
+            case "90000000-0000-0000-0000-000000000021" -> 8;
+            case "90000000-0000-0000-0000-000000000022" -> 11;
+            case "90000000-0000-0000-0000-000000000023" -> 4;
+            default -> fallbackDaysAgo;
+        };
+    }
+
+    private int resolveExpirationWindowDays(UUID jobId, int fallbackWindowDays) {
+        return switch (jobId.toString()) {
+            case "90000000-0000-0000-0000-000000000001" -> 45;
+            case "90000000-0000-0000-0000-000000000002" -> 60;
+            case "90000000-0000-0000-0000-000000000003" -> 35;
+            case "90000000-0000-0000-0000-000000000004" -> 21;
+            case "90000000-0000-0000-0000-000000000005" -> 30;
+            case "90000000-0000-0000-0000-000000000006" -> 75;
+            case "90000000-0000-0000-0000-000000000007" -> 50;
+            case "90000000-0000-0000-0000-000000000008" -> 60;
+            case "90000000-0000-0000-0000-000000000009" -> 50;
+            case "90000000-0000-0000-0000-000000000010" -> 40;
+            case "90000000-0000-0000-0000-000000000011" -> 55;
+            case "90000000-0000-0000-0000-000000000012" -> 45;
+            case "90000000-0000-0000-0000-000000000013" -> 32;
+            case "90000000-0000-0000-0000-000000000014" -> 28;
+            case "90000000-0000-0000-0000-000000000015" -> 40;
+            case "90000000-0000-0000-0000-000000000016" -> 60;
+            case "90000000-0000-0000-0000-000000000017" -> 45;
+            case "90000000-0000-0000-0000-000000000018" -> 80;
+            case "90000000-0000-0000-0000-000000000019" -> 35;
+            case "90000000-0000-0000-0000-000000000020" -> 26;
+            case "90000000-0000-0000-0000-000000000021" -> 42;
+            case "90000000-0000-0000-0000-000000000022" -> 48;
+            case "90000000-0000-0000-0000-000000000023" -> 52;
+            default -> fallbackWindowDays;
+        };
     }
 
     private record CategorySeed(UUID id, String name) {

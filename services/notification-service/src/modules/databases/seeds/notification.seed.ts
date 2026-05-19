@@ -17,6 +17,8 @@ const DESIGNER_CANDIDATE_USER_ID = '51515151-6262-7373-8484-959595959595';
 const EXTRA_RECRUITER_USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const CLOUD_RECRUITER_USER_ID = '72727272-8181-9191-a2a2-b3b3b3b3b3b3';
 const PRODUCT_RECRUITER_USER_ID = '93939393-a4a4-b5b5-c6c6-d7d7d7d7d7d7';
+const HORIZON_RECRUITER_USER_ID = 'b1b1b1b1-c2c2-d3d3-e4e4-f5f5f5f5f5f5';
+const GREEN_RECRUITER_USER_ID = 'c1c1c1c1-d2d2-e3e3-f4f4-a5a5a5a5a5a5';
 
 const USER_NOTIFICATIONS: Array<{
   id: string;
@@ -321,6 +323,106 @@ const USER_NOTIFICATIONS: Array<{
     metadata: {
       companyName: 'Tech Corp Vietnam',
       jobTitle: 'Full Stack Developer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000019',
+    userId: HORIZON_RECRUITER_USER_ID,
+    type: NotificationType.RECRUITER_NEW_APPLICATION,
+    contents: [
+      'Ung vien moi vua nop CV vao bai "Business Analyst (Digital Platform)".',
+      'Thong bao nay giup demo luong recruiter theo doi ho so den theo tuan.',
+    ],
+    isRead: true,
+    readAt: new Date('2026-04-28T09:25:00+07:00'),
+    createdAt: new Date('2026-04-28T08:55:00+07:00'),
+    metadata: {
+      companyName: 'Horizon Commerce',
+      jobTitle: 'Business Analyst (Digital Platform)',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000020',
+    userId: GREEN_RECRUITER_USER_ID,
+    type: NotificationType.RECRUITER_JOB_APPROVED,
+    contents: [
+      'Tin "Cloud Security Engineer" da duoc admin phe duyet tu dot tuyen thang 4.',
+      'He thong giu lai mốc nay de timeline thong bao nhin da dang hon.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-04-16T13:10:00+07:00'),
+    metadata: {
+      companyName: 'GreenNode Systems',
+      jobTitle: 'Cloud Security Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000021',
+    userId: PRODUCT_RECRUITER_USER_ID,
+    type: NotificationType.RECRUITER_JOB_REJECTED,
+    contents: [
+      'Tin "Blockchain Engineer" can cap nhat requirement va expected deliverable truoc khi dang lai.',
+      'Moc thong bao cu nay phu hop de demo luong reject va chinh sua bai dang.',
+    ],
+    isRead: true,
+    readAt: new Date('2026-04-03T17:20:00+07:00'),
+    createdAt: new Date('2026-04-03T16:45:00+07:00'),
+    metadata: {
+      companyName: 'ProductForge Asia',
+      jobTitle: 'Blockchain Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000022',
+    userId: DATA_CANDIDATE_USER_ID,
+    type: NotificationType.CANDIDATE_APPLICATION_APPROVED,
+    contents: [
+      'Don ung tuyen "Data Engineer" cua ban da qua vong phone screen.',
+      'Ban co the vao trang Applied Jobs de theo doi cap nhat tiep theo.',
+    ],
+    isRead: true,
+    readAt: new Date('2026-03-26T10:15:00+07:00'),
+    createdAt: new Date('2026-03-26T09:40:00+07:00'),
+    metadata: {
+      companyName: 'CloudVerse Labs',
+      jobTitle: 'Data Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000023',
+    userId: MOBILE_CANDIDATE_USER_ID,
+    type: NotificationType.CANDIDATE_APPLICATION_REJECTED,
+    contents: [
+      'Ho so cua ban cho vi tri "Embedded IoT Engineer" chua duoc chon cho vong tiep theo.',
+      'He thong se goi y cac bai mobile va product engineer phu hop hon.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-03-14T15:20:00+07:00'),
+    metadata: {
+      companyName: 'ByteBridge Health',
+      jobTitle: 'Embedded IoT Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000024',
+    userId: OPS_ADMIN_USER_ID,
+    type: NotificationType.ADMIN_NEW_JOB_POST,
+    contents: [
+      'Tin "Site Reliability Engineer" tu CloudVerse Labs da duoc tao tu cuoi thang 3 va cho duyet.',
+      'Moc nay giup timeline admin co them du lieu theo thang.',
+    ],
+    isRead: true,
+    readAt: new Date('2026-03-30T11:00:00+07:00'),
+    createdAt: new Date('2026-03-30T10:25:00+07:00'),
+    metadata: {
+      companyName: 'CloudVerse Labs',
+      jobTitle: 'Site Reliability Engineer',
       source: 'seed-demo',
     },
   },

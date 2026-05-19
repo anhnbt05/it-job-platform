@@ -22,6 +22,11 @@ import java.util.List;
 public class ApplicationDataSeeder implements ApplicationRunner {
 
     private static final String RECRUITER_ID = "66666666-6666-6666-6666-666666666666";
+    private static final String NOVA_RECRUITER_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+    private static final String CLOUD_RECRUITER_ID = "72727272-8181-9191-a2a2-b3b3b3b3b3b3";
+    private static final String PRODUCT_RECRUITER_ID = "93939393-a4a4-b5b5-c6c6-d7d7d7d7d7d7";
+    private static final String HORIZON_RECRUITER_ID = "b1b1b1b1-c2c2-d3d3-e4e4-f5f5f5f5f5f5";
+    private static final String GREEN_RECRUITER_ID = "c1c1c1c1-d2d2-e3e3-f4f4-a5a5a5a5a5a5";
 
     private static final List<ApplicationSeed> APPLICATION_SEEDS = List.of(
             new ApplicationSeed(
@@ -386,7 +391,8 @@ public class ApplicationDataSeeder implements ApplicationRunner {
     }
 
     private void seedApplications() {
-        for (ApplicationSeed seed : APPLICATION_SEEDS) {
+        for (int index = 0; index < APPLICATION_SEEDS.size(); index++) {
+            ApplicationSeed seed = APPLICATION_SEEDS.get(index);
             Application application = applicationRepository
                     .findByCandidateIdAndJobId(seed.candidateId(), seed.jobId())
                     .orElseGet(Application::new);
@@ -399,14 +405,53 @@ public class ApplicationDataSeeder implements ApplicationRunner {
             application.setCandidateName(seed.candidateName());
             application.setJobId(seed.jobId());
             application.setJobTitle(seed.jobTitle());
-            application.setRecruiterId(RECRUITER_ID);
+            application.setRecruiterId(resolveRecruiterId(seed.jobId()));
             application.setResumeUrl(seed.resumeUrl());
             application.setStatus(seed.status());
-            application.setAppliedAt(LocalDateTime.now().minusDays(seed.appliedDaysAgo()));
+            application.setAppliedAt(LocalDateTime.now().minusDays(resolveAppliedDaysAgo(index, seed.appliedDaysAgo())));
             application.setDeletedAt(null);
 
             applicationRepository.save(application);
         }
+    }
+
+    private String resolveRecruiterId(String jobId) {
+        return switch (jobId) {
+            case "90000000-0000-0000-0000-000000000003",
+                 "90000000-0000-0000-0000-000000000008",
+                 "90000000-0000-0000-0000-000000000020" -> NOVA_RECRUITER_ID;
+            case "90000000-0000-0000-0000-000000000006",
+                 "90000000-0000-0000-0000-000000000009",
+                 "90000000-0000-0000-0000-000000000016",
+                 "90000000-0000-0000-0000-000000000018" -> CLOUD_RECRUITER_ID;
+            case "90000000-0000-0000-0000-000000000007",
+                 "90000000-0000-0000-0000-000000000010",
+                 "90000000-0000-0000-0000-000000000012",
+                 "90000000-0000-0000-0000-000000000014",
+                 "90000000-0000-0000-0000-000000000015",
+                 "90000000-0000-0000-0000-000000000019",
+                 "90000000-0000-0000-0000-000000000022" -> PRODUCT_RECRUITER_ID;
+            case "90000000-0000-0000-0000-000000000017",
+                 "90000000-0000-0000-0000-000000000021" -> HORIZON_RECRUITER_ID;
+            case "90000000-0000-0000-0000-000000000013",
+                 "90000000-0000-0000-0000-000000000023" -> GREEN_RECRUITER_ID;
+            default -> RECRUITER_ID;
+        };
+    }
+
+    private int resolveAppliedDaysAgo(int index, int fallbackDaysAgo) {
+        List<Integer> schedule = List.of(
+                2, 4, 7, 9, 12, 15, 18, 22, 26, 30,
+                35, 41, 46, 52, 58, 64, 71, 79, 86, 94,
+                101, 109, 116, 124, 131, 139, 146, 154, 161, 169,
+                176, 184, 191, 199
+        );
+
+        if (index < schedule.size()) {
+            return schedule.get(index);
+        }
+
+        return fallbackDaysAgo;
     }
 
     private record ApplicationSeed(
