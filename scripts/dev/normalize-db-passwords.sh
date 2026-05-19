@@ -34,18 +34,39 @@ wait_postgres_ready() {
   log "postgres is ready in ${container}"
 }
 
+verify_postgres_password() {
+  local container="$1"
+  local user="$2"
+  local password="$3"
+  local database="${4:-postgres}"
+  local container_ip
+
+  container_ip="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$container")"
+  if [[ -z "$container_ip" ]]; then
+    log "could not resolve container IP for ${container}"
+    return 1
+  fi
+
+  docker exec -e PGPASSWORD="$password" "$container" \
+    sh -lc "psql -h \"$container_ip\" -U \"$user\" -d \"$database\" -Atqc 'select 1'" >/dev/null
+
+  log "verified postgres password over bridge network for ${container}/${user}"
+}
+
 normalize_postgres_password() {
   local container="$1"
   local user="$2"
   local password="$3"
-  local escaped_password="${password//\'/\'\'}"
 
   wait_postgres_ready "$container" "$user"
 
   docker exec -i "$container" psql -h 127.0.0.1 -U "$user" -d postgres \
-    -c "ALTER USER \"$user\" WITH PASSWORD '$escaped_password';" >/dev/null
+    -v db_user="$user" \
+    -v db_password="$password" \
+    -c "ALTER USER :\"db_user\" WITH PASSWORD :'db_password';" >/dev/null
 
   log "normalized postgres password for ${container}/${user}"
+  verify_postgres_password "$container" "$user" "$password"
 }
 
 normalize_postgres_password \

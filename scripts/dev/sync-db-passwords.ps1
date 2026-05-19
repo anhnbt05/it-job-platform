@@ -72,9 +72,32 @@ function Sync-PostgresPassword {
         [string]$Password
     )
 
-    $sql = "ALTER USER ""$UserName"" WITH PASSWORD '$Password';"
-    Invoke-Docker -CommandArgs @("exec", "-i", $Container, "psql", "-U", $UserName, "-d", "postgres", "-c", $sql)
+    $sql = "ALTER USER :""db_user"" WITH PASSWORD :'db_password';"
+    Invoke-Docker -CommandArgs @(
+        "exec", "-i", $Container,
+        "psql",
+        "-h", "127.0.0.1",
+        "-U", $UserName,
+        "-d", "postgres",
+        "-v", "db_user=$UserName",
+        "-v", "db_password=$Password",
+        "-c", $sql
+    )
     Write-Host ">>> [$Container] normalized postgres password for $UserName"
+
+    $containerIp = (& docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" $Container).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($containerIp)) {
+        throw "Failed to resolve container IP for $Container."
+    }
+
+    Invoke-Docker -CommandArgs @(
+        "exec",
+        "-e", "PGPASSWORD=$Password",
+        $Container,
+        "sh", "-lc",
+        "psql -h ""$containerIp"" -U ""$UserName"" -d postgres -Atqc 'select 1'"
+    )
+    Write-Host ">>> [$Container] verified postgres password over bridge network for $UserName"
 }
 
 Import-EnvFile -Path $rootEnvFile
