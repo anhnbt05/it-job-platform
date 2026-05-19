@@ -30,9 +30,21 @@ load_root_env() {
   fi
 }
 
+load_service_env() {
+  local svc="$1"
+  local service_env_file="$SERVICES_DIR/$svc/.env"
+
+  if [[ -f "$service_env_file" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$service_env_file"
+    set +a
+  fi
+}
+
 prepare_identity_env() {
-  export PORT="${IDENTITY_SERVICE_PORT:-3001}"
-  export DATABASE_URL="postgresql://${IDENTITY_POSTGRES_USER:-postgres}:${IDENTITY_POSTGRES_PASSWORD:-postgres}@localhost:${IDENTITY_POSTGRES_PORT:-5432}/${IDENTITY_POSTGRES_DB:-identity_db}?schema=public"
+  export PORT="${PORT:-${IDENTITY_SERVICE_PORT:-3001}}"
+  export DATABASE_URL="${DATABASE_URL:-postgresql://${IDENTITY_POSTGRES_USER:-postgres}:${IDENTITY_POSTGRES_PASSWORD:-postgres}@localhost:${IDENTITY_POSTGRES_PORT:-5432}/${IDENTITY_POSTGRES_DB:-identity_db}?schema=public}"
   export JWT_SECRET="${JWT_SECRET:-it-job-demo-jwt-secret}"
   export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}"
   export JWT_EXPIRATION_TIME="${JWT_EXPIRATION_TIME:-120s}"
@@ -48,8 +60,8 @@ prepare_identity_env() {
 }
 
 prepare_organization_env() {
-  export PORT="${ORGANIZATION_SERVICE_PORT:-3002}"
-  export DATABASE_URL="mysql://${ORGANIZATION_MYSQL_USER:-organization}:${ORGANIZATION_MYSQL_PASSWORD:-organization}@localhost:${ORGANIZATION_MYSQL_PORT:-3306}/${ORGANIZATION_MYSQL_DB:-organization_db}"
+  export PORT="${PORT:-${ORGANIZATION_SERVICE_PORT:-3002}}"
+  export DATABASE_URL="${DATABASE_URL:-mysql://${ORGANIZATION_MYSQL_USER:-organization}:${ORGANIZATION_MYSQL_PASSWORD:-organization}@localhost:${ORGANIZATION_MYSQL_PORT:-3306}/${ORGANIZATION_MYSQL_DB:-organization_db}}"
   export JWT_SECRET="${JWT_SECRET:-it-job-demo-jwt-secret}"
   export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}"
   export JWT_EXPIRATION_TIME="${JWT_EXPIRATION_TIME:-120s}"
@@ -61,8 +73,8 @@ prepare_organization_env() {
 }
 
 prepare_notification_env() {
-  export PORT="${NOTIFICATION_SERVICE_PORT:-3003}"
-  export DATABASE_URL="postgresql://${NOTIFICATION_POSTGRES_USER:-postgres}:${NOTIFICATION_POSTGRES_PASSWORD:-postgres}@localhost:${NOTIFICATION_POSTGRES_PORT:-5434}/${NOTIFICATION_POSTGRES_DB:-notification_db}"
+  export PORT="${PORT:-${NOTIFICATION_SERVICE_PORT:-3003}}"
+  export DATABASE_URL="${DATABASE_URL:-postgresql://${NOTIFICATION_POSTGRES_USER:-postgres}:${NOTIFICATION_POSTGRES_PASSWORD:-postgres}@localhost:${NOTIFICATION_POSTGRES_PORT:-5434}/${NOTIFICATION_POSTGRES_DB:-notification_db}}"
   export JWT_SECRET="${JWT_SECRET:-it-job-demo-jwt-secret}"
   export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-it-job-demo-jwt-refresh-secret}"
   export JWT_EXPIRATION_TIME="${JWT_EXPIRATION_TIME:-120s}"
@@ -81,18 +93,18 @@ prepare_notification_env() {
 }
 
 prepare_job_env() {
-  export DB_HOST="localhost"
-  export DB_PORT="${JOB_POSTGRES_PORT:-5433}"
-  export DB_USERNAME="${JOB_POSTGRES_USER:-postgres}"
-  export DB_PASSWORD="${JOB_POSTGRES_PASSWORD:-postgres}"
+  export DB_HOST="${DB_HOST:-localhost}"
+  export DB_PORT="${DB_PORT:-${JOB_POSTGRES_PORT:-5433}}"
+  export DB_USERNAME="${DB_USERNAME:-${JOB_POSTGRES_USER:-postgres}}"
+  export DB_PASSWORD="${DB_PASSWORD:-${JOB_POSTGRES_PASSWORD:-postgres}}"
   export KAFKA_BOOTSTRAP_SERVERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
   export APPLICATION_SERVICE_URL="http://localhost:${APPLICATION_SERVICE_PORT:-8083}/api"
   export OBSERVABILITY_LOG_FILE="../../runtime-logs/job-service.log"
 }
 
 prepare_application_env() {
-  export MONGO_HOST="localhost"
-  export MONGO_PORT="${APPLICATION_MONGO_PORT:-27018}"
+  export MONGO_HOST="${MONGO_HOST:-localhost}"
+  export MONGO_PORT="${MONGO_PORT:-${APPLICATION_MONGO_PORT:-27018}}"
   export KAFKA_BOOTSTRAP_SERVERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
   export JOB_SERVICE_URL="http://localhost:${JOB_SERVICE_PORT:-8082}/api"
   export OBSERVABILITY_LOG_FILE="../../runtime-logs/application-service.log"
@@ -125,6 +137,9 @@ run_maven_seed() {
 
 seed_service() {
   local svc="$1"
+
+  unset PORT DATABASE_URL DB_HOST DB_PORT DB_USERNAME DB_PASSWORD MONGO_HOST MONGO_PORT APPLICATION_SERVICE_URL JOB_SERVICE_URL
+  load_service_env "$svc"
 
   case "$svc" in
     organization-service)
