@@ -74,7 +74,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=~\"$service\", level=~\"error|fatal\"}[1h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", level=~\"error|fatal\"}[1h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -133,7 +133,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\", status=~\"5..\"}[1h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", event=\"http_request\", status=~\"5..\"}[1h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -196,7 +196,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\"}[15m])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", event=\"http_request\"}[15m])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -228,7 +228,7 @@
       },
       "targets": [
         {
-          "expr": "{job=\"host-app\", service=~\"$service\", event=\"http_request\"}",
+          "expr": "{job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", event=\"http_request\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -260,7 +260,7 @@
       },
       "targets": [
         {
-          "expr": "{job=\"host-app\", service=~\"$service\", level=~\"error|fatal|warn\"}",
+          "expr": "{job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", level=~\"error|fatal|warn\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -289,14 +289,14 @@
           "type": "loki",
           "uid": "P8E80F9AEF21F6940"
         },
-        "definition": "label_values({job=\"host-app\"}, service)",
+        "definition": "label_values({job=\"host-app\", service!=\"automation-tests\"}, service)",
         "hide": 0,
         "includeAll": true,
         "label": "Service",
         "multi": false,
         "name": "service",
         "options": [],
-        "query": "label_values({job=\"host-app\"}, service)",
+        "query": "label_values({job=\"host-app\", service!=\"automation-tests\"}, service)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": true,
@@ -313,6 +313,6 @@
   "timezone": "browser",
   "title": "Service Logs",
   "uid": "service-logs",
-  "version": 6,
+  "version": 7,
   "weekStart": ""
 }
