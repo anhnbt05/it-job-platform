@@ -249,6 +249,58 @@ function Wait-KafkaBrokerReady {
     throw "Timed out waiting for Kafka broker admin readiness."
 }
 
+function Wait-KafkaTopicLeaders {
+    param(
+        [int]$TimeoutSeconds = 180
+    )
+
+    if (-not (Test-Path $kafkaTopicsFile)) {
+        throw "Kafka topics file not found: $kafkaTopicsFile"
+    }
+
+    $topics = @()
+    foreach ($topic in Get-Content $kafkaTopicsFile) {
+        $trimmed = $topic.Trim()
+        if (-not [string]::IsNullOrWhiteSpace($trimmed)) {
+            $topics += $trimmed
+        }
+    }
+
+    if ($topics.Count -eq 0) {
+        Write-Host ">>> [kafka] no topics configured for leader readiness check"
+        return
+    }
+
+    Write-Host ">>> [kafka] waiting for topic leaders"
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+
+    while ((Get-Date) -lt $deadline) {
+        $notReady = [System.Collections.Generic.List[string]]::new()
+
+        foreach ($topic in $topics) {
+            $describeCommand = "docker compose -f ""$infraComposeFile"" exec -T kafka kafka-topics --bootstrap-server kafka:9092 --describe --topic $topic"
+            $describeOutput = & cmd.exe /d /c $describeCommand 2>$null
+
+            if (
+                $LASTEXITCODE -ne 0 -or
+                [string]::IsNullOrWhiteSpace($describeOutput) -or
+                $describeOutput -match 'Leader:\s*(-1|none)'
+            ) {
+                $notReady.Add($topic)
+            }
+        }
+
+        if ($notReady.Count -eq 0) {
+            Write-Host ">>> [kafka] all topic leaders are ready"
+            return
+        }
+
+        Start-Sleep -Seconds 3
+    }
+
+    throw "Timed out waiting for Kafka topic leaders."
+}
+
 function Build-AppImagesIfNeeded {
     param(
         [string[]]$TargetServices
@@ -329,6 +381,7 @@ function Initialize-KafkaTopics {
 
     if ($missingTopics.Count -eq 0) {
         Write-Host ">>> [kafka] all topics already exist"
+        Wait-KafkaTopicLeaders
         return
     }
 
@@ -345,6 +398,8 @@ function Initialize-KafkaTopics {
             "--partitions", "3"
         )
     }
+
+    Wait-KafkaTopicLeaders
 }
 
 function Sync-DatabaseCredentials {

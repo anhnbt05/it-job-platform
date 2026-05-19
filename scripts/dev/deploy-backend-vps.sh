@@ -213,6 +213,52 @@ wait_kafka() {
   log "kafka broker is ready for admin operations"
 }
 
+wait_kafka_topic_leaders() {
+  if [[ ! -f "$KAFKA_TOPICS_FILE" ]]; then
+    log "kafka topics file not found at $KAFKA_TOPICS_FILE"
+    return 1
+  fi
+
+  local topics=()
+  local topic
+  while IFS= read -r topic || [[ -n "$topic" ]]; do
+    [[ -z "$topic" ]] && continue
+    topics+=("$topic")
+  done < "$KAFKA_TOPICS_FILE"
+
+  if (( ${#topics[@]} == 0 )); then
+    log "no kafka topics configured for leader readiness check"
+    return 0
+  fi
+
+  log "waiting for kafka topic leaders"
+  local started_at=$SECONDS
+
+  while true; do
+    local not_ready=()
+    local describe_output
+
+    for topic in "${topics[@]}"; do
+      describe_output="$(docker compose exec -T kafka kafka-topics --bootstrap-server kafka:9092 --describe --topic "$topic" 2>/dev/null || true)"
+      if [[ -z "$describe_output" ]] || grep -Eiq 'Leader:[[:space:]]*(-1|none)' <<<"$describe_output"; then
+        not_ready+=("$topic")
+      fi
+    done
+
+    if (( ${#not_ready[@]} == 0 )); then
+      log "all kafka topic leaders are ready"
+      return 0
+    fi
+
+    if (( SECONDS - started_at >= KAFKA_WAIT_TIMEOUT_SECONDS )); then
+      log "timed out waiting for kafka topic leaders: ${not_ready[*]}"
+      return 1
+    fi
+
+    sleep 3
+  done
+}
+
 ensure_kafka_topics() {
   if [[ ! -f "$KAFKA_TOPICS_FILE" ]]; then
     log "kafka topics file not found at $KAFKA_TOPICS_FILE"
@@ -381,6 +427,7 @@ fi
 
 declare -A existing_topic_lookup=()
 ensure_kafka_topics
+wait_kafka_topic_leaders
 
 if [[ "$RUN_SEED" == "1" ]]; then
   log "installing host dependencies for seed"
