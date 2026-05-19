@@ -44,6 +44,7 @@ Các field này khớp với logger JSON của Nest services và request logging
 - Nest services tự động ghi JSON logs vào `runtime-logs/<service>.log`.
 - Spring services tự động ghi HTTP request logs vào `runtime-logs/<service>.log`.
 - `promtail` mount thư mục `runtime-logs` vào container và scrape job `host-app`.
+- Trên VPS, `promtail` ưu tiên ingest log từ `runtime-logs` của stack IT Job để tránh quét toàn bộ Docker logs và làm Loki quá tải.
 
 ## Lưu ý runtime
 

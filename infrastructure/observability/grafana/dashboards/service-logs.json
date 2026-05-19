@@ -70,7 +70,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({job=~\"docker|host-app\", service=~\"$service\", level=~\"error|fatal\"}[1h]))",
+          "expr": "sum(count_over_time({job=\"host-app\", service=~\"$service\", level=~\"error|fatal\"}[1h]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -125,7 +125,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({job=~\"docker|host-app\", service=~\"$service\", event=\"http_request\", status=~\"5..\"}[1h]))",
+          "expr": "sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\", status=~\"5..\"}[1h]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -184,7 +184,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({job=~\"docker|host-app\", service=~\"$service\", event=\"http_request\"}[15m]))",
+          "expr": "sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\"}[15m]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -213,7 +213,7 @@
       },
       "targets": [
         {
-          "expr": "{job=~\"docker|host-app\", service=~\"$service\", event=\"http_request\"}",
+          "expr": "{job=\"host-app\", service=~\"$service\", event=\"http_request\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -242,7 +242,7 @@
       },
       "targets": [
         {
-          "expr": "{job=~\"docker|host-app\", service=~\"$service\", level=~\"error|fatal|warn\"}",
+          "expr": "{job=\"host-app\", service=~\"$service\", level=~\"error|fatal|warn\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -267,14 +267,14 @@
           "value": ".*"
         },
         "datasource": "Loki",
-        "definition": "label_values({job=~\"docker|host-app\"}, service)",
+        "definition": "label_values({job=\"host-app\"}, service)",
         "hide": 0,
         "includeAll": false,
         "label": "Service",
         "multi": false,
         "name": "service",
         "options": [],
-        "query": "label_values({job=~\"docker|host-app\"}, service)",
+        "query": "label_values({job=\"host-app\"}, service)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,

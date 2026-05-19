@@ -90,13 +90,22 @@ export class JsonConsoleLogger implements LoggerService {
       meta?: unknown;
     },
   ) {
+    const normalizedMessage = this.normalize(message);
+    const structuredMessage =
+      normalizedMessage &&
+      typeof normalizedMessage === 'object' &&
+      !Array.isArray(normalizedMessage)
+        ? (normalizedMessage as Record<string, unknown>)
+        : undefined;
+
     const payload = {
       timestamp: new Date().toISOString(),
       level: level === 'log' ? 'info' : level,
       service: this.service,
       pid: process.pid,
       context: options.context,
-      message: this.normalize(message),
+      ...(structuredMessage ?? {}),
+      message: structuredMessage ? undefined : normalizedMessage,
       trace: options.trace,
       meta: this.normalize(options.meta),
     };

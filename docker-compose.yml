@@ -173,8 +173,6 @@ services:
     volumes:
       - ./infrastructure/observability/promtail/promtail-config.yml:/etc/promtail/config.yml
       - ./runtime-logs:/workspace/runtime-logs
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/log:/var/log:ro
     networks:
       - observability
 

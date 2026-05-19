@@ -22,6 +22,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const res = context.switchToHttp().getResponse();
 
     const method = req.method;
+    const path = req.originalUrl || req.url;
     const route = req.route?.path || req.originalUrl || req.url;
     const userId = req.user?.id ?? null;
 
@@ -29,8 +30,10 @@ export class LoggingInterceptor implements NestInterceptor {
       tap({
         next: () => {
           this.logger.log({
-            event: 'http_request_completed',
+            event: 'http_request',
+            outcome: 'completed',
             method,
+            path,
             route,
             status: res.statusCode,
             duration_ms: Date.now() - start,
@@ -40,8 +43,10 @@ export class LoggingInterceptor implements NestInterceptor {
         error: (error) => {
           this.logger.error(
             {
-              event: 'http_request_failed',
+              event: 'http_request',
+              outcome: 'failed',
               method,
+              path,
               route,
               status: error?.status ?? error?.statusCode ?? 500,
               duration_ms: Date.now() - start,
