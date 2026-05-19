@@ -9,6 +9,14 @@ import { DataSource } from 'typeorm';
 const ADMIN_USER_ID = '33333333-3333-3333-3333-333333333333';
 const CANDIDATE_USER_ID = '44444444-4444-4444-4444-444444444444';
 const RECRUITER_USER_ID = '66666666-6666-6666-6666-666666666666';
+const OPS_ADMIN_USER_ID = 'abababab-1111-2222-3333-444444444444';
+const FRONTEND_CANDIDATE_USER_ID = '88888888-8888-8888-8888-888888888888';
+const DATA_CANDIDATE_USER_ID = '12121212-3434-5656-7878-909090909090';
+const MOBILE_CANDIDATE_USER_ID = '31313131-4242-5353-6464-757575757575';
+const DESIGNER_CANDIDATE_USER_ID = '51515151-6262-7373-8484-959595959595';
+const EXTRA_RECRUITER_USER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+const CLOUD_RECRUITER_USER_ID = '72727272-8181-9191-a2a2-b3b3b3b3b3b3';
+const PRODUCT_RECRUITER_USER_ID = '93939393-a4a4-b5b5-c6c6-d7d7d7d7d7d7';
 
 const USER_NOTIFICATIONS: Array<{
   id: string;
@@ -166,6 +174,153 @@ const USER_NOTIFICATIONS: Array<{
     metadata: {
       companyName: 'Tech Corp Vietnam',
       jobTitle: 'Intern Data Analyst',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000010',
+    userId: OPS_ADMIN_USER_ID,
+    type: NotificationType.ADMIN_NEW_JOB_POST,
+    contents: [
+      'Tin "Cloud Security Engineer" da vao hang doi duyet sau khi recruiter cap nhat requirement.',
+      'Seed demo nay dung de hien thi luong kiem duyet bai dang moi tren admin dashboard.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-05-14T09:20:00+07:00'),
+    metadata: {
+      companyName: 'GreenNode Systems',
+      jobTitle: 'Cloud Security Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000011',
+    userId: FRONTEND_CANDIDATE_USER_ID,
+    type: NotificationType.CANDIDATE_APPLICATION_APPROVED,
+    contents: [
+      'Ban da duoc moi vao vong portfolio review cho vi tri "Frontend React Engineer".',
+      'Vui long kiem tra email de xac nhan thoi gian phong van online.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-05-14T10:40:00+07:00'),
+    metadata: {
+      companyName: 'ProductForge Asia',
+      jobTitle: 'Frontend React Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000012',
+    userId: DATA_CANDIDATE_USER_ID,
+    type: NotificationType.CANDIDATE_APPLICATION_REJECTED,
+    contents: [
+      'Don ung tuyen "Product Data Analyst" chua phu hop do kinh nghiem dashboard con thieu.',
+      'Ban co the nop lai cho vi tri Data Engineer hoac Site Reliability Engineer trong danh sach goi y.',
+    ],
+    isRead: true,
+    readAt: new Date('2026-05-13T19:20:00+07:00'),
+    createdAt: new Date('2026-05-13T18:55:00+07:00'),
+    metadata: {
+      companyName: 'CloudVerse Labs',
+      jobTitle: 'Product Data Analyst',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000013',
+    userId: MOBILE_CANDIDATE_USER_ID,
+    type: NotificationType.CANDIDATE_JOB_CLOSED,
+    contents: [
+      'Tin "Solutions Architect" da dong bai sau khi ket thuc dot tuyen dung.',
+      'He thong dang de xuat cac bai tuong tu nhu Site Reliability Engineer va Cloud Security Engineer.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-05-14T08:10:00+07:00'),
+    metadata: {
+      companyName: 'FinStack Digital',
+      jobTitle: 'Solutions Architect',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000014',
+    userId: DESIGNER_CANDIDATE_USER_ID,
+    type: NotificationType.CANDIDATE_APPLICATION_APPROVED,
+    contents: [
+      'Portfolio cua ban cho vi tri "Product Designer (UI/UX)" da qua vong screen dau tien.',
+      'Recruiter se gui brief design challenge trong ngay mai.',
+    ],
+    isRead: true,
+    readAt: new Date('2026-05-14T11:00:00+07:00'),
+    createdAt: new Date('2026-05-14T10:15:00+07:00'),
+    metadata: {
+      companyName: 'ProductForge Asia',
+      jobTitle: 'Product Designer (UI/UX)',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000015',
+    userId: EXTRA_RECRUITER_USER_ID,
+    type: NotificationType.RECRUITER_NEW_APPLICATION,
+    contents: [
+      'Co 2 ung vien moi vua nop CV vao bai "Customer Success Engineer".',
+      'Dashboard recruiter hien da co du lieu de demo bang thong ke ho so moi trong ngay.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-05-14T09:35:00+07:00'),
+    metadata: {
+      companyName: 'NovaHR Solutions',
+      jobTitle: 'Customer Success Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000016',
+    userId: CLOUD_RECRUITER_USER_ID,
+    type: NotificationType.RECRUITER_JOB_EXPIRING_SOON,
+    contents: [
+      'Tin "Site Reliability Engineer" se het han trong 72 gio toi.',
+      'Ban co the gia han them mot dot de tiep tuc nhan ung vien senior.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-05-14T07:50:00+07:00'),
+    metadata: {
+      companyName: 'CloudVerse Labs',
+      jobTitle: 'Site Reliability Engineer',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000017',
+    userId: PRODUCT_RECRUITER_USER_ID,
+    type: NotificationType.RECRUITER_JOB_APPROVED,
+    contents: [
+      'Tin "AI Product Manager" da duoc admin phe duyet va san sang hien thi tren candidate portal.',
+      'Ban co the chay campaign sourcing ngay trong hom nay.',
+    ],
+    isRead: false,
+    createdAt: new Date('2026-05-14T12:25:00+07:00'),
+    metadata: {
+      companyName: 'ProductForge Asia',
+      jobTitle: 'AI Product Manager',
+      source: 'seed-demo',
+    },
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000018',
+    userId: RECRUITER_USER_ID,
+    type: NotificationType.RECRUITER_JOB_EXPIRED,
+    contents: [
+      'Tin "Full Stack Developer" da het han tuyen dung va duoc chuyen sang trang thai dong.',
+      'Neu van can ung vien, ban co the sao chep bai dang va mo dot tuyen moi.',
+    ],
+    isRead: true,
+    readAt: new Date('2026-05-13T09:15:00+07:00'),
+    createdAt: new Date('2026-05-13T08:50:00+07:00'),
+    metadata: {
+      companyName: 'Tech Corp Vietnam',
+      jobTitle: 'Full Stack Developer',
       source: 'seed-demo',
     },
   },

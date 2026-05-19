@@ -59,6 +59,14 @@ public class JobDataSeeder implements ApplicationRunner {
     private static final UUID SUPPORT_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000013");
     private static final UUID BLOCKCHAIN_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000014");
     private static final UUID GAME_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000015");
+    private static final UUID SRE_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000016");
+    private static final UUID BA_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000017");
+    private static final UUID IOT_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000018");
+    private static final UUID ARCHITECT_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000019");
+    private static final UUID DATA_ANALYST_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000020");
+    private static final UUID CUSTOMER_SUCCESS_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000021");
+    private static final UUID AI_PM_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000022");
+    private static final UUID CLOUD_SECURITY_JOB_ID = UUID.fromString("90000000-0000-0000-0000-000000000023");
 
     private static final List<CategorySeed> CATEGORY_SEEDS = List.of(
             new CategorySeed(UUID.fromString("10000000-0000-0000-0000-000000000001"), "Software Development"),
@@ -486,6 +494,222 @@ public class JobDataSeeder implements ApplicationRunner {
                             "Biết Unity, C# hoặc web game là lợi thế.",
                             "Chủ động học nhanh, thích sản phẩm tương tác."
                     )
+            ),
+            new JobSeed(
+                    SRE_JOB_ID,
+                    "Site Reliability Engineer",
+                    "Xây dựng nền tảng reliability cho các microservice và hệ thống quan sát vận hành.",
+                    "District 1, Ho Chi Minh City",
+                    "2300 - 3200 USD",
+                    1,
+                    JobType.remote,
+                    "Mon - Fri, overlap 4h with GMT+7",
+                    JobStatus.open,
+                    5,
+                    35,
+                    Level.senior,
+                    List.of("DevOps & Cloud", "System & Network Administration"),
+                    List.of(
+                            "Thiết kế SLI/SLO, incident runbook và capacity planning cho nền tảng.",
+                            "Tối ưu logging, tracing, alerting và release safety cho môi trường production."
+                    ),
+                    List.of(
+                            "On-call allowance, ngân sách hội thảo cloud và lab sandbox riêng.",
+                            "Làm việc sát với backend, platform và security team."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với Kubernetes, observability stack và incident response.",
+                            "Biết viết automation cho rollout, rollback và recovery."
+                    )
+            ),
+            new JobSeed(
+                    BA_JOB_ID,
+                    "Business Analyst (Digital Platform)",
+                    "Phân tích bài toán tuyển dụng số và chuyển hóa thành luồng nghiệp vụ rõ ràng cho product team.",
+                    "District 3, Ho Chi Minh City",
+                    "1200 - 1800 USD",
+                    1,
+                    JobType.full_time,
+                    "Mon - Fri, 08:30 - 17:30",
+                    JobStatus.pending,
+                    2,
+                    16,
+                    Level.mid,
+                    List.of("IT Project Management", "Software Development"),
+                    List.of(
+                            "Làm việc với recruiter, admin và candidate để đặc tả user flow chính.",
+                            "Theo dõi backlog, acceptance criteria và dữ liệu sau release."
+                    ),
+                    List.of(
+                            "Hỗ trợ khóa học BA/PO và phụ cấp chứng chỉ chuyên môn.",
+                            "Môi trường phù hợp với BA thiên về sản phẩm B2B."
+                    ),
+                    List.of(
+                            "Có khả năng viết tài liệu nghiệp vụ và user story rõ ràng.",
+                            "Biết phối hợp giữa business, design và engineering."
+                    )
+            ),
+            new JobSeed(
+                    IOT_JOB_ID,
+                    "Embedded IoT Engineer",
+                    "Phát triển thiết bị chấm công và đồng bộ dữ liệu vào nền tảng nhân sự nội bộ.",
+                    "Hanoi, Vietnam",
+                    "1800 - 2500 USD",
+                    2,
+                    JobType.full_time,
+                    "Mon - Fri, 09:00 - 18:00",
+                    JobStatus.open,
+                    12,
+                    27,
+                    Level.mid,
+                    List.of("Embedded & IoT", "Software Development"),
+                    List.of(
+                            "Thiết kế firmware giao tiếp với backend qua MQTT hoặc HTTP.",
+                            "Làm việc với team cloud để đồng bộ telemetries và provisioning thiết bị."
+                    ),
+                    List.of(
+                            "Phụ cấp phòng lab và ngân sách mua kit thiết bị.",
+                            "Có cơ hội làm từ thiết bị tới cloud integration."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với C/C++, ESP32 hoặc Linux embedded.",
+                            "Hiểu về kết nối thiết bị, telemetry và reliability."
+                    )
+            ),
+            new JobSeed(
+                    ARCHITECT_JOB_ID,
+                    "Solutions Architect",
+                    "Định hình kiến trúc tích hợp cho các khách hàng enterprise sử dụng nền tảng tuyển dụng.",
+                    "Remote - Vietnam",
+                    "3200 - 4200 USD",
+                    1,
+                    JobType.remote,
+                    "Mon - Fri, flexible",
+                    JobStatus.closed,
+                    28,
+                    -7,
+                    Level.senior,
+                    List.of("Backend Development", "DevOps & Cloud"),
+                    List.of(
+                            "Tư vấn kiến trúc kết nối SSO, data export và event streaming cho khách hàng lớn.",
+                            "Làm việc với engineering để xác định ranh giới mở rộng của hệ thống."
+                    ),
+                    List.of(
+                            "Bonus theo dự án presales và ngân sách đào tạo kiến trúc cloud.",
+                            "Làm việc trực tiếp với khách hàng enterprise và leadership."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm microservices, integration pattern và API governance.",
+                            "Giao tiếp tốt với cả technical lẫn non-technical stakeholder."
+                    )
+            ),
+            new JobSeed(
+                    DATA_ANALYST_JOB_ID,
+                    "Product Data Analyst",
+                    "Phân tích hành vi ứng tuyển, hiệu quả tin tuyển dụng và funnel chuyển đổi trong nền tảng.",
+                    "Da Nang, Vietnam",
+                    "1300 - 1900 USD",
+                    1,
+                    JobType.full_time,
+                    "Mon - Fri, 09:00 - 18:00",
+                    JobStatus.rejected,
+                    9,
+                    12,
+                    Level.junior,
+                    List.of("Data Engineering", "Data Science & AI/ML"),
+                    List.of(
+                            "Xây dựng dashboard về nguồn ứng viên, tỷ lệ apply và conversion theo nhóm job.",
+                            "Phối hợp product team để đánh giá hiệu quả từng release."
+                    ),
+                    List.of(
+                            "Có mentor từ team data và ngân sách học SQL/BI.",
+                            "Làm việc gần với dashboard vận hành thật của sản phẩm."
+                    ),
+                    List.of(
+                            "Biết SQL, spreadsheet hoặc BI tool là lợi thế.",
+                            "Có tư duy phân tích, cẩn thận với số liệu và giả thuyết."
+                    )
+            ),
+            new JobSeed(
+                    CUSTOMER_SUCCESS_JOB_ID,
+                    "Customer Success Engineer",
+                    "Hỗ trợ khách hàng triển khai, xử lý sự cố tích hợp và tối ưu trải nghiệm dùng sản phẩm.",
+                    "Ho Chi Minh City, Vietnam",
+                    "1100 - 1700 USD",
+                    2,
+                    JobType.full_time,
+                    "Mon - Sat, luân phiên ca trực nhẹ",
+                    JobStatus.open,
+                    4,
+                    21,
+                    Level.mid,
+                    List.of("IT Support & Helpdesk", "Software Development"),
+                    List.of(
+                            "Hỗ trợ khách hàng triển khai webhook, import dữ liệu và xử lý lỗi tích hợp cơ bản.",
+                            "Đóng vai trò cầu nối giữa support, product và backend team."
+                    ),
+                    List.of(
+                            "Phụ cấp trực khách hàng và bonus theo mức độ hài lòng.",
+                            "Lộ trình chuyển hướng lên solutions engineer hoặc product ops."
+                    ),
+                    List.of(
+                            "Có khả năng đọc log, phân tích API và giao tiếp tốt với khách hàng.",
+                            "Biết về SQL, Postman hoặc basic scripting là lợi thế."
+                    )
+            ),
+            new JobSeed(
+                    AI_PM_JOB_ID,
+                    "AI Product Manager",
+                    "Dẫn dắt roadmap cho các tính năng gợi ý việc làm, matching và semantic search.",
+                    "Thu Duc City, Ho Chi Minh City",
+                    "2600 - 3600 USD",
+                    1,
+                    JobType.full_time,
+                    "Mon - Fri, 09:00 - 18:00",
+                    JobStatus.pending,
+                    1,
+                    29,
+                    Level.senior,
+                    List.of("IT Project Management", "Data Science & AI/ML"),
+                    List.of(
+                            "Xác định KPI cho recommendation, search quality và mức độ tương tác của candidate.",
+                            "Làm việc với data, AI và engineering để triển khai các vòng thử nghiệm nhanh."
+                    ),
+                    List.of(
+                            "Ngân sách hội thảo AI, sản phẩm và mentoring với leadership.",
+                            "Được quyền ưu tiên backlog cho nhóm AI initiative."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm product discovery với dữ liệu hoặc AI feature.",
+                            "Biết cân bằng giữa tính mới, độ ổn định và chi phí vận hành."
+                    )
+            ),
+            new JobSeed(
+                    CLOUD_SECURITY_JOB_ID,
+                    "Cloud Security Engineer",
+                    "Gia cố hạ tầng cloud, secret management và baseline bảo mật cho pipeline triển khai.",
+                    "Remote - APAC",
+                    "2400 - 3300 USD",
+                    1,
+                    JobType.remote,
+                    "Mon - Fri, flexible",
+                    JobStatus.open,
+                    6,
+                    19,
+                    Level.senior,
+                    List.of("Cybersecurity", "DevOps & Cloud"),
+                    List.of(
+                            "Thiết lập policy scan, secret rotation và hardening cho môi trường Docker/Kubernetes.",
+                            "Phối hợp với team platform để xử lý security finding theo mức độ ưu tiên."
+                    ),
+                    List.of(
+                            "Budget lab bảo mật riêng, hỗ trợ chứng chỉ cloud security.",
+                            "Làm việc với nhiều team và có ảnh hưởng trực tiếp đến production safety."
+                    ),
+                    List.of(
+                            "Có kinh nghiệm với CSPM, container security hoặc IAM cloud.",
+                            "Biết viết policy, rule hoặc automation để giảm manual review."
+                    )
             )
     );
 
@@ -567,6 +791,8 @@ public class JobDataSeeder implements ApplicationRunner {
         upsertFavorite(AI_ENGINEER_JOB_ID, () -> LocalDateTime.now().minusDays(1));
         upsertFavorite(MOBILE_JOB_ID, () -> LocalDateTime.now().minusDays(6));
         upsertFavorite(PM_JOB_ID, () -> LocalDateTime.now().minusDays(3));
+        upsertFavorite(SRE_JOB_ID, () -> LocalDateTime.now().minusDays(2));
+        upsertFavorite(CLOUD_SECURITY_JOB_ID, () -> LocalDateTime.now().minusHours(18));
     }
 
     private void replaceChildren(

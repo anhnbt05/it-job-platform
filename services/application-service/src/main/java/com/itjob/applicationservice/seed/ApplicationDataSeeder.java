@@ -213,6 +213,156 @@ public class ApplicationDataSeeder implements ApplicationRunner {
                     "https://cdn.example.com/resumes/truong-nhi-ux.pdf",
                     ApplicationStatus.rejected,
                     4
+            ),
+            new ApplicationSeed(
+                    "seed-application-sre-01",
+                    "12121212-3434-5656-7878-909090909090",
+                    "Tran Minh Data",
+                    "90000000-0000-0000-0000-000000000016",
+                    "Site Reliability Engineer",
+                    "https://cdn.example.com/resumes/tran-minh-sre.pdf",
+                    ApplicationStatus.accepted,
+                    1
+            ),
+            new ApplicationSeed(
+                    "seed-application-sre-02",
+                    "99999999-9999-9999-9999-999999999994",
+                    "Le Quoc Ops",
+                    "90000000-0000-0000-0000-000000000016",
+                    "Site Reliability Engineer",
+                    "https://cdn.example.com/resumes/le-quoc-ops.pdf",
+                    ApplicationStatus.pending,
+                    3
+            ),
+            new ApplicationSeed(
+                    "seed-application-ba-01",
+                    "99999999-9999-9999-9999-999999999995",
+                    "Pham Y Nhi BA",
+                    "90000000-0000-0000-0000-000000000017",
+                    "Business Analyst (Digital Platform)",
+                    "https://cdn.example.com/resumes/pham-y-nhi-ba.pdf",
+                    ApplicationStatus.pending,
+                    2
+            ),
+            new ApplicationSeed(
+                    "seed-application-iot-01",
+                    "99999999-9999-9999-9999-999999999996",
+                    "Nguyen Khoa IoT",
+                    "90000000-0000-0000-0000-000000000018",
+                    "Embedded IoT Engineer",
+                    "https://cdn.example.com/resumes/nguyen-khoa-iot.pdf",
+                    ApplicationStatus.accepted,
+                    5
+            ),
+            new ApplicationSeed(
+                    "seed-application-architect-01",
+                    "99999999-9999-9999-9999-999999999997",
+                    "Hoang Tuan Architect",
+                    "90000000-0000-0000-0000-000000000019",
+                    "Solutions Architect",
+                    "https://cdn.example.com/resumes/hoang-tuan-architect.pdf",
+                    ApplicationStatus.rejected,
+                    21
+            ),
+            new ApplicationSeed(
+                    "seed-application-data-analyst-01",
+                    "99999999-9999-9999-9999-999999999998",
+                    "Do Ha Analyst",
+                    "90000000-0000-0000-0000-000000000020",
+                    "Product Data Analyst",
+                    "https://cdn.example.com/resumes/do-ha-analyst.pdf",
+                    ApplicationStatus.pending,
+                    4
+            ),
+            new ApplicationSeed(
+                    "seed-application-cs-01",
+                    "99999999-9999-9999-9999-999999999999",
+                    "Vu Hien Support",
+                    "90000000-0000-0000-0000-000000000021",
+                    "Customer Success Engineer",
+                    "https://cdn.example.com/resumes/vu-hien-support.pdf",
+                    ApplicationStatus.accepted,
+                    6
+            ),
+            new ApplicationSeed(
+                    "seed-application-ai-pm-01",
+                    "51515151-6262-7373-8484-959595959595",
+                    "Khanh Linh Designer",
+                    "90000000-0000-0000-0000-000000000022",
+                    "AI Product Manager",
+                    "https://cdn.example.com/resumes/khanh-linh-ai-pm.pdf",
+                    ApplicationStatus.pending,
+                    2
+            ),
+            new ApplicationSeed(
+                    "seed-application-ai-pm-02",
+                    "88888888-8888-8888-8888-888888888887",
+                    "Trinh Mai Product",
+                    "90000000-0000-0000-0000-000000000022",
+                    "AI Product Manager",
+                    "https://cdn.example.com/resumes/trinh-mai-product.pdf",
+                    ApplicationStatus.accepted,
+                    7
+            ),
+            new ApplicationSeed(
+                    "seed-application-cloud-security-01",
+                    "88888888-8888-8888-8888-888888888888",
+                    "Ngo Minh Shield",
+                    "90000000-0000-0000-0000-000000000023",
+                    "Cloud Security Engineer",
+                    "https://cdn.example.com/resumes/ngo-minh-shield.pdf",
+                    ApplicationStatus.pending,
+                    1
+            ),
+            new ApplicationSeed(
+                    "seed-application-cloud-security-02",
+                    "88888888-8888-8888-8888-888888888889",
+                    "Le Thai Secure",
+                    "90000000-0000-0000-0000-000000000023",
+                    "Cloud Security Engineer",
+                    "https://cdn.example.com/resumes/le-thai-secure.pdf",
+                    ApplicationStatus.rejected,
+                    9
+            ),
+            new ApplicationSeed(
+                    "seed-application-backend-02",
+                    "31313131-4242-5353-6464-757575757575",
+                    "Hoang Linh Mobile",
+                    "90000000-0000-0000-0000-000000000001",
+                    "Backend Developer (NestJS)",
+                    "https://cdn.example.com/resumes/hoang-linh-backend-switch.pdf",
+                    ApplicationStatus.pending,
+                    8
+            ),
+            new ApplicationSeed(
+                    "seed-application-devops-02",
+                    "12121212-3434-5656-7878-909090909090",
+                    "Tran Minh Data",
+                    "90000000-0000-0000-0000-000000000002",
+                    "DevOps Engineer",
+                    "https://cdn.example.com/resumes/tran-minh-devops.pdf",
+                    ApplicationStatus.accepted,
+                    11
+            ),
+            new ApplicationSeed(
+                    "seed-application-mobile-02",
+                    "31313131-4242-5353-6464-757575757575",
+                    "Hoang Linh Mobile",
+                    "90000000-0000-0000-0000-000000000008",
+                    "Mobile Developer (Flutter)",
+                    "https://cdn.example.com/resumes/hoang-linh-mobile-2.pdf",
+                    ApplicationStatus.accepted,
+                    3
+            ),
+            new ApplicationSeed(
+                    "seed-application-uiux-02",
+                    "51515151-6262-7373-8484-959595959595",
+                    "Khanh Linh Designer",
+                    "90000000-0000-0000-0000-000000000010",
+                    "Product Designer (UI/UX)",
+                    "https://cdn.example.com/resumes/khanh-linh-designer.pdf",
+                    ApplicationStatus.accepted,
+                    5
             )
     );
 
