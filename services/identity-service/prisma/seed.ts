@@ -1550,14 +1550,14 @@ async function main() {
     update: {
       department: 'Commerce Hiring',
       company_id: '45454545-4545-4545-4545-454545454545',
-      branch_id: '81818181-8181-8181-8181-818181818181',
+      branch_id: '80808080-8080-8080-8080-808080808080',
       last_active_at: new Date(),
     },
     create: {
       id: horizonRecruiterId,
       user_id: horizonRecruiterUser.id,
       company_id: '45454545-4545-4545-4545-454545454545',
-      branch_id: '81818181-8181-8181-8181-818181818181',
+      branch_id: '80808080-8080-8080-8080-808080808080',
       department: 'Commerce Hiring',
       last_active_at: new Date(),
     },
