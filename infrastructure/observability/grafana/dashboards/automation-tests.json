@@ -26,7 +26,29 @@
           "color": {
             "mode": "thresholds"
           },
-          "noValue": "0",
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "PASS"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": 0.5,
+                "result": {
+                  "index": 1,
+                  "text": "FAIL"
+                },
+                "to": 1000000
+              },
+              "type": "range"
+            }
+          ],
+          "noValue": "PASS",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -35,12 +57,8 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 1
-              },
-              {
                 "color": "red",
-                "value": 3
+                "value": 1
               }
             ]
           },
@@ -49,8 +67,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
+        "h": 5,
+        "w": 8,
         "x": 0,
         "y": 0
       },
@@ -71,12 +89,247 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\", status=\"failed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Total Runs Last 24h",
+      "title": "API Status",
+      "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "PASS"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": 0.5,
+                "result": {
+                  "index": 1,
+                  "text": "FAIL"
+                },
+                "to": 1000000
+              },
+              "type": "range"
+            }
+          ],
+          "noValue": "PASS",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"failed\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "UI E2E Status",
+      "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "PASS"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": 0.5,
+                "result": {
+                  "index": 1,
+                  "text": "FAIL"
+                },
+                "to": 1000000
+              },
+              "type": "range"
+            }
+          ],
+          "noValue": "PASS",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", status=\"failed\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "k6 Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana",
+        "uid": "-- Grafana --"
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "content": "## API Automation\nKết quả automation test cho luồng API/backend từ Loki logs.",
+        "mode": "markdown"
+      },
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 7
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "API Total Runs 24h",
       "type": "stat"
     },
     {
@@ -109,12 +362,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 6,
-        "y": 0
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 7
       },
-      "id": 2,
+      "id": 6,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -131,12 +384,12 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\", status=\"passed\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\", status=\"passed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Passed Runs Last 24h",
+      "title": "API Passed 24h",
       "type": "stat"
     },
     {
@@ -165,12 +418,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 12,
-        "y": 0
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 7
       },
-      "id": 3,
+      "id": 7,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -187,12 +440,120 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\", status=\"failed\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\", status=\"failed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Failed Runs Last 24h",
+      "title": "API Failed 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 8,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "API Latest Results",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "grafana",
+        "uid": "-- Grafana --"
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 9,
+      "options": {
+        "content": "## UI E2E Automation\nKết quả Playwright UI E2E từ workflow frontend.",
+        "mode": "markdown"
+      },
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 22
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "UI Total Runs 24h",
       "type": "stat"
     },
     {
@@ -212,25 +573,25 @@
               },
               {
                 "color": "orange",
-                "value": 0.1
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 0.3
+                "value": 3
               }
             ]
           },
-          "unit": "percentunit"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 18,
-        "y": 0
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 22
       },
-      "id": 4,
+      "id": 11,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -247,12 +608,12 @@
       },
       "targets": [
         {
-          "expr": "((sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\", status=\"failed\"}[24h])) / clamp_min(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"}[24h])), 1)) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"passed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Failure Rate Last 24h",
+      "title": "UI Passed 24h",
       "type": "stat"
     },
     {
@@ -271,26 +632,130 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 10000
-              },
-              {
                 "color": "red",
-                "value": 30000
+                "value": 1
               }
             ]
           },
-          "unit": "ms"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 22
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"failed\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "UI Failed 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 13,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "UI Latest Results",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "grafana",
+        "uid": "-- Grafana --"
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      },
+      "id": 14,
+      "options": {
+        "content": "## k6 Performance\nKết quả smoke/performance test. Bộ lọc phía trên chỉ áp dụng cho phần k6.",
+        "mode": "markdown"
+      },
+      "transparent": true,
+      "type": "text"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
         "w": 6,
         "x": 0,
-        "y": 6
+        "y": 37
       },
-      "id": 5,
+      "id": 15,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -307,12 +772,128 @@
       },
       "targets": [
         {
-          "expr": "avg(avg_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"} | json | unwrap duration_ms | __error__=\"\"[24h])) or vector(0)",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Average Duration Last 24h",
+      "title": "k6 Total Runs 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 37
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", status=\"passed\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "k6 Passed 24h",
+      "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 37
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", status=\"failed\"}[24h])) or vector(0))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "k6 Failed 24h",
       "type": "stat"
     },
     {
@@ -345,12 +926,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 5,
         "w": 6,
-        "x": 6,
-        "y": 6
+        "x": 18,
+        "y": 37
       },
-      "id": 6,
+      "id": 18,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -371,7 +952,7 @@
           "refId": "A"
         }
       ],
-      "title": "K6 P95 Latency",
+      "title": "k6 P95 Latency",
       "type": "stat"
     },
     {
@@ -400,12 +981,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 12,
-        "y": 6
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 42
       },
-      "id": 7,
+      "id": 19,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -426,7 +1007,7 @@
           "refId": "A"
         }
       ],
-      "title": "K6 Error Rate",
+      "title": "k6 Error Rate",
       "type": "stat"
     },
     {
@@ -455,12 +1036,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 18,
-        "y": 6
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 42
       },
-      "id": 8,
+      "id": 20,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -481,87 +1062,67 @@
           "refId": "A"
         }
       ],
-      "title": "K6 Checks Pass Rate",
+      "title": "k6 Checks Pass Rate",
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 0,
-        "y": 12
-      },
-      "id": 9,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (suite, status) (count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"}[$__interval]))",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Automation Runs By Suite And Status",
-      "type": "timeseries"
-    },
-    {
-      "datasource": "Loki",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "unit": "ms"
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 12
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 42
       },
-      "id": 10,
+      "id": 21,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
+        "textMode": "value"
       },
       "targets": [
         {
-          "expr": "avg by (suite) (avg_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"} | json | unwrap duration_ms | __error__=\"\"[$__interval]))",
-          "queryType": "range",
+          "expr": "(avg(k6_vus{testid=~\"$testid\",scenario=~\"$scenario\"}) or on() vector(0))",
           "refId": "A"
         }
       ],
-      "title": "Automation Duration Trend",
-      "type": "timeseries"
+      "title": "k6 Active VUs",
+      "type": "stat"
     },
     {
       "datasource": "Prometheus",
@@ -578,9 +1139,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 21
+        "y": 47
       },
-      "id": 11,
+      "id": 22,
       "options": {
         "legend": {
           "calcs": [],
@@ -600,7 +1161,7 @@
           "refId": "A"
         }
       ],
-      "title": "K6 Request Rate By Operation",
+      "title": "k6 Request Rate By Operation",
       "type": "timeseries"
     },
     {
@@ -618,9 +1179,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 21
+        "y": 47
       },
-      "id": 12,
+      "id": 23,
       "options": {
         "legend": {
           "calcs": [],
@@ -640,52 +1201,7 @@
           "refId": "A"
         }
       ],
-      "title": "K6 P95 Latency By Operation",
-      "type": "timeseries"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 29
-      },
-      "id": 13,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "expr": "avg(k6_vus{testid=~\"$testid\",scenario=~\"$scenario\"})",
-          "legendFormat": "vus",
-          "refId": "A"
-        },
-        {
-          "expr": "avg(k6_vus_max{testid=~\"$testid\",scenario=~\"$scenario\"})",
-          "legendFormat": "vus_max",
-          "refId": "B"
-        }
-      ],
-      "title": "K6 Virtual Users",
+      "title": "k6 P95 Latency By Operation",
       "type": "timeseries"
     },
     {
@@ -722,12 +1238,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
-        "x": 12,
-        "y": 29
+        "x": 0,
+        "y": 55
       },
-      "id": 14,
+      "id": 24,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -764,7 +1280,7 @@
           "refId": "C"
         }
       ],
-      "title": "K6 Latency Table By Operation",
+      "title": "k6 Latency Table By Operation",
       "transformations": [
         {
           "id": "seriesToColumns",
@@ -792,12 +1308,12 @@
     {
       "datasource": "Loki",
       "gridPos": {
-        "h": 11,
-        "w": 24,
-        "x": 0,
-        "y": 37
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 55
       },
-      "id": 15,
+      "id": 25,
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
@@ -810,12 +1326,12 @@
       },
       "targets": [
         {
-          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"}",
+          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\"}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Latest Results",
+      "title": "k6 Latest Results",
       "type": "logs"
     }
   ],
@@ -831,27 +1347,6 @@
   ],
   "templating": {
     "list": [
-      {
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": "Loki",
-        "definition": "label_values({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\"}, suite)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Suite",
-        "multi": false,
-        "name": "suite",
-        "options": [],
-        "query": "label_values({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\"}, suite)",
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
-      },
       {
         "current": {
           "selected": false,
@@ -925,6 +1420,6 @@
   "timezone": "browser",
   "title": "Automation Test",
   "uid": "automation-test",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
