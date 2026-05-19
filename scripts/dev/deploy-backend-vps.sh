@@ -300,7 +300,7 @@ else
 fi
 
 log "starting backend application stack"
-docker compose -f docker-compose.yml -f docker-compose.app.yml up -d \
+docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate \
   identity-service \
   organization-service \
   notification-service \
