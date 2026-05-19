@@ -308,6 +308,32 @@ run_changed_service_migrations() {
   done
 }
 
+wait_service_health() {
+  local svc="$1"
+
+  case "$svc" in
+    identity-service)
+      wait_http "http://127.0.0.1:${IDENTITY_SERVICE_PORT:-3001}/health" identity-service
+      wait_http "http://127.0.0.1:${KONG_PROXY_PORT:-8000}/identity/health" kong-identity
+      ;;
+    organization-service)
+      wait_http "http://127.0.0.1:${ORGANIZATION_SERVICE_PORT:-3002}/health" organization-service
+      ;;
+    notification-service)
+      wait_http "http://127.0.0.1:${NOTIFICATION_SERVICE_PORT:-3003}/health" notification-service
+      ;;
+    job-service)
+      wait_http "http://127.0.0.1:${JOB_SERVICE_PORT:-8082}/api/health" job-service
+      ;;
+    application-service)
+      wait_http "http://127.0.0.1:${APPLICATION_SERVICE_PORT:-8083}/api/health" application-service
+      ;;
+    dashboard-service)
+      wait_http "http://127.0.0.1:${DASHBOARD_SERVICE_PORT:-8084}/api/health" dashboard-service
+      ;;
+  esac
+}
+
 log "starting infrastructure"
 docker compose up -d \
   identity-postgres \
@@ -353,33 +379,26 @@ else
   run_changed_service_migrations
 fi
 
-APP_UP_SERVICES=(
-  identity-service
-  organization-service
-  notification-service
-  job-service
-  application-service
-  dashboard-service
-)
+APP_UP_SERVICES=("${CHANGED_BACKEND_SERVICES[@]}")
 
 if [[ "$DEPLOY_FRONTEND" == "1" ]]; then
   APP_UP_SERVICES+=(frontend)
 fi
 
-log "pulling application images"
-docker compose -f docker-compose.yml -f docker-compose.app.yml pull "${APP_UP_SERVICES[@]}"
+if (( ${#APP_UP_SERVICES[@]} == 0 )); then
+  log "no backend application image changes detected; skipping application pull and restart"
+else
+  log "pulling application images for: ${APP_UP_SERVICES[*]}"
+  docker compose -f docker-compose.yml -f docker-compose.app.yml pull "${APP_UP_SERVICES[@]}"
 
-log "starting backend application stack"
-docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate \
-  "${APP_UP_SERVICES[@]}"
+  log "restarting application services: ${APP_UP_SERVICES[*]}"
+  docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate \
+    "${APP_UP_SERVICES[@]}"
+fi
 
-wait_http "http://127.0.0.1:${IDENTITY_SERVICE_PORT:-3001}/health" identity-service
-wait_http "http://127.0.0.1:${ORGANIZATION_SERVICE_PORT:-3002}/health" organization-service
-wait_http "http://127.0.0.1:${NOTIFICATION_SERVICE_PORT:-3003}/health" notification-service
-wait_http "http://127.0.0.1:${JOB_SERVICE_PORT:-8082}/api/health" job-service
-wait_http "http://127.0.0.1:${APPLICATION_SERVICE_PORT:-8083}/api/health" application-service
-wait_http "http://127.0.0.1:${DASHBOARD_SERVICE_PORT:-8084}/api/health" dashboard-service
-wait_http "http://127.0.0.1:${KONG_PROXY_PORT:-8000}/identity/health" kong-identity
+for svc in "${CHANGED_BACKEND_SERVICES[@]}"; do
+  wait_service_health "$svc"
+done
 
 if [[ "$DEPLOY_FRONTEND" == "1" && "$VERIFY_FRONTEND" == "1" ]]; then
   wait_http "http://127.0.0.1:${FRONTEND_PORT}" frontend
