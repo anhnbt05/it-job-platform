@@ -119,19 +119,29 @@ SELECT format('ALTER USER %I WITH PASSWORD %L', :'db_user', :'db_password') \gex
 
     Write-Host ">>> [$Container] normalized postgres password for $UserName"
 
-    $containerIp = (& docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" $Container).Trim()
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($containerIp)) {
-        throw "Failed to resolve container IP for $Container."
+    $networkName = (& docker inspect -f "{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}" $Container | Select-Object -First 1).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($networkName)) {
+        throw "Failed to resolve docker network for $Container."
+    }
+
+    $clientImage = (& docker inspect -f "{{.Config.Image}}" $Container).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($clientImage)) {
+        throw "Failed to resolve client image for $Container."
     }
 
     Invoke-Docker -CommandArgs @(
-        "exec",
+        "run",
+        "--rm",
+        "--network", $networkName,
         "-e", "PGPASSWORD=$Password",
-        $Container,
-        "sh", "-lc",
-        "psql -h ""$containerIp"" -U ""$UserName"" -d postgres -Atqc 'select 1'"
+        $clientImage,
+        "psql",
+        "-h", $Container,
+        "-U", $UserName,
+        "-d", "postgres",
+        "-Atqc", "select 1"
     )
-    Write-Host ">>> [$Container] verified postgres password over bridge network for $UserName"
+    Write-Host ">>> [$Container] verified postgres password from peer container for $UserName"
 }
 
 Import-EnvFile -Path $rootEnvFile

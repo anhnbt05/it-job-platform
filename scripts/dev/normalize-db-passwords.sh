@@ -39,18 +39,29 @@ verify_postgres_password() {
   local user="$2"
   local password="$3"
   local database="${4:-postgres}"
-  local container_ip
+  local network_name
+  local client_image
 
-  container_ip="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$container")"
-  if [[ -z "$container_ip" ]]; then
-    log "could not resolve container IP for ${container}"
+  network_name="$(docker inspect -f '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$container" | head -n 1 | tr -d '[:space:]')"
+  client_image="$(docker inspect -f '{{.Config.Image}}' "$container" | tr -d '[:space:]')"
+
+  if [[ -z "$network_name" ]]; then
+    log "could not resolve network for ${container}"
     return 1
   fi
 
-  docker exec -e PGPASSWORD="$password" "$container" \
-    sh -lc "psql -h \"$container_ip\" -U \"$user\" -d \"$database\" -Atqc 'select 1'" >/dev/null
+  if [[ -z "$client_image" ]]; then
+    log "could not resolve image for ${container}"
+    return 1
+  fi
 
-  log "verified postgres password over bridge network for ${container}/${user}"
+  docker run --rm \
+    --network "$network_name" \
+    -e PGPASSWORD="$password" \
+    "$client_image" \
+    psql -h "$container" -U "$user" -d "$database" -Atqc 'select 1' >/dev/null
+
+  log "verified postgres password from peer container for ${container}/${user}"
 }
 
 normalize_postgres_password() {
