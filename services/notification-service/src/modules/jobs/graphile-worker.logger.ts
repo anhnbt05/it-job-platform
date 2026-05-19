@@ -15,9 +15,16 @@ const GRACEFUL_SHUTDOWN_PATTERNS = [
   /Global graceful shutdown complete; killing self via SIGINT/i,
   /Not unregistering signal handlers as we're shutting down/i,
 ];
+const SUPPRESSED_INFO_PATTERNS = [
+  /Failed to read crontab file '.*'; cron is disabled/i,
+];
 
 function isGracefulShutdownMessage(message: string) {
   return GRACEFUL_SHUTDOWN_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+function isSuppressedInfoMessage(message: string) {
+  return SUPPRESSED_INFO_PATTERNS.some((pattern) => pattern.test(message));
 }
 
 function graphileWorkerLogFactory(): LogFunctionFactory<{}> {
@@ -29,6 +36,10 @@ function graphileWorkerLogFactory(): LogFunctionFactory<{}> {
 
     if (isGracefulShutdownMessage(message)) {
       logger.log(formattedMessage);
+      return;
+    }
+
+    if (isSuppressedInfoMessage(message)) {
       return;
     }
 
