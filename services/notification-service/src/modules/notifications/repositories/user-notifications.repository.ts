@@ -26,20 +26,24 @@ export class UserNotificationsRepository
     success: boolean;
     message: string;
   }> {
-    const validIds: string[] = [];
-
-    for (const id of ids) {
-      const un = await this.findById(id);
-      if (un && un.userId === userId) validIds.push(id);
+    if (ids.length === 0) {
+      return {
+        success: true,
+        message: 'Không có thông báo nào cần xoá.',
+      };
     }
 
-    const result = await this.repo.delete({
-      id: In(validIds),
-    });
+    const result = await this.repo
+      .createQueryBuilder()
+      .delete()
+      .from(UserNotifications)
+      .where('user_id = :userId', { userId })
+      .andWhere('id IN (:...ids)', { ids })
+      .execute();
 
     return {
       success: true,
-      message: `Đã xoá thành công ${result.affected} thông báo.`,
+      message: `Đã xoá thành công ${result.affected ?? 0} thông báo.`,
     };
   }
 
@@ -75,25 +79,28 @@ export class UserNotificationsRepository
     ids: string[],
     userId: string,
   ): Promise<{ success: boolean; message: string }> {
-    let validIds: string[] = [];
-
-    for (const id of ids) {
-      const userNotif = await this.findById(id);
-      if (userNotif && userNotif.userId === userId) validIds.push(id);
+    if (ids.length === 0) {
+      return {
+        success: true,
+        message: 'Không có thông báo nào cần cập nhật.',
+      };
     }
 
-    const result = await this.repo.update(
-      {
-        id: In(validIds),
-      },
-      {
+    const result = await this.repo
+      .createQueryBuilder()
+      .update(UserNotifications)
+      .set({
         isRead: true,
-      },
-    );
+        readAt: () => 'CURRENT_TIMESTAMP',
+      } as any)
+      .where('user_id = :userId', { userId })
+      .andWhere('id IN (:...ids)', { ids })
+      .andWhere('(is_read = false OR read_at IS NULL)')
+      .execute();
 
     return {
       success: true,
-      message: `Đã đánh dấu ${result.affected} thông báo thành trạng thái đã đọc.`,
+      message: `Đã đánh dấu ${result.affected ?? 0} thông báo thành trạng thái đã đọc.`,
     };
   }
 }

@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -10,6 +11,8 @@ import {
 } from 'typeorm';
 
 @Entity()
+@Index('IDX_user_notifications_user_created_at', ['userId', 'createdAt'])
+@Index('IDX_user_notifications_user_is_read', ['userId', 'isRead'])
 export class UserNotifications {
   @PrimaryGeneratedColumn('uuid')
   readonly id: string;
@@ -51,6 +54,7 @@ export class UserNotifications {
 
   @ManyToOne(() => Notifications, (notif) => notif.userNotifications, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
   @JoinColumn()
   notification: Notifications;
