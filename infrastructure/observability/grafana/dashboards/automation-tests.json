@@ -307,7 +307,7 @@
       },
       "targets": [
         {
-          "expr": "avg(avg_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"} | json | unwrap duration_ms [24h])) or vector(0)",
+          "expr": "avg(avg_over_time(({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"} | json | unwrap duration_ms)[24h])) or vector(0)",
           "queryType": "range",
           "refId": "A"
         }
@@ -555,7 +555,7 @@
       },
       "targets": [
         {
-          "expr": "avg by (suite) (avg_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"} | json | unwrap duration_ms [$__interval]))",
+          "expr": "avg by (suite) (avg_over_time(({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"$suite\"} | json | unwrap duration_ms)[$__interval]))",
           "queryType": "range",
           "refId": "A"
         }
