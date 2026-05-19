@@ -83,8 +83,9 @@ public class CategoryEventConsumer {
             UUID id = UUID.fromString(payload.get("id").asText());
 
             categorySnapshotRepository.findById(id).ifPresent(snapshot -> {
-                categorySnapshotRepository.delete(snapshot);
-                log.info("Deleted category snapshot ID: {}", id);
+                snapshot.setUpdatedAt(LocalDateTime.now());
+                categorySnapshotRepository.save(snapshot);
+                log.info("Retained category snapshot ID {} to preserve historical job category references", id);
             });
         } catch (Exception e) {
             log.error("Error processing category-snapshot.deleted event: {}", e.getMessage(), e);

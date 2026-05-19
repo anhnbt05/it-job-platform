@@ -378,10 +378,44 @@ public class JobService {
         saveJobCategories(job, categoryNames);
     }
 
-    private JobResponse mapToJobResponse(Job job) {
-        List<String> categories = jobCategoryRepository.findByJobId(job.getId()).stream()
-                .map(jc -> jc.getCategory().getCategoryName())
+    private List<String> resolveCategoryNames(UUID jobId) {
+        List<JobCategory> jobCategories = jobCategoryRepository.findByJobId(jobId);
+        if (jobCategories.isEmpty()) {
+            return List.of();
+        }
+
+        Set<UUID> categoryIds = jobCategories.stream()
+                .map(JobCategory::getCategoryId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<UUID, String> categoryNamesById = categorySnapshotRepository.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(CategorySnapshot::getId, CategorySnapshot::getCategoryName));
+
+        return jobCategories.stream()
+                .map(jobCategory -> {
+                    CategorySnapshot category = jobCategory.getCategory();
+                    if (category != null && category.getCategoryName() != null) {
+                        return category.getCategoryName();
+                    }
+
+                    String fallbackName = categoryNamesById.get(jobCategory.getCategoryId());
+                    if (fallbackName == null) {
+                        log.warn(
+                                "Skipping orphaned job category mapping for jobId={} categoryId={}",
+                                jobId,
+                                jobCategory.getCategoryId()
+                        );
+                    }
+                    return fallbackName;
+                })
+                .filter(Objects::nonNull)
+                .distinct()
                 .collect(Collectors.toList());
+    }
+
+    private JobResponse mapToJobResponse(Job job) {
+        List<String> categories = resolveCategoryNames(job.getId());
 
         return JobResponse.builder()
                 .id(job.getId().toString())
@@ -402,9 +436,7 @@ public class JobService {
     }
 
     private JobDetailResponse mapToJobDetailResponse(Job job) {
-        List<String> categories = jobCategoryRepository.findByJobId(job.getId()).stream()
-                .map(jc -> jc.getCategory().getCategoryName())
-                .collect(Collectors.toList());
+        List<String> categories = resolveCategoryNames(job.getId());
 
         List<String> descriptions = jobDescriptionRepository.findByJobId(job.getId()).stream()
                 .map(JobDescription::getDescription)
