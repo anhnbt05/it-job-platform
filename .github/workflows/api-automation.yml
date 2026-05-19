@@ -1,0 +1,57 @@
+name: API Automation VPS
+
+on:
+  workflow_dispatch:
+    inputs:
+      prepare_demo_data:
+        description: Run migrate and seed before API automation
+        required: false
+        type: boolean
+        default: false
+  workflow_run:
+    workflows:
+      - Deploy Backend VPS
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-automation-vps
+  cancel-in-progress: false
+
+jobs:
+  api-automation:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
+      PREPARE_DEMO_DATA_INPUT: ${{ github.event.inputs.prepare_demo_data }}
+    steps:
+      - name: Run API automation on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          command_timeout: 30m
+          script: |
+            set -euo pipefail
+
+            BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
+            PREPARE_FLAG=false
+
+            if [ "${PREPARE_DEMO_DATA_INPUT:-false}" = "true" ]; then
+              PREPARE_FLAG=true
+            fi
+
+            cd "$BACKEND_PATH"
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+            git clean -fd
+
+            PREPARE_DEMO_DATA="$PREPARE_FLAG" bash ./scripts/dev/run-api-automation-vps.sh
