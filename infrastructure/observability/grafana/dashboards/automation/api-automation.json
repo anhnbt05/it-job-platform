@@ -89,12 +89,12 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"failed\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\", status=\"failed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "UI E2E Status",
+      "title": "API Status",
       "type": "stat"
     },
     {
@@ -149,7 +149,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -209,7 +209,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"passed\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\", status=\"passed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -265,7 +265,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"failed\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\", status=\"failed\"}[24h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -304,7 +304,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (status) (count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\"}[$__interval]))",
+          "expr": "sum by (status) (count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\"}[$__interval]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -333,7 +333,7 @@
       },
       "targets": [
         {
-          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\"}",
+          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"api-automation\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -347,9 +347,9 @@
   "style": "dark",
   "tags": [
     "automation",
-    "loki",
+    "api",
     "tests",
-    "ui-e2e"
+    "loki"
   ],
   "templating": {
     "list": []
@@ -360,8 +360,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "UI E2E Test",
-  "uid": "automation-ui-e2e",
+  "title": "API Automation Test",
+  "uid": "automation-api",
   "version": 2,
   "weekStart": ""
 }

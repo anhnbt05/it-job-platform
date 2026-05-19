@@ -1,11 +1,19 @@
 apiVersion: 1
 
 providers:
-  - name: "default"
+  - name: "automation-tests"
     orgId: 1
-    folder: ""
+    folder: "Automation Tests"
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
     options:
-      path: /var/lib/grafana/dashboards
+      path: /var/lib/grafana/dashboards/automation
+  - name: "overview"
+    orgId: 1
+    folder: "Overview"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards/core
