@@ -28,7 +28,7 @@ function graphileWorkerLogFactory(): LogFunctionFactory<{}> {
       meta !== undefined ? `${message} - ${JSON.stringify(meta)}` : message;
 
     if (isGracefulShutdownMessage(message)) {
-      logger.warn(formattedMessage);
+      logger.log(formattedMessage);
       return;
     }
 
