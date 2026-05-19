@@ -19,11 +19,11 @@ log() {
 log "running migrate + seed"
 bash ./scripts/db/seed.sh
 
-log "building application images"
-docker compose -f docker-compose.yml -f docker-compose.app.yml build
+log "pulling application images"
+docker compose -f docker-compose.yml -f docker-compose.app.yml pull
 
 log "starting application stack"
-docker compose -f docker-compose.yml -f docker-compose.app.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate
 
 log "verifying health endpoints"
 curl -fsS "http://127.0.0.1:${IDENTITY_SERVICE_PORT:-3001}/health" >/dev/null

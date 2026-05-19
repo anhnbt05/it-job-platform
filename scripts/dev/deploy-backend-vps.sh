@@ -44,7 +44,7 @@ MIGRATABLE_SERVICES=(
   organization-service
   notification-service
 )
-CHANGED_BUILD_SERVICES=()
+CHANGED_BACKEND_SERVICES=()
 
 print_diagnostics() {
   log "diagnostics: docker compose ps"
@@ -88,29 +88,29 @@ service_in_list() {
 
 append_unique_service() {
   local target="$1"
-  if ! service_in_list "$target" "${CHANGED_BUILD_SERVICES[@]}"; then
-    CHANGED_BUILD_SERVICES+=("$target")
+  if ! service_in_list "$target" "${CHANGED_BACKEND_SERVICES[@]}"; then
+    CHANGED_BACKEND_SERVICES+=("$target")
   fi
 }
 
-detect_changed_backend_build_services() {
-  CHANGED_BUILD_SERVICES=()
+detect_changed_backend_services() {
+  CHANGED_BACKEND_SERVICES=()
 
   if [[ -z "$PREVIOUS_DEPLOY_SHA" || -z "$CURRENT_DEPLOY_SHA" ]]; then
-    log "missing deploy SHAs, falling back to full backend build"
-    CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+    log "missing deploy SHAs, falling back to full backend migration scan"
+    CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
     return
   fi
 
   if ! git rev-parse --verify "${PREVIOUS_DEPLOY_SHA}^{commit}" >/dev/null 2>&1; then
-    log "previous deploy SHA is unavailable locally, falling back to full backend build"
-    CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+    log "previous deploy SHA is unavailable locally, falling back to full backend migration scan"
+    CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
     return
   fi
 
   if ! git rev-parse --verify "${CURRENT_DEPLOY_SHA}^{commit}" >/dev/null 2>&1; then
-    log "current deploy SHA is unavailable locally, falling back to full backend build"
-    CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+    log "current deploy SHA is unavailable locally, falling back to full backend migration scan"
+    CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
     return
   fi
 
@@ -128,8 +128,8 @@ detect_changed_backend_build_services() {
   for path in "${changed_files[@]}"; do
     case "$path" in
       docker-compose.app.yml)
-        log "docker-compose.app.yml changed, falling back to full backend build"
-        CHANGED_BUILD_SERVICES=("${BACKEND_SERVICES[@]}")
+        log "docker-compose.app.yml changed, falling back to full backend migration scan"
+        CHANGED_BACKEND_SERVICES=("${BACKEND_SERVICES[@]}")
         return
         ;;
       services/identity-service/*)
@@ -291,7 +291,7 @@ run_changed_service_migrations() {
   local migratable_changed=()
   local svc
 
-  for svc in "${CHANGED_BUILD_SERVICES[@]}"; do
+  for svc in "${CHANGED_BACKEND_SERVICES[@]}"; do
     if service_in_list "$svc" "${MIGRATABLE_SERVICES[@]}"; then
       migratable_changed+=("$svc")
     fi
@@ -338,7 +338,7 @@ wait_tcp 127.0.0.1 "${KONG_ADMIN_PORT:-8001}" kong-admin
 bash ./scripts/dev/normalize-db-passwords.sh
 wait_kafka
 
-detect_changed_backend_build_services
+detect_changed_backend_services
 
 declare -A existing_topic_lookup=()
 ensure_kafka_topics
@@ -353,14 +353,6 @@ else
   run_changed_service_migrations
 fi
 
-if (( ${#CHANGED_BUILD_SERVICES[@]} > 0 )); then
-  log "building changed backend services: ${CHANGED_BUILD_SERVICES[*]}"
-  docker compose -f docker-compose.yml -f docker-compose.app.yml build "${CHANGED_BUILD_SERVICES[@]}"
-else
-  log "skipping backend image build because no backend service files changed"
-fi
-
-log "starting backend application stack"
 APP_UP_SERVICES=(
   identity-service
   organization-service
@@ -374,6 +366,10 @@ if [[ "$DEPLOY_FRONTEND" == "1" ]]; then
   APP_UP_SERVICES+=(frontend)
 fi
 
+log "pulling application images"
+docker compose -f docker-compose.yml -f docker-compose.app.yml pull "${APP_UP_SERVICES[@]}"
+
+log "starting backend application stack"
 docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate \
   "${APP_UP_SERVICES[@]}"
 

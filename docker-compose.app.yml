@@ -1,8 +1,6 @@
 services:
   identity-service:
-    build:
-      context: ./services/identity-service
-      dockerfile: Dockerfile
+    image: ${IDENTITY_SERVICE_IMAGE:-ghcr.io/anhnbt05/it-job-platform-identity-service:main}
     container_name: identity-service
     restart: unless-stopped
     environment:
@@ -33,9 +31,7 @@ services:
       - it-job-network
 
   organization-service:
-    build:
-      context: ./services/organization-service
-      dockerfile: Dockerfile
+    image: ${ORGANIZATION_SERVICE_IMAGE:-ghcr.io/anhnbt05/it-job-platform-organization-service:main}
     container_name: organization-service
     restart: unless-stopped
     environment:
@@ -62,9 +58,7 @@ services:
       - it-job-network
 
   notification-service:
-    build:
-      context: ./services/notification-service
-      dockerfile: Dockerfile
+    image: ${NOTIFICATION_SERVICE_IMAGE:-ghcr.io/anhnbt05/it-job-platform-notification-service:main}
     container_name: notification-service
     restart: unless-stopped
     environment:
@@ -103,9 +97,7 @@ services:
       - it-job-network
 
   job-service:
-    build:
-      context: ./services/job-service
-      dockerfile: Dockerfile
+    image: ${JOB_SERVICE_IMAGE:-ghcr.io/anhnbt05/it-job-platform-job-service:main}
     container_name: job-service
     restart: unless-stopped
     environment:
@@ -128,9 +120,7 @@ services:
       - it-job-network
 
   application-service:
-    build:
-      context: ./services/application-service
-      dockerfile: Dockerfile
+    image: ${APPLICATION_SERVICE_IMAGE:-ghcr.io/anhnbt05/it-job-platform-application-service:main}
     container_name: application-service
     restart: unless-stopped
     environment:
@@ -150,9 +140,7 @@ services:
       - it-job-network
 
   dashboard-service:
-    build:
-      context: ./services/dashboard-service
-      dockerfile: Dockerfile
+    image: ${DASHBOARD_SERVICE_IMAGE:-ghcr.io/anhnbt05/it-job-platform-dashboard-service:main}
     container_name: dashboard-service
     restart: unless-stopped
     environment:
@@ -170,11 +158,7 @@ services:
       - it-job-network
 
   frontend:
-    build:
-      context: ../it-job-platform-fe
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+    image: ${FRONTEND_IMAGE:-ghcr.io/anhnbt05/it-job-platform-frontend:main}
     container_name: it-job-frontend
     restart: unless-stopped
     environment:

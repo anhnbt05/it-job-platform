@@ -14,13 +14,70 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: deploy-backend-vps
   cancel-in-progress: true
 
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: identity-service
+            context: ./services/identity-service
+            image_repo: it-job-platform-identity-service
+          - service: organization-service
+            context: ./services/organization-service
+            image_repo: it-job-platform-organization-service
+          - service: notification-service
+            context: ./services/notification-service
+            image_repo: it-job-platform-notification-service
+          - service: job-service
+            context: ./services/job-service
+            image_repo: it-job-platform-job-service
+          - service: application-service
+            context: ./services/application-service
+            image_repo: it-job-platform-application-service
+          - service: dashboard-service
+            context: ./services/dashboard-service
+            image_repo: it-job-platform-dashboard-service
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare image metadata
+        id: prep
+        run: |
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ steps.prep.outputs.owner }}/${{ matrix.image_repo }}:main
+            ghcr.io/${{ steps.prep.outputs.owner }}/${{ matrix.image_repo }}:sha-${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image_repo }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image_repo }}
+
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
     env:
       VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
@@ -44,6 +101,8 @@ jobs:
               RUN_SEED_FLAG=1
             fi
 
+            echo '${{ github.token }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+
             cd "$BACKEND_PATH"
             PREVIOUS_HEAD="$(git rev-parse HEAD 2>/dev/null || true)"
             git fetch origin main
@@ -57,3 +116,4 @@ jobs:
             RUN_SEED="$RUN_SEED_FLAG" \
             bash ./scripts/dev/deploy-backend-vps.sh
             docker image prune -f
+            docker logout ghcr.io || true
