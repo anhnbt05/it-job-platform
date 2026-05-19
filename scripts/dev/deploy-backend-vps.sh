@@ -24,6 +24,8 @@ if [[ -f "$ROOT_ENV_FILE" ]]; then
   set +a
 fi
 
+bash ./scripts/dev/sync-service-env-files.sh >/dev/null
+
 log() {
   printf '>>> [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
 }
