@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { SendEmailTask } from '@/modules/jobs/tasks';
 import { EmailsModule } from '@/modules/emails/emails.module';
 import { MetricsModule } from '@/modules/observability/metrics.module';
+import { graphileWorkerLogger } from './graphile-worker.logger';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MetricsModule } from '@/modules/observability/metrics.module';
           connectionString,
           schema,
           pollInterval: 1000,
+          logger: graphileWorkerLogger,
         };
       },
     }),
