@@ -14,6 +14,7 @@ $appComposeFile = Join-Path $rootDir "docker-compose.app.yml"
 $seedScript = Join-Path $rootDir "scripts\db\seed.ps1"
 $syncDbPasswordsScript = Join-Path $rootDir "scripts\dev\sync-db-passwords.ps1"
 $rootEnvFile = Join-Path $rootDir ".env"
+$kafkaTopicsFile = Join-Path $rootDir "infrastructure\kafka\topics.txt"
 $frontendDir = Join-Path (Split-Path -Parent $rootDir) "it-job-platform-fe"
 
 function Import-EnvFile {
@@ -294,10 +295,56 @@ function Start-InfraStack {
 }
 
 function Initialize-KafkaTopics {
-    Write-Host "=== Creating Kafka topics ==="
+    if (-not (Test-Path $kafkaTopicsFile)) {
+        throw "Kafka topics file not found: $kafkaTopicsFile"
+    }
+
+    Write-Host "=== Ensuring Kafka topics ==="
     Wait-KafkaBrokerReady
-    Invoke-Docker -CommandArgs @("compose", "-f", $infraComposeFile, "rm", "-f", "kafka-init") -AllowFailure
-    Invoke-Docker -CommandArgs @("compose", "-f", $infraComposeFile, "run", "--rm", "--no-deps", "kafka-init")
+
+    $listCommand = "docker compose -f ""$infraComposeFile"" exec -T kafka kafka-topics --bootstrap-server kafka:9092 --list"
+    $existingTopicsOutput = & cmd.exe /d /c $listCommand
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to list existing Kafka topics."
+    }
+
+    $existingTopics = @{}
+    foreach ($topic in ($existingTopicsOutput -split "`r?`n")) {
+        if (-not [string]::IsNullOrWhiteSpace($topic)) {
+            $existingTopics[$topic.Trim()] = $true
+        }
+    }
+
+    $missingTopics = [System.Collections.Generic.List[string]]::new()
+    foreach ($topic in Get-Content $kafkaTopicsFile) {
+        $trimmed = $topic.Trim()
+        if ([string]::IsNullOrWhiteSpace($trimmed)) {
+            continue
+        }
+
+        if (-not $existingTopics.ContainsKey($trimmed)) {
+            $missingTopics.Add($trimmed)
+        }
+    }
+
+    if ($missingTopics.Count -eq 0) {
+        Write-Host ">>> [kafka] all topics already exist"
+        return
+    }
+
+    Write-Host ">>> [kafka] creating missing topics: $($missingTopics -join ', ')"
+    foreach ($topic in $missingTopics) {
+        Invoke-Docker -CommandArgs @(
+            "compose", "-f", $infraComposeFile, "exec", "-T", "kafka",
+            "kafka-topics",
+            "--bootstrap-server", "kafka:9092",
+            "--create",
+            "--if-not-exists",
+            "--topic", $topic,
+            "--replication-factor", "1",
+            "--partitions", "3"
+        )
+    }
 }
 
 function Sync-DatabaseCredentials {

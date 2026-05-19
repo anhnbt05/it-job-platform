@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="/opt/it-job/it-job-platform"
 ROOT_ENV_FILE="$ROOT_DIR/.env"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+KAFKA_TOPICS_FILE="$ROOT_DIR/infrastructure/kafka/topics.txt"
 TCP_WAIT_TIMEOUT_SECONDS="${TCP_WAIT_TIMEOUT_SECONDS:-180}"
 HTTP_WAIT_TIMEOUT_SECONDS="${HTTP_WAIT_TIMEOUT_SECONDS:-180}"
 KAFKA_WAIT_TIMEOUT_SECONDS="${KAFKA_WAIT_TIMEOUT_SECONDS:-180}"
@@ -98,6 +99,50 @@ wait_kafka() {
   log "kafka broker is ready for admin operations"
 }
 
+ensure_kafka_topics() {
+  if [[ ! -f "$KAFKA_TOPICS_FILE" ]]; then
+    log "kafka topics file not found at $KAFKA_TOPICS_FILE"
+    return 1
+  fi
+
+  local existing_topics=()
+  mapfile -t existing_topics < <(docker compose exec -T kafka kafka-topics --bootstrap-server kafka:9092 --list)
+
+  local topic
+  local missing_topics=()
+  declare -A existing_topic_lookup=()
+
+  for topic in "${existing_topics[@]}"; do
+    existing_topic_lookup["$topic"]=1
+  done
+
+  while IFS= read -r topic || [[ -n "$topic" ]]; do
+    [[ -z "$topic" ]] && continue
+    if [[ -z "${existing_topic_lookup[$topic]:-}" ]]; then
+      missing_topics+=("$topic")
+    fi
+  done < "$KAFKA_TOPICS_FILE"
+
+  if (( ${#missing_topics[@]} == 0 )); then
+    log "all kafka topics already exist"
+    return
+  fi
+
+  log "creating missing kafka topics: ${missing_topics[*]}"
+
+  for topic in "${missing_topics[@]}"; do
+    docker compose exec -T kafka kafka-topics \
+      --bootstrap-server kafka:9092 \
+      --create \
+      --if-not-exists \
+      --topic "$topic" \
+      --replication-factor 1 \
+      --partitions 3 >/dev/null
+  done
+
+  log "kafka topics ensured"
+}
+
 log "stopping any previous stack remnants"
 docker compose -f docker-compose.yml -f docker-compose.app.yml down --remove-orphans || true
 
@@ -130,9 +175,7 @@ wait_tcp 127.0.0.1 "${KONG_PROXY_PORT:-8000}" kong
 bash ./scripts/dev/normalize-db-passwords.sh
 wait_kafka
 
-log "creating kafka topics"
-docker compose rm -f kafka-init || true
-docker compose run --rm --no-deps kafka-init
+ensure_kafka_topics
 
 log "installing host dependencies for seedable node services"
 for svc in identity-service organization-service notification-service; do
