@@ -38,8 +38,15 @@ jobs:
       SCENARIO_INPUT: ${{ github.event.inputs.scenario }}
       TEST_ID_INPUT: ${{ github.event.inputs.test_id }}
       FAIL_FAST_INPUT: ${{ github.event.inputs.fail_fast }}
+      AUTOMATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
+      - name: Mark k6 automation start
+        id: mark_start
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+
       - name: Run k6 smoke test on VPS
+        id: run_k6
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -63,6 +70,58 @@ jobs:
             cd "$BACKEND_PATH"
             git fetch origin main
             git checkout main
-            git pull --ff-only origin main
+            git reset --hard origin/main
+            git clean -fd
 
             PREPARE_DEMO_DATA=true FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-smoke-vps.sh "$SCENARIO" "$TEST_ID"
+
+      - name: Compute k6 automation result
+        id: k6_result
+        if: always()
+        shell: bash
+        run: |
+          end_epoch=$(date +%s)
+          duration_ms=$(( (end_epoch - ${{ steps.mark_start.outputs.epoch }}) * 1000 ))
+          status="failed"
+          if [ "${{ steps.run_k6.outcome }}" = "success" ]; then
+            status="passed"
+          fi
+          echo "duration_ms=$duration_ms" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Log k6 automation result to Loki source file
+        if: always()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+
+            BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
+            cd "$BACKEND_PATH"
+
+            AUTOMATION_SUITE="k6-load-testing" \
+            AUTOMATION_KIND="${SCENARIO_INPUT:-smoke}" \
+            AUTOMATION_SOURCE="github-actions" \
+            AUTOMATION_STATUS="${{ steps.k6_result.outputs.status }}" \
+            AUTOMATION_DURATION_MS="${{ steps.k6_result.outputs.duration_ms }}" \
+            AUTOMATION_RUN_ID="${{ github.run_id }}" \
+            AUTOMATION_RUN_URL="${{ env.AUTOMATION_RUN_URL }}" \
+            AUTOMATION_REPOSITORY="${{ github.repository }}" \
+            AUTOMATION_WORKFLOW="${{ github.workflow }}" \
+            AUTOMATION_SCENARIO="${{ github.event.inputs.scenario || 'smoke' }}" \
+            AUTOMATION_TEST_ID="${{ github.event.inputs.test_id || 'github-manual' }}" \
+            AUTOMATION_SUMMARY="k6 workflow completed with status ${{ steps.k6_result.outputs.status }} for scenario ${{ github.event.inputs.scenario || 'smoke' }}." \
+            bash ./scripts/dev/write-automation-log.sh
+
+      - name: Fail workflow when k6 smoke test fails
+        if: steps.run_k6.outcome != 'success'
+        shell: bash
+        run: |
+          echo "k6 smoke/performance test failed." >&2
+          exit 1

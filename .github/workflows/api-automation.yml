@@ -28,8 +28,15 @@ jobs:
     env:
       VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
       PREPARE_DEMO_DATA_INPUT: ${{ github.event.inputs.prepare_demo_data }}
+      AUTOMATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
+      - name: Mark API automation start
+        id: mark_start
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+
       - name: Run API automation on VPS
+        id: run_api
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -55,3 +62,52 @@ jobs:
             git clean -fd
 
             PREPARE_DEMO_DATA="$PREPARE_FLAG" bash ./scripts/dev/run-api-automation-vps.sh
+
+      - name: Compute API automation result
+        id: api_result
+        if: always()
+        shell: bash
+        run: |
+          end_epoch=$(date +%s)
+          duration_ms=$(( (end_epoch - ${{ steps.mark_start.outputs.epoch }}) * 1000 ))
+          status="failed"
+          if [ "${{ steps.run_api.outcome }}" = "success" ]; then
+            status="passed"
+          fi
+          echo "duration_ms=$duration_ms" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Log API automation result to Loki source file
+        if: always()
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+
+            BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
+            cd "$BACKEND_PATH"
+
+            AUTOMATION_SUITE="api-automation" \
+            AUTOMATION_KIND="node-test" \
+            AUTOMATION_SOURCE="github-actions" \
+            AUTOMATION_STATUS="${{ steps.api_result.outputs.status }}" \
+            AUTOMATION_DURATION_MS="${{ steps.api_result.outputs.duration_ms }}" \
+            AUTOMATION_RUN_ID="${{ github.run_id }}" \
+            AUTOMATION_RUN_URL="${{ env.AUTOMATION_RUN_URL }}" \
+            AUTOMATION_REPOSITORY="${{ github.repository }}" \
+            AUTOMATION_WORKFLOW="${{ github.workflow }}" \
+            AUTOMATION_SUMMARY="API automation workflow completed with status ${{ steps.api_result.outputs.status }}." \
+            bash ./scripts/dev/write-automation-log.sh
+
+      - name: Fail workflow when API automation fails
+        if: steps.run_api.outcome != 'success'
+        shell: bash
+        run: |
+          echo "API automation failed." >&2
+          exit 1

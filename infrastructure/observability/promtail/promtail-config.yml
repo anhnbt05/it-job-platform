@@ -19,12 +19,18 @@ scrape_configs:
             method: method
             path: path
             status: status
+            suite: suite
+            kind: kind
+            source: source
       - labels:
           service:
           level:
           event:
           method:
           status:
+          suite:
+          kind:
+          source:
     static_configs:
       - targets:
           - localhost

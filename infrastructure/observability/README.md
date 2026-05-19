@@ -25,6 +25,10 @@ Stack local trong thư mục này gồm:
   - p95/p99 latency
   - request rate, error rate, checks pass rate
   - lọc theo `testid`, `scenario`, `service`
+- `Automation Test Results`
+  - tổng số run pass/fail của `api-automation`, `ui-e2e`, `k6`
+  - failure rate và duration trend
+  - log chi tiết từng lần chạy workflow/test suite
 
 ## Log parsing
 
@@ -36,6 +40,9 @@ Stack local trong thư mục này gồm:
 - `method`
 - `path`
 - `status`
+- `suite`
+- `kind`
+- `source`
 
 Các field này khớp với logger JSON của Nest services và request logging filter của Spring services.
 
