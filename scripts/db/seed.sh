@@ -120,7 +120,7 @@ run_maven_seed() {
   echo ">>> [$svc] seed via Spring Boot runner"
   cd "$SERVICES_DIR/$svc"
   SPRING_APPLICATION_JSON='{"app":{"seed":true},"spring":{"main":{"web-application-type":"none"},"kafka":{"listener":{"auto-startup":false}},"task":{"scheduling":{"enabled":false}}}}' \
-    "$mvn_cmd" -q -DskipTests spring-boot:run
+    "$mvn_cmd" -q -DskipTests clean spring-boot:run
 }
 
 seed_service() {
