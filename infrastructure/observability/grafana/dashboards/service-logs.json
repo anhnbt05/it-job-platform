@@ -29,6 +29,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -73,7 +74,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({job=\"host-app\", service=~\"$service\", level=~\"error|fatal\"}[1h]))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=~\"$service\", level=~\"error|fatal\"}[1h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -91,6 +92,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -131,7 +133,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\", status=~\"5..\"}[1h]))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\", status=~\"5..\"}[1h])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -149,6 +151,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -193,7 +196,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\"}[15m]))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=~\"$service\", event=\"http_request\"}[15m])) or vector(0))",
           "queryType": "range",
           "refId": "A"
         }
@@ -310,6 +313,6 @@
   "timezone": "browser",
   "title": "Service Logs",
   "uid": "service-logs",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }

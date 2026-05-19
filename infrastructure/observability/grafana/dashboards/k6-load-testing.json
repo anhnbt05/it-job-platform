@@ -26,6 +26,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -70,7 +71,7 @@
       },
       "targets": [
         {
-          "expr": "avg(k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "expr": "(avg(k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -84,6 +85,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -128,7 +130,7 @@
       },
       "targets": [
         {
-          "expr": "avg(k6_http_req_duration_p99{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "expr": "(avg(k6_http_req_duration_p99{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -142,6 +144,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -182,7 +185,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\",expected_response=\"false\"}[$__rate_interval])) / clamp_min(sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__rate_interval])), 0.0001)",
+          "expr": "((sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\",expected_response=\"false\"}[$__rate_interval])) / clamp_min(sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__rate_interval])), 0.0001)) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -196,6 +199,7 @@
           "color": {
             "mode": "thresholds"
           },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -236,7 +240,7 @@
       },
       "targets": [
         {
-          "expr": "avg(k6_checks_rate{testid=~\"$testid\",scenario=~\"$scenario\"})",
+          "expr": "(avg(k6_checks_rate{testid=~\"$testid\",scenario=~\"$scenario\"}) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -651,6 +655,6 @@
   "timezone": "browser",
   "title": "K6 Load Testing",
   "uid": "k6-load-testing",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
