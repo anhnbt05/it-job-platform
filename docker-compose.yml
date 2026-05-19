@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${IDENTITY_POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${IDENTITY_POSTGRES_PASSWORD:-postgres}
     ports:
-      - "${IDENTITY_POSTGRES_PORT:-5432}:5432"
+      - "${IDENTITY_POSTGRES_BIND_HOST:-127.0.0.1}:${IDENTITY_POSTGRES_PORT:-5432}:5432"
     volumes:
       - identity_postgres_data:/var/lib/postgresql/data
     networks:
@@ -23,7 +23,7 @@ services:
       POSTGRES_USER: ${JOB_POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${JOB_POSTGRES_PASSWORD:-postgres}
     ports:
-      - "${JOB_POSTGRES_PORT:-5433}:5432"
+      - "${JOB_POSTGRES_BIND_HOST:-127.0.0.1}:${JOB_POSTGRES_PORT:-5433}:5432"
     volumes:
       - job_postgres_data:/var/lib/postgresql/data
     networks:
@@ -38,7 +38,7 @@ services:
       POSTGRES_USER: ${NOTIFICATION_POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${NOTIFICATION_POSTGRES_PASSWORD:-postgres}
     ports:
-      - "${NOTIFICATION_POSTGRES_PORT:-5434}:5432"
+      - "${NOTIFICATION_POSTGRES_BIND_HOST:-127.0.0.1}:${NOTIFICATION_POSTGRES_PORT:-5434}:5432"
     volumes:
       - notification_postgres_data:/var/lib/postgresql/data
     networks:
@@ -54,7 +54,7 @@ services:
       MYSQL_PASSWORD: ${ORGANIZATION_MYSQL_PASSWORD:-organization}
       MYSQL_ROOT_PASSWORD: ${ORGANIZATION_MYSQL_ROOT_PASSWORD:-root}
     ports:
-      - "${ORGANIZATION_MYSQL_PORT:-3306}:3306"
+      - "${ORGANIZATION_MYSQL_BIND_HOST:-127.0.0.1}:${ORGANIZATION_MYSQL_PORT:-3306}:3306"
     volumes:
       - organization_mysql_data:/var/lib/mysql
     networks:
@@ -67,7 +67,7 @@ services:
     environment:
       MONGO_INITDB_DATABASE: ${APPLICATION_MONGO_DB:-application_db}
     ports:
-      - "${APPLICATION_MONGO_PORT:-27018}:27017"
+      - "${APPLICATION_MONGO_BIND_HOST:-127.0.0.1}:${APPLICATION_MONGO_PORT:-27018}:27017"
     volumes:
       - application_mongo_data:/data/db
     networks:
@@ -79,7 +79,7 @@ services:
     restart: unless-stopped
     command: redis-server /usr/local/etc/redis/redis.conf
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_BIND_HOST:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
     volumes:
       - ./infrastructure/redis/redis.conf:/usr/local/etc/redis/redis.conf
       - redis_data:/data

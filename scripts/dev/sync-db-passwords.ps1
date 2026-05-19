@@ -87,6 +87,7 @@ SELECT format('ALTER USER %I WITH PASSWORD %L', :'db_user', :'db_password') \gex
     foreach ($argument in @(
         "exec", "-i", $Container,
         "psql",
+        "-v", "ON_ERROR_STOP=1",
         "-h", "127.0.0.1",
         "-U", $UserName,
         "-d", "postgres",
