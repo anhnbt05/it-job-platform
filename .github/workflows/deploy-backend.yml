@@ -47,6 +47,8 @@ jobs:
             cd "$BACKEND_PATH"
             git fetch origin main
             git checkout main
-            git pull --ff-only origin main
+            git reset --hard origin/main
+            git clean -fd
 
             RUN_SEED="$RUN_SEED_FLAG" bash ./scripts/dev/deploy-backend-vps.sh
+            docker image prune -f
