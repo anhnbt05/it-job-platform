@@ -1,4 +1,5 @@
 import envConfig from '@/config/env.config';
+import { validateEnvConfig } from '@/config/env.validation';
 import { HealthController } from '@/health.controller';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { CompaniesModule } from '@/modules/companies/companies.module';
@@ -17,6 +18,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [envConfig],
+      validate: validateEnvConfig,
     }),
     PrismaModule,
     AuthModule,

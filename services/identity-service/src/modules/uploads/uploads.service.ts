@@ -1,6 +1,7 @@
 import { TUserSession, UploadedImage } from '@/common/types';
 import { PrismaService } from '@/modules/prisma/prisma.service';
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -35,30 +36,51 @@ export class UploadsService {
     file: Express.Multer.File,
     folder?: string,
   ): Promise<UploadedImage> {
+    if (!file) {
+      throw new BadRequestException('Không tìm thấy tệp cần tải lên.');
+    }
+
+    if (!file.buffer?.length) {
+      throw new BadRequestException('Tệp tải lên không hợp lệ hoặc đang rỗng.');
+    }
+
     const base64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-    const targetFolder = folder?.trim() || this.defaultFolder;
+    const targetFolder = this.normalizeFolder(folder ?? this.defaultFolder);
 
-    const uploadResult = await this.imagekit.upload({
-      file: base64,
-      fileName: file.originalname,
-      folder: targetFolder,
-    });
+    try {
+      const uploadResult = await this.imagekit.upload({
+        file: base64,
+        fileName: file.originalname,
+        folder: targetFolder,
+      });
 
-    return {
-      fileId: uploadResult.fileId,
-      url: uploadResult.url,
-      thumbnailUrl: uploadResult.thumbnailUrl,
-      name: uploadResult.name,
-      height: uploadResult.height,
-      width: uploadResult.width,
-      size: uploadResult.size,
-      fileType: uploadResult.fileType,
-    };
+      return {
+        fileId: uploadResult.fileId,
+        url: uploadResult.url,
+        thumbnailUrl: uploadResult.thumbnailUrl,
+        name: uploadResult.name,
+        height: uploadResult.height,
+        width: uploadResult.width,
+        size: uploadResult.size,
+        fileType: uploadResult.fileType,
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown upload error';
+
+      if (message.includes('folder parameter')) {
+        throw new BadRequestException(
+          `Cau hinh thu muc upload khong hop le: ${targetFolder}`,
+        );
+      }
+
+      throw new InternalServerErrorException('Đã xảy ra lỗi khi tải tệp lên.');
+    }
   }
 
   async uploadResume(file: Express.Multer.File, userSession: TUserSession) {
     const { id } = userSession;
-    const { url } = await this.uploadImage(file);
+    const { url } = await this.uploadImage(file, '/resumes');
 
     if (!url?.trim()) {
       throw new InternalServerErrorException('Đã xảy ra lỗi khi upload CV.');
@@ -88,5 +110,23 @@ export class UploadsService {
         resumeUrl: url,
       },
     };
+  }
+
+  private normalizeFolder(folder: string) {
+    const normalized = folder
+      .trim()
+      .replace(/\\/g, '/')
+      .replace(/\/+/g, '/')
+      .replace(/\/$/, '');
+
+    if (!normalized || normalized === '.') {
+      return '/captures';
+    }
+
+    if (normalized === '/') {
+      return normalized;
+    }
+
+    return normalized.startsWith('/') ? normalized : `/${normalized}`;
   }
 }

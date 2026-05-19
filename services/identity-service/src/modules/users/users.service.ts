@@ -357,12 +357,36 @@ export class UsersService {
       );
     }
 
-    await this.prismaService.userProfile.update({
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      select: {
+        email: true,
+        profile: {
+          select: {
+            full_name: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy thông tin của bạn.');
+    }
+
+    await this.prismaService.userProfile.upsert({
       where: {
         user_id: id,
       },
-      data: {
+      update: {
         avatar_url: url,
+      },
+      create: {
+        user_id: id,
+        avatar_url: url,
+        full_name:
+          user.profile?.full_name ||
+          user.email.split('@')[0]?.trim() ||
+          'User',
       },
     });
 
