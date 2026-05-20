@@ -21,7 +21,7 @@
   "panels": [
     {
       "id": 6,
-      "title": "Dashboard Guide",
+      "title": "Hướng dẫn",
       "type": "text",
       "gridPos": {
         "h": 4,
@@ -31,7 +31,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "## Backend Service Logs\n\nMuc dich: xem log runtime cua backend, nhat la request HTTP, warning va error.\n\nNguon du lieu: `Loki`.\n\nLuu y: dashboard nay **khong** hien log `automation-tests`; no chi tap trung vao service backend that."
+        "content": "## Backend Service Logs\n\nMục đích: xem log runtime của backend, nhất là request HTTP, warning và error.\n\nNguồn dữ liệu: `Loki`.\n\nLưu ý: dashboard này **không** hiện log `automation-tests`; nó chỉ tập trung vào service backend thật."
       },
       "transparent": true
     },
@@ -96,7 +96,8 @@
         }
       ],
       "title": "Errors In Last Hour",
-      "type": "stat"
+      "type": "stat",
+      "description": "Tổng số log mức error hoặc fatal trong 1 giờ gần nhất."
     },
     {
       "datasource": {
@@ -155,7 +156,8 @@
         }
       ],
       "title": "5xx Request Logs In Last Hour",
-      "type": "stat"
+      "type": "stat",
+      "description": "Tổng số request log có mã 5xx trong 1 giờ gần nhất."
     },
     {
       "datasource": {
@@ -218,7 +220,8 @@
         }
       ],
       "title": "HTTP Log Lines In Last 15m",
-      "type": "stat"
+      "type": "stat",
+      "description": "Số dòng log HTTP được ghi trong 15 phút gần nhất."
     },
     {
       "datasource": {
@@ -250,7 +253,8 @@
         }
       ],
       "title": "HTTP Request Logs",
-      "type": "logs"
+      "type": "logs",
+      "description": "Danh sách log request HTTP gần đây để soi chi tiết từng request."
     },
     {
       "datasource": {
@@ -282,7 +286,8 @@
         }
       ],
       "title": "Warning And Error Logs",
-      "type": "logs"
+      "type": "logs",
+      "description": "Danh sách log warning, error và fatal để theo dõi bất thường."
     }
   ],
   "refresh": "1m",
@@ -331,5 +336,5 @@
   "uid": "service-logs",
   "version": 7,
   "weekStart": "",
-  "description": "Tap trung vao log HTTP, warning va error cua backend runtime. Dashboard nay co chu y loai bo automation-tests."
+  "description": "Tập trung vào log HTTP, warning và error của backend runtime. Dashboard này có chủ ý loại bỏ automation-tests."
 }

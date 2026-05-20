@@ -21,7 +21,7 @@
   "panels": [
     {
       "id": 5,
-      "title": "Dashboard Guide",
+      "title": "Hướng dẫn",
       "type": "text",
       "gridPos": {
         "h": 4,
@@ -31,7 +31,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "## System Health\n\nMuc dich: theo doi suc khoe process, memory va kha nang scrape metric cua toan he thong.\n\nNguon du lieu: `Prometheus`.\n\nDung khi demo: xac nhan service song, memory on dinh va observability van thu thap du lieu binh thuong."
+        "content": "## System Health\n\nMục đích: theo dõi sức khỏe process, memory và khả năng scrape metric của toàn hệ thống.\n\nNguồn dữ liệu: `Prometheus`.\n\nDùng khi demo: xác nhận service sống, memory ổn định và observability vẫn thu thập dữ liệu bình thường."
       },
       "transparent": true
     },
@@ -73,7 +73,8 @@
         }
       ],
       "title": "Nest RSS Memory",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Dung lượng bộ nhớ RSS của các service NestJS theo thời gian."
     },
     {
       "datasource": "Prometheus",
@@ -113,7 +114,8 @@
         }
       ],
       "title": "Spring JVM Heap Used",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Dung lượng heap đang dùng của các service Spring Boot."
     },
     {
       "datasource": "Prometheus",
@@ -153,7 +155,8 @@
         }
       ],
       "title": "Spring Process Uptime",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Thời gian uptime của các process Spring để phát hiện restart bất thường."
     },
     {
       "datasource": "Prometheus",
@@ -193,7 +196,8 @@
         }
       ],
       "title": "Scrape Target Availability",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Khả năng Prometheus scrape thành công từng target trong hệ thống."
     }
   ],
   "refresh": "10s",
@@ -216,5 +220,5 @@
   "uid": "runtime-health",
   "version": 2,
   "weekStart": "",
-  "description": "Tong quan process health, memory va scrape availability cua he thong observability va backend."
+  "description": "Tổng quan process health, memory và scrape availability của hệ thống observability và backend."
 }

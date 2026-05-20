@@ -21,7 +21,7 @@
   "panels": [
     {
       "id": 7,
-      "title": "Dashboard Guide",
+      "title": "Hướng dẫn",
       "type": "text",
       "gridPos": {
         "h": 4,
@@ -31,7 +31,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "## UI E2E Test\n\nMuc dich: theo doi ket qua pass/fail cua workflow UI end-to-end.\n\nNguon du lieu: `Loki` (`automation_test_result`).\n\nDung khi demo: chay workflow UI E2E, sau do mo dashboard nay de chung minh luong giao dien duoc kiem tra tu dau den cuoi."
+        "content": "## UI E2E Test\n\nMục đích: theo dõi kết quả pass/fail của workflow UI end-to-end.\n\nNguồn dữ liệu: `Loki` (`automation_test_result`).\n\nDùng khi demo: chạy workflow UI E2E, sau đó mở dashboard này để chứng minh luồng giao diện được kiểm tra từ đầu đến cuối."
       },
       "transparent": true
     },
@@ -114,7 +114,8 @@
         }
       ],
       "title": "Latest Run Status",
-      "type": "stat"
+      "type": "stat",
+      "description": "Trạng thái pass hoặc fail của lần chạy UI E2E gần nhất."
     },
     {
       "datasource": {
@@ -177,7 +178,8 @@
         }
       ],
       "title": "Total Runs 24h",
-      "type": "stat"
+      "type": "stat",
+      "description": "Tổng số lần chạy UI E2E trong 24 giờ gần nhất."
     },
     {
       "datasource": {
@@ -240,7 +242,8 @@
         }
       ],
       "title": "Passed 24h",
-      "type": "stat"
+      "type": "stat",
+      "description": "Tổng số lần chạy UI E2E thành công trong 24 giờ gần nhất."
     },
     {
       "datasource": {
@@ -299,7 +302,8 @@
         }
       ],
       "title": "Failed 24h",
-      "type": "stat"
+      "type": "stat",
+      "description": "Tổng số lần chạy UI E2E thất bại trong 24 giờ gần nhất."
     },
     {
       "datasource": {
@@ -341,7 +345,8 @@
         }
       ],
       "title": "Runs By Status",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Diễn biến số lần chạy pass/fail theo thời gian."
     },
     {
       "datasource": {
@@ -373,7 +378,8 @@
         }
       ],
       "title": "Latest Results",
-      "type": "logs"
+      "type": "logs",
+      "description": "Log kết quả gần nhất của các lần chạy UI E2E."
     }
   ],
   "refresh": "1m",
@@ -398,5 +404,5 @@
   "uid": "automation-ui-e2e",
   "version": 2,
   "weekStart": "",
-  "description": "Ket qua workflow UI end-to-end tren GitHub Actions, nham chung minh giao dien va luong nguoi dung chay tu dau den cuoi."
+  "description": "Kết quả workflow UI end-to-end trên GitHub Actions, nhằm chứng minh giao diện và luồng người dùng chạy từ đầu đến cuối."
 }

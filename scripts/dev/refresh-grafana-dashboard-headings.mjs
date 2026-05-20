@@ -1,129 +1,183 @@
 import fs from "node:fs";
 
+const commonPerformancePanelDescriptions = {
+  "Run Status": "Trạng thái pass hoặc fail của đúng lần chạy đang được chọn theo Performance Test ID.",
+  "Peak VUs": "Số lượng Virtual Users cao nhất đạt được trong lần chạy này.",
+  "Worst P95": "Độ trễ P95 tệ nhất ghi nhận trong toàn bộ lần chạy đang chọn.",
+  "Error Rate": "Tỷ lệ request lỗi trên tổng request của lần chạy đang chọn.",
+  "Request Trend": "Diễn biến lưu lượng request theo thời gian, tách theo từng service.",
+  "P95 Trend": "Diễn biến độ trễ P95 theo thời gian, tách theo từng service.",
+  "Error Trend": "Diễn biến số request lỗi theo thời gian, tách theo từng service.",
+  "Traffic by Service": "Tổng lưu lượng request theo từng service trong lần chạy đang chọn.",
+  "P95 by Service": "Độ trễ P95 cao nhất của từng service trong lần chạy đang chọn.",
+  "Failed Requests by Service": "Tổng số request lỗi của từng service trong lần chạy đang chọn.",
+  "Slowest Operations": "Các operation chậm nhất để xác định bottleneck chính của hệ thống.",
+};
+
 const dashboardConfigs = [
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/core/microservices.json",
     title: "Backend Overview",
     description:
-      "Theo doi luu luong, do tre, loi 5xx va business events cua cum backend trong luc demo nghiep vu.",
+      "Theo dõi lưu lượng, độ trễ, lỗi 5xx và business events của cụm backend trong lúc demo nghiệp vụ.",
     markdown: [
       "## Backend Overview",
       "",
-      "Muc dich: theo doi traffic, latency, error va business events cua backend.",
+      "Mục đích: theo dõi traffic, latency, error và business events của backend.",
       "",
-      "Nguon du lieu: `Prometheus`.",
+      "Nguồn dữ liệu: `Prometheus`.",
       "",
-      "Dung khi demo: chay nghiep vu hoac load/performance test de xem service nao dang noi bat ve do tre va loi.",
+      "Dùng khi demo: chạy nghiệp vụ hoặc load/performance test để xem service nào đang nổi bật về độ trễ và lỗi.",
     ].join("\n"),
+    panelDescriptions: {
+      "Request Rate By Service": "Tốc độ request hiện tại của từng service backend.",
+      "P95 Latency By Service": "Độ trễ P95 của từng service để nhận diện service phản hồi chậm.",
+      "5xx Error Rate": "Tần suất lỗi 5xx theo từng service trong thời gian gần đây.",
+      "Nest Business Events (1h)": "Các business event phát ra từ nhóm service NestJS trong 1 giờ gần nhất.",
+      "Spring Business Events (1h)": "Các business event phát ra từ nhóm service Spring trong 1 giờ gần nhất.",
+      "Target Health": "Trạng thái scrape metric của các target backend chính.",
+    },
   },
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/core/system.json",
     title: "System Health",
     description:
-      "Tong quan process health, memory va scrape availability cua he thong observability va backend.",
+      "Tổng quan process health, memory và scrape availability của hệ thống observability và backend.",
     markdown: [
       "## System Health",
       "",
-      "Muc dich: theo doi suc khoe process, memory va kha nang scrape metric cua toan he thong.",
+      "Mục đích: theo dõi sức khỏe process, memory và khả năng scrape metric của toàn hệ thống.",
       "",
-      "Nguon du lieu: `Prometheus`.",
+      "Nguồn dữ liệu: `Prometheus`.",
       "",
-      "Dung khi demo: xac nhan service song, memory on dinh va observability van thu thap du lieu binh thuong.",
+      "Dùng khi demo: xác nhận service sống, memory ổn định và observability vẫn thu thập dữ liệu bình thường.",
     ].join("\n"),
+    panelDescriptions: {
+      "Nest RSS Memory": "Dung lượng bộ nhớ RSS của các service NestJS theo thời gian.",
+      "Spring JVM Heap Used": "Dung lượng heap đang dùng của các service Spring Boot.",
+      "Spring Process Uptime": "Thời gian uptime của các process Spring để phát hiện restart bất thường.",
+      "Scrape Target Availability": "Khả năng Prometheus scrape thành công từng target trong hệ thống.",
+    },
   },
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/core/service-logs.json",
     title: "Backend Service Logs",
     description:
-      "Tap trung vao log HTTP, warning va error cua backend runtime. Dashboard nay co chu y loai bo automation-tests.",
+      "Tập trung vào log HTTP, warning và error của backend runtime. Dashboard này có chủ ý loại bỏ automation-tests.",
     markdown: [
       "## Backend Service Logs",
       "",
-      "Muc dich: xem log runtime cua backend, nhat la request HTTP, warning va error.",
+      "Mục đích: xem log runtime của backend, nhất là request HTTP, warning và error.",
       "",
-      "Nguon du lieu: `Loki`.",
+      "Nguồn dữ liệu: `Loki`.",
       "",
-      "Luu y: dashboard nay **khong** hien log `automation-tests`; no chi tap trung vao service backend that.",
+      "Lưu ý: dashboard này **không** hiện log `automation-tests`; nó chỉ tập trung vào service backend thật.",
     ].join("\n"),
+    panelDescriptions: {
+      "Errors In Last Hour": "Tổng số log mức error hoặc fatal trong 1 giờ gần nhất.",
+      "5xx Request Logs In Last Hour": "Tổng số request log có mã 5xx trong 1 giờ gần nhất.",
+      "HTTP Log Lines In Last 15m": "Số dòng log HTTP được ghi trong 15 phút gần nhất.",
+      "HTTP Request Logs": "Danh sách log request HTTP gần đây để soi chi tiết từng request.",
+      "Warning And Error Logs": "Danh sách log warning, error và fatal để theo dõi bất thường.",
+    },
   },
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/automation/api-automation.json",
     title: "API Automation Test",
     description:
-      "Ket qua workflow API automation tren GitHub Actions, duoc ghi vao Loki de phuc vu demo va doi chieu nhanh.",
+      "Kết quả workflow API automation trên GitHub Actions, được ghi vào Loki để phục vụ demo và đối chiếu nhanh.",
     markdown: [
       "## API Automation Test",
       "",
-      "Muc dich: theo doi ket qua pass/fail cua workflow API automation.",
+      "Mục đích: theo dõi kết quả pass/fail của workflow API automation.",
       "",
-      "Nguon du lieu: `Loki` (`automation_test_result`).",
+      "Nguồn dữ liệu: `Loki` (`automation_test_result`).",
       "",
-      "Dung khi demo: chay workflow API test tren GitHub Actions, sau do doi chieu so luot chay, trang thai va log ket qua moi nhat.",
+      "Dùng khi demo: chạy workflow API test trên GitHub Actions, sau đó đối chiếu số lượt chạy, trạng thái và log kết quả mới nhất.",
     ].join("\n"),
+    panelDescriptions: {
+      "Latest Run Status": "Trạng thái pass hoặc fail của lần chạy API automation gần nhất.",
+      "Total Runs 24h": "Tổng số lần chạy API automation trong 24 giờ gần nhất.",
+      "Passed 24h": "Tổng số lần chạy API automation thành công trong 24 giờ gần nhất.",
+      "Failed 24h": "Tổng số lần chạy API automation thất bại trong 24 giờ gần nhất.",
+      "Runs By Status": "Diễn biến số lần chạy pass/fail theo thời gian.",
+      "Latest Results": "Log kết quả gần nhất của các lần chạy API automation.",
+    },
   },
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/automation/ui-e2e-automation.json",
     title: "UI E2E Test",
     description:
-      "Ket qua workflow UI end-to-end tren GitHub Actions, nham chung minh giao dien va luong nguoi dung chay tu dau den cuoi.",
+      "Kết quả workflow UI end-to-end trên GitHub Actions, nhằm chứng minh giao diện và luồng người dùng chạy từ đầu đến cuối.",
     markdown: [
       "## UI E2E Test",
       "",
-      "Muc dich: theo doi ket qua pass/fail cua workflow UI end-to-end.",
+      "Mục đích: theo dõi kết quả pass/fail của workflow UI end-to-end.",
       "",
-      "Nguon du lieu: `Loki` (`automation_test_result`).",
+      "Nguồn dữ liệu: `Loki` (`automation_test_result`).",
       "",
-      "Dung khi demo: chay workflow UI E2E, sau do mo dashboard nay de chung minh luong giao dien duoc kiem tra tu dau den cuoi.",
+      "Dùng khi demo: chạy workflow UI E2E, sau đó mở dashboard này để chứng minh luồng giao diện được kiểm tra từ đầu đến cuối.",
     ].join("\n"),
+    panelDescriptions: {
+      "Latest Run Status": "Trạng thái pass hoặc fail của lần chạy UI E2E gần nhất.",
+      "Total Runs 24h": "Tổng số lần chạy UI E2E trong 24 giờ gần nhất.",
+      "Passed 24h": "Tổng số lần chạy UI E2E thành công trong 24 giờ gần nhất.",
+      "Failed 24h": "Tổng số lần chạy UI E2E thất bại trong 24 giờ gần nhất.",
+      "Runs By Status": "Diễn biến số lần chạy pass/fail theo thời gian.",
+      "Latest Results": "Log kết quả gần nhất của các lần chạy UI E2E.",
+    },
   },
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/performance/performance-smoke.json",
     title: "Performance Smoke",
     description:
-      "Dashboard danh cho smoke performance run. Doc theo test id de xem run status, latency, traffic va error cua tung service.",
+      "Dashboard dành cho smoke performance run. Đọc theo test id để xem run status, latency, traffic và error của từng service.",
     markdown: [
       "## Performance Smoke",
       "",
-      "Muc dich: xem ket qua smoke performance theo tung `Performance Test ID`.",
+      "Mục đích: xem kết quả smoke performance theo từng `Performance Test ID`.",
       "",
-      "Nguon du lieu: `Prometheus` (metric k6) va `Loki` (run status).",
+      "Nguồn dữ liệu: `Prometheus` (metric k6) và `Loki` (run status).",
       "",
-      "Dung khi demo: chon dung `Performance Test ID`, sau do doi chieu run status, p95, traffic va loi theo service.",
+      "Dùng khi demo: chọn đúng `Performance Test ID`, sau đó đối chiếu run status, p95, traffic và lỗi theo service.",
     ].join("\n"),
+    panelDescriptions: commonPerformancePanelDescriptions,
   },
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/performance/performance-spike.json",
     title: "Performance Spike",
     description:
-      "Dashboard danh cho spike performance run. Tap trung vao kha nang hap thu dot bien tai tai o tung service.",
+      "Dashboard dành cho spike performance run. Tập trung vào khả năng hấp thụ đột biến tải ở từng service.",
     markdown: [
       "## Performance Spike",
       "",
-      "Muc dich: xem he thong ung xu the nao khi tai tang dot bien.",
+      "Mục đích: xem hệ thống ứng xử thế nào khi tải tăng đột biến.",
       "",
-      "Nguon du lieu: `Prometheus` (metric k6) va `Loki` (run status).",
+      "Nguồn dữ liệu: `Prometheus` (metric k6) và `Loki` (run status).",
       "",
-      "Dung khi demo: chon dung `Performance Test ID`, sau do so latency, traffic va error theo service khi peak VUs tang nhanh.",
+      "Dùng khi demo: chọn đúng `Performance Test ID`, sau đó so latency, traffic và error theo service khi peak VUs tăng nhanh.",
     ].join("\n"),
+    panelDescriptions: commonPerformancePanelDescriptions,
   },
   {
     path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/performance/performance-stress.json",
     title: "Performance Stress",
     description:
-      "Dashboard danh cho stress performance run. Dung de quan sat do tre va su on dinh khi he thong bi ep tai manh hon va lau hon.",
+      "Dashboard dành cho stress performance run. Dùng để quan sát độ trễ và sự ổn định khi hệ thống bị ép tải mạnh hơn và lâu hơn.",
     markdown: [
       "## Performance Stress",
       "",
-      "Muc dich: xem he thong giu on dinh ra sao khi bi ep tai manh va keo dai.",
+      "Mục đích: xem hệ thống giữ ổn định ra sao khi bị ép tải mạnh và kéo dài.",
       "",
-      "Nguon du lieu: `Prometheus` (metric k6) va `Loki` (run status).",
+      "Nguồn dữ liệu: `Prometheus` (metric k6) và `Loki` (run status).",
       "",
-      "Dung khi demo: chon dung `Performance Test ID`, sau do xem p95, error, traffic va service nao bat dau tro thanh bottleneck.",
+      "Dùng khi demo: chọn đúng `Performance Test ID`, sau đó xem p95, error, traffic và service nào bắt đầu trở thành bottleneck.",
     ].join("\n"),
+    panelDescriptions: commonPerformancePanelDescriptions,
   },
 ];
 
-const HEADER_TITLE = "Dashboard Guide";
+const HEADER_TITLE = "Hướng dẫn";
 const HEADER_HEIGHT = 4;
 
 for (const config of dashboardConfigs) {
@@ -133,12 +187,11 @@ for (const config of dashboardConfigs) {
   dashboard.title = config.title;
   dashboard.description = config.description;
 
-  const hasHeader = Array.isArray(dashboard.panels)
-    && dashboard.panels.some(
-      (panel) => panel?.type === "text" && panel?.title === HEADER_TITLE,
-    );
+  const headerPanel = Array.isArray(dashboard.panels)
+    ? dashboard.panels.find((panel) => panel?.type === "text")
+    : null;
 
-  if (!hasHeader) {
+  if (!headerPanel) {
     for (const panel of dashboard.panels ?? []) {
       if (panel?.gridPos && typeof panel.gridPos.y === "number") {
         panel.gridPos.y += HEADER_HEIGHT;
@@ -165,6 +218,25 @@ for (const config of dashboardConfigs) {
       },
       ...(dashboard.panels ?? []),
     ];
+  } else {
+    headerPanel.title = HEADER_TITLE;
+    headerPanel.options = {
+      mode: "markdown",
+      content: config.markdown,
+    };
+    headerPanel.transparent = true;
+    headerPanel.gridPos = { h: HEADER_HEIGHT, w: 24, x: 0, y: 0 };
+  }
+
+  for (const panel of dashboard.panels ?? []) {
+    if (panel?.type === "text") {
+      continue;
+    }
+
+    const description = config.panelDescriptions?.[panel?.title];
+    if (description) {
+      panel.description = description;
+    }
   }
 
   fs.writeFileSync(`${config.path}`, `${JSON.stringify(dashboard, null, 2)}\n`);

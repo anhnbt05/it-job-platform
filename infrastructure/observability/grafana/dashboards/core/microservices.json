@@ -21,7 +21,7 @@
   "panels": [
     {
       "id": 7,
-      "title": "Dashboard Guide",
+      "title": "Hướng dẫn",
       "type": "text",
       "gridPos": {
         "h": 4,
@@ -31,7 +31,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "## Backend Overview\n\nMuc dich: theo doi traffic, latency, error va business events cua backend.\n\nNguon du lieu: `Prometheus`.\n\nDung khi demo: chay nghiep vu hoac load/performance test de xem service nao dang noi bat ve do tre va loi."
+        "content": "## Backend Overview\n\nMục đích: theo dõi traffic, latency, error và business events của backend.\n\nNguồn dữ liệu: `Prometheus`.\n\nDùng khi demo: chạy nghiệp vụ hoặc load/performance test để xem service nào đang nổi bật về độ trễ và lỗi."
       },
       "transparent": true
     },
@@ -78,7 +78,8 @@
         }
       ],
       "title": "Request Rate By Service",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Tốc độ request hiện tại của từng service backend."
     },
     {
       "datasource": "Prometheus",
@@ -123,7 +124,8 @@
         }
       ],
       "title": "P95 Latency By Service",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Độ trễ P95 của từng service để nhận diện service phản hồi chậm."
     },
     {
       "datasource": "Prometheus",
@@ -181,7 +183,8 @@
         }
       ],
       "title": "5xx Error Rate",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Tần suất lỗi 5xx theo từng service trong thời gian gần đây."
     },
     {
       "datasource": "Prometheus",
@@ -236,7 +239,8 @@
         }
       ],
       "title": "Nest Business Events (1h)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Các business event phát ra từ nhóm service NestJS trong 1 giờ gần nhất."
     },
     {
       "datasource": "Prometheus",
@@ -286,7 +290,8 @@
         }
       ],
       "title": "Spring Business Events (1h)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Các business event phát ra từ nhóm service Spring trong 1 giờ gần nhất."
     },
     {
       "datasource": "Prometheus",
@@ -339,7 +344,8 @@
         }
       ],
       "title": "Target Health",
-      "type": "stat"
+      "type": "stat",
+      "description": "Trạng thái scrape metric của các target backend chính."
     }
   ],
   "refresh": "10s",
@@ -362,5 +368,5 @@
   "uid": "microservices-overview",
   "version": 2,
   "weekStart": "",
-  "description": "Theo doi luu luong, do tre, loi 5xx va business events cua cum backend trong luc demo nghiep vu."
+  "description": "Theo dõi lưu lượng, độ trễ, lỗi 5xx và business events của cụm backend trong lúc demo nghiệp vụ."
 }

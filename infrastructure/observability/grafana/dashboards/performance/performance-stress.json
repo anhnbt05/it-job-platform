@@ -21,7 +21,7 @@
   "panels": [
     {
       "id": 16,
-      "title": "Dashboard Guide",
+      "title": "Hướng dẫn",
       "type": "text",
       "gridPos": {
         "h": 4,
@@ -31,7 +31,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "## Performance Stress\n\nMuc dich: xem he thong giu on dinh ra sao khi bi ep tai manh va keo dai.\n\nNguon du lieu: `Prometheus` (metric k6) va `Loki` (run status).\n\nDung khi demo: chon dung `Performance Test ID`, sau do xem p95, error, traffic va service nao bat dau tro thanh bottleneck."
+        "content": "## Performance Stress\n\nMục đích: xem hệ thống giữ ổn định ra sao khi bị ép tải mạnh và kéo dài.\n\nNguồn dữ liệu: `Prometheus` (metric k6) và `Loki` (run status).\n\nDùng khi demo: chọn đúng `Performance Test ID`, sau đó xem p95, error, traffic và service nào bắt đầu trở thành bottleneck."
       },
       "transparent": true
     },
@@ -114,7 +114,8 @@
         }
       ],
       "title": "Run Status",
-      "type": "stat"
+      "type": "stat",
+      "description": "Trạng thái pass hoặc fail của đúng lần chạy đang được chọn theo Performance Test ID."
     },
     {
       "datasource": {
@@ -176,7 +177,8 @@
         }
       ],
       "title": "Worst P95",
-      "type": "stat"
+      "type": "stat",
+      "description": "Độ trễ P95 tệ nhất ghi nhận trong toàn bộ lần chạy đang chọn."
     },
     {
       "datasource": {
@@ -238,7 +240,8 @@
         }
       ],
       "title": "Error Rate",
-      "type": "stat"
+      "type": "stat",
+      "description": "Tỷ lệ request lỗi trên tổng request của lần chạy đang chọn."
     },
     {
       "datasource": {
@@ -300,7 +303,8 @@
         }
       ],
       "title": "Peak VUs",
-      "type": "stat"
+      "type": "stat",
+      "description": "Số lượng Virtual Users cao nhất đạt được trong lần chạy này."
     },
     {
       "datasource": {
@@ -343,7 +347,8 @@
         }
       ],
       "title": "Request Trend",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Diễn biến lưu lượng request theo thời gian, tách theo từng service."
     },
     {
       "datasource": {
@@ -386,7 +391,8 @@
         }
       ],
       "title": "P95 Trend",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Diễn biến độ trễ P95 theo thời gian, tách theo từng service."
     },
     {
       "datasource": {
@@ -429,7 +435,8 @@
         }
       ],
       "title": "Error Trend",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Diễn biến số request lỗi theo thời gian, tách theo từng service."
     },
     {
       "datasource": {
@@ -478,7 +485,8 @@
         }
       ],
       "title": "Traffic by Service",
-      "type": "bargauge"
+      "type": "bargauge",
+      "description": "Tổng lưu lượng request theo từng service trong lần chạy đang chọn."
     },
     {
       "datasource": {
@@ -544,7 +552,8 @@
         }
       ],
       "title": "P95 by Service",
-      "type": "bargauge"
+      "type": "bargauge",
+      "description": "Độ trễ P95 cao nhất của từng service trong lần chạy đang chọn."
     },
     {
       "datasource": {
@@ -610,7 +619,8 @@
         }
       ],
       "title": "Failed Requests by Service",
-      "type": "bargauge"
+      "type": "bargauge",
+      "description": "Tổng số request lỗi của từng service trong lần chạy đang chọn."
     },
     {
       "datasource": {
@@ -677,7 +687,8 @@
           }
         }
       ],
-      "type": "table"
+      "type": "table",
+      "description": "Các operation chậm nhất để xác định bottleneck chính của hệ thống."
     }
   ],
   "refresh": "1m",
@@ -780,5 +791,5 @@
   "uid": "automation-performance-stress",
   "version": 3,
   "weekStart": "",
-  "description": "Dashboard danh cho stress performance run. Dung de quan sat do tre va su on dinh khi he thong bi ep tai manh hon va lau hon."
+  "description": "Dashboard dành cho stress performance run. Dùng để quan sát độ trễ và sự ổn định khi hệ thống bị ép tải mạnh hơn và lâu hơn."
 }
