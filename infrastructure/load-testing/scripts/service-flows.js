@@ -86,6 +86,20 @@ function getBranches(accessToken, role) {
   return expectApiSuccess(response, `${role} list branches`);
 }
 
+function getNotifications(accessToken, role) {
+  const response = http.get(
+    serviceUrl("notification", ""),
+    bearerParams(accessToken, {
+      service: "notification",
+      operation: "list_notifications",
+      role,
+    }),
+  );
+
+  expectStatus(response, 200, `${role} list notifications`);
+  return expectApiSuccess(response, `${role} list notifications`);
+}
+
 function getJobs(userId, role) {
   const response = http.get(
     serviceUrl("job", "/jobs"),
@@ -217,6 +231,8 @@ export function candidateJourney() {
     think();
     getCompanies(auth.accessToken, "candidate");
     think();
+    getNotifications(auth.accessToken, "candidate");
+    think();
     getJobs(env.credentials.candidate.userId, "candidate");
     think();
     getJobDetail(env.credentials.candidate.userId, "candidate");
@@ -239,6 +255,8 @@ export function recruiterJourney() {
     think();
     getCompanies(auth.accessToken, "recruiter");
     think();
+    getNotifications(auth.accessToken, "recruiter");
+    think();
     getCompany(auth.accessToken, "recruiter");
     think();
     getBranches(auth.accessToken, "recruiter");
@@ -260,6 +278,8 @@ export function adminJourney() {
     getCategories(auth.accessToken, "admin");
     think();
     getCompanies(auth.accessToken, "admin");
+    think();
+    getNotifications(auth.accessToken, "admin");
     think();
     getCompany(auth.accessToken, "admin");
     think();

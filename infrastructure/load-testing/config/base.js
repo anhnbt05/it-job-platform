@@ -27,6 +27,10 @@ export const env = {
       __ENV.ORGANIZATION_BASE_URL ||
         `${__ENV.GATEWAY_BASE_URL || DEFAULT_GATEWAY_BASE_URL}/organization`,
     ),
+    notification: trimTrailingSlash(
+      __ENV.NOTIFICATION_BASE_URL ||
+        `${__ENV.GATEWAY_BASE_URL || DEFAULT_GATEWAY_BASE_URL}/notification`,
+    ),
     job: trimTrailingSlash(
       __ENV.JOB_BASE_URL || "http://host.docker.internal:8082/api",
     ),
