@@ -21,7 +21,7 @@ import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ClientKafka } from '@nestjs/microservices';
-import * as bcrypt from 'bcryptjs';
+import { compare, hash } from '@node-rs/bcrypt';
 import * as crypto from 'crypto';
 import { Prisma } from 'generated/prisma/client';
 import { UserStatus } from 'generated/prisma/enums';
@@ -85,7 +85,7 @@ export class AuthService {
       );
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await compare(password, user.password);
 
     if (!isPasswordValid) {
       this.trackAuthEvent('sign_in', 'failure');
@@ -648,8 +648,7 @@ export class AuthService {
   }
 
   private async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(10);
-    return bcrypt.hash(password, salt);
+    return hash(password, 10);
   }
 
   private async issueTokenPair(

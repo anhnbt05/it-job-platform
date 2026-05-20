@@ -18,7 +18,6 @@ import {
 import { ClientKafka } from '@nestjs/microservices';
 import { Prisma } from 'generated/prisma/client';
 import { UserStatus } from 'generated/prisma/enums';
-import { omit } from 'lodash';
 
 @Injectable()
 export class UsersService {
@@ -320,31 +319,86 @@ export class UsersService {
   async getMe(userSession: TUserSession) {
     const { id, role } = userSession;
 
+    const userSelect: Prisma.UserSelect = {
+      id: true,
+      email: true,
+      role: true,
+      status: true,
+      is_email_verified: true,
+      created_at: true,
+      updated_at: true,
+      profile: {
+        select: {
+          full_name: true,
+          avatar_url: true,
+          phone_number: true,
+          bio: true,
+          created_at: true,
+          updated_at: true,
+        },
+      },
+      ...((role === RoleEnum.CANDIDATE || role === RoleEnum.ADMIN) && {
+        candidate: {
+          select: {
+            id: true,
+            user_id: true,
+            headline: true,
+            summary: true,
+            level: true,
+            resume_urls: true,
+            created_at: true,
+            updated_at: true,
+          },
+        },
+      }),
+      ...((role === RoleEnum.RECRUITER || role === RoleEnum.ADMIN) && {
+        recruiter: {
+          select: {
+            id: true,
+            user_id: true,
+            company_id: true,
+            branch_id: true,
+            department: true,
+            last_active_at: true,
+            created_at: true,
+            updated_at: true,
+            company: {
+              select: {
+                id: true,
+                name: true,
+                logo_url: true,
+                location: true,
+                updated_at: true,
+              },
+            },
+            branch: {
+              select: {
+                id: true,
+                company_id: true,
+                name: true,
+                address: true,
+                city: true,
+                country: true,
+                updated_at: true,
+              },
+            },
+          },
+        },
+      }),
+    };
+
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
       },
-      include: {
-        ...((role === RoleEnum.CANDIDATE || role === RoleEnum.ADMIN) && {
-          candidate: true,
-        }),
-        ...((role === RoleEnum.RECRUITER || role === RoleEnum.ADMIN) && {
-          recruiter: {
-            include: {
-              company: true,
-              branch: true,
-            },
-          },
-        }),
-        profile: true,
-      },
+      select: userSelect,
     });
 
     if (!user) {
       throw new NotFoundException('Không tìm thấy thông tin của bạn.');
     }
 
-    return omit(user, ['password']);
+    return user;
   }
 
   async uploadAvatar(file: Express.Multer.File, userSession: TUserSession) {

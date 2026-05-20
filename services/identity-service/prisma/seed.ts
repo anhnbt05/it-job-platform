@@ -1,7 +1,7 @@
 import 'dotenv/config';
+import { hashSync } from '@node-rs/bcrypt';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
-import bcryptjs from 'bcryptjs';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -11,8 +11,7 @@ const prisma = new PrismaClient({
   adapter,
 });
 
-const hashPassword = (pw: string) =>
-  bcryptjs.hashSync(pw, bcryptjs.genSaltSync());
+const hashPassword = (pw: string) => hashSync(pw, 10);
 
 type CandidateSkillSeed = {
   skill_name: string;

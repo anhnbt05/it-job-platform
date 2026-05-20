@@ -1,5 +1,6 @@
 import http from "k6/http";
 import { check } from "k6";
+import encoding from "k6/encoding";
 import {
   bearerParams,
   env,
@@ -9,6 +10,40 @@ import {
   parseJsonResponse,
   serviceUrl,
 } from "../config/base.js";
+
+const authCache = {
+  candidate: null,
+  recruiter: null,
+  admin: null,
+};
+
+function decodeJwtPayload(token) {
+  const parts = token.split(".");
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(
+      encoding.b64decode(parts[1], "rawurl", "s"),
+    );
+  } catch (_error) {
+    return null;
+  }
+}
+
+function isCachedAuthValid(cachedAuth) {
+  if (!cachedAuth?.accessToken || !cachedAuth?.refreshToken) {
+    return false;
+  }
+
+  const payload = decodeJwtPayload(cachedAuth.accessToken);
+  if (!payload?.exp) {
+    return false;
+  }
+
+  return payload.exp * 1000 - Date.now() > 10_000;
+}
 
 export function signIn({ email, password, role }) {
   const response = http.post(
@@ -36,15 +71,27 @@ export function signIn({ email, password, role }) {
 }
 
 export function signInAsCandidate() {
-  return signIn(env.credentials.candidate);
+  if (!isCachedAuthValid(authCache.candidate)) {
+    authCache.candidate = signIn(env.credentials.candidate);
+  }
+
+  return authCache.candidate;
 }
 
 export function signInAsRecruiter() {
-  return signIn(env.credentials.recruiter);
+  if (!isCachedAuthValid(authCache.recruiter)) {
+    authCache.recruiter = signIn(env.credentials.recruiter);
+  }
+
+  return authCache.recruiter;
 }
 
 export function signInAsAdmin() {
-  return signIn(env.credentials.admin);
+  if (!isCachedAuthValid(authCache.admin)) {
+    authCache.admin = signIn(env.credentials.admin);
+  }
+
+  return authCache.admin;
 }
 
 export function getCurrentUser(accessToken, role) {
