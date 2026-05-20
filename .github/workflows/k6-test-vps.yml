@@ -28,6 +28,11 @@ on:
         required: false
         default: false
         type: boolean
+      peak_vus:
+        description: Override peak VUs for spike/stress (leave blank to use defaults)
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -80,7 +85,7 @@ jobs:
             git reset --hard origin/main
             git clean -fd
 
-            PREPARE_DEMO_DATA="${{ github.event.inputs.prepare_demo_data || 'false' }}" FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-k6-vps.sh "$SCENARIO" "$TEST_ID"
+            PEAK_VUS="${{ github.event.inputs.peak_vus || '' }}" PREPARE_DEMO_DATA="${{ github.event.inputs.prepare_demo_data || 'false' }}" FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-k6-vps.sh "$SCENARIO" "$TEST_ID"
 
       - name: Compute k6 test result
         id: k6_result

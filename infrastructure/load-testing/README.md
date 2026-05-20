@@ -69,19 +69,20 @@ PREPARE_DEMO_DATA=true bash ./scripts/dev/run-k6-vps.sh smoke demo-smoke-001
 Chạy spike:
 
 ```bash
-SCENARIO=spike TEST_ID=spike-local docker compose up --abort-on-container-exit --exit-code-from k6
+SCENARIO=spike TEST_ID=spike-local PEAK_VUS=30 docker compose up --abort-on-container-exit --exit-code-from k6
 ```
 
 Chạy stress:
 
 ```bash
-SCENARIO=stress TEST_ID=stress-local docker compose up --abort-on-container-exit --exit-code-from k6
+SCENARIO=stress TEST_ID=stress-local PEAK_VUS=25 docker compose up --abort-on-container-exit --exit-code-from k6
 ```
 
 ## Biến môi trường hay dùng
 
 - `SCENARIO`
 - `TEST_ID`
+- `PEAK_VUS`
 - `GATEWAY_BASE_URL`
 - `IDENTITY_BASE_URL`
 - `ORGANIZATION_BASE_URL`
@@ -98,6 +99,7 @@ SCENARIO=stress TEST_ID=stress-local docker compose up --abort-on-container-exit
 
 - `k6` đang dùng output `experimental-prometheus-rw`, nên Prometheus cần bật remote write receiver.
 - Mỗi run sẽ được gắn tag `testid=<TEST_ID>` và `suite=<SCENARIO>` để lọc trên dashboard Grafana.
+- Với `spike` và `stress`, có thể override tải đỉnh bằng `PEAK_VUS`; để trống thì dùng default trong scenario.
 - Dashboard Grafana cho k6 nằm ở `infrastructure/observability/grafana/dashboards/k6-load-testing.json`.
 - Load test giả định các service target đã được chạy local và có seed data tương ứng.
 - Trên VPS, `run-k6-vps.sh` sẽ dùng network nội bộ `it-job-network` và `observability`.

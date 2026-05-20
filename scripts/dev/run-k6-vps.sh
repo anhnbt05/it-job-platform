@@ -6,6 +6,7 @@ SCENARIO="${1:-smoke}"
 TEST_ID="${2:-manual-k6}"
 FAIL_FAST="${FAIL_FAST:-true}"
 PREPARE_DEMO_DATA="${PREPARE_DEMO_DATA:-false}"
+PEAK_VUS="${PEAK_VUS:-}"
 
 log() {
   printf '>>> [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
@@ -50,9 +51,14 @@ prepare_demo_data
 bash "$ROOT_DIR/scripts/dev/wait-app-stack-vps.sh" --skip-frontend
 cd "$ROOT_DIR/infrastructure/load-testing"
 
-log "running k6 scenario=$SCENARIO test_id=$TEST_ID"
+if [[ -n "$PEAK_VUS" ]]; then
+  log "running k6 scenario=$SCENARIO test_id=$TEST_ID peak_vus=$PEAK_VUS"
+else
+  log "running k6 scenario=$SCENARIO test_id=$TEST_ID"
+fi
 
 SCENARIO="$SCENARIO" \
 TEST_ID="$TEST_ID" \
+PEAK_VUS="$PEAK_VUS" \
 FAIL_FAST="$FAIL_FAST" \
 docker compose up --abort-on-container-exit --exit-code-from k6

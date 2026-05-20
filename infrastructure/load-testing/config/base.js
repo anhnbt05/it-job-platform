@@ -67,6 +67,7 @@ export const env = {
     openJobId: __ENV.OPEN_JOB_ID || "90000000-0000-0000-0000-000000000001",
   },
   failFast: (__ENV.FAIL_FAST || "false").toLowerCase() === "true",
+  peakVus: Number.parseInt(__ENV.PEAK_VUS || "", 10),
 };
 
 export const defaultThresholds = {
@@ -80,6 +81,14 @@ export function buildOptions(overrides = {}) {
     thresholds: defaultThresholds,
     ...overrides,
   };
+}
+
+export function resolvePeakVus(defaultValue) {
+  if (Number.isFinite(env.peakVus) && env.peakVus > 0) {
+    return env.peakVus;
+  }
+
+  return defaultValue;
 }
 
 export function jsonParams(tags = {}, extraHeaders = {}) {
