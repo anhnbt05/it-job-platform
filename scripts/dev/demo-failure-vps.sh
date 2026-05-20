@@ -43,7 +43,7 @@ run_smoke() {
     cd "$ROOT_DIR"
     PREPARE_DEMO_DATA="$prepare_demo_data" \
     FAIL_FAST="$FAIL_FAST" \
-    bash ./scripts/dev/run-smoke-vps.sh smoke "$test_id"
+    bash ./scripts/dev/run-k6-vps.sh smoke "$test_id"
   )
 }
 

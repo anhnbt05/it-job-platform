@@ -1,4 +1,5 @@
 name: K6 Test VPS
+run-name: K6 ${{ inputs.scenario || 'smoke' }} | ${{ inputs.test_id || format('github-run-{0}', github.run_id) }}
 
 on:
   workflow_dispatch:
@@ -74,7 +75,7 @@ jobs:
             git reset --hard origin/main
             git clean -fd
 
-            PREPARE_DEMO_DATA=true FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-smoke-vps.sh "$SCENARIO" "$TEST_ID"
+            PREPARE_DEMO_DATA=true FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-k6-vps.sh "$SCENARIO" "$TEST_ID"
 
       - name: Compute k6 test result
         id: k6_result

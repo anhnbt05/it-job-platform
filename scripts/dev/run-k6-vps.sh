@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="${ROOT_DIR:-/opt/it-job/it-job-platform}"
 SCENARIO="${1:-smoke}"
-TEST_ID="${2:-manual-smoke}"
+TEST_ID="${2:-manual-k6}"
 FAIL_FAST="${FAIL_FAST:-true}"
 PREPARE_DEMO_DATA="${PREPARE_DEMO_DATA:-true}"
 
@@ -37,7 +37,7 @@ prepare_demo_data() {
     return
   fi
 
-  log "preparing demo schema and seed data for smoke test"
+  log "preparing demo schema and seed data for k6 scenario=$SCENARIO"
   install_node_seed_dependencies
 
   bash "$ROOT_DIR/scripts/db/seed.sh" identity-service

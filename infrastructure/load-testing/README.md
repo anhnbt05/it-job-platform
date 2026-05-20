@@ -55,7 +55,7 @@ Chạy smoke trên VPS stack đang chạy sẵn:
 
 ```bash
 cd /opt/it-job/it-job-platform
-bash ./scripts/dev/run-smoke-vps.sh smoke demo-smoke-001
+bash ./scripts/dev/run-k6-vps.sh smoke demo-smoke-001
 ```
 
 Mặc định script này sẽ tự chạy migrate/seed cho `identity-service`, `organization-service`, `notification-service` trước khi bắn k6 để bảo đảm demo data cơ bản tồn tại trên VPS.
@@ -63,7 +63,7 @@ Nếu bạn đã chuẩn bị dữ liệu từ trước và muốn bỏ qua bư�
 
 ```bash
 cd /opt/it-job/it-job-platform
-PREPARE_DEMO_DATA=false bash ./scripts/dev/run-smoke-vps.sh smoke demo-smoke-001
+PREPARE_DEMO_DATA=false bash ./scripts/dev/run-k6-vps.sh smoke demo-smoke-001
 ```
 
 Chạy spike:
@@ -100,5 +100,5 @@ SCENARIO=stress TEST_ID=stress-local docker compose up --abort-on-container-exit
 - Mỗi run sẽ được gắn tag `testid=<TEST_ID>` và `suite=<SCENARIO>` để lọc trên dashboard Grafana.
 - Dashboard Grafana cho k6 nằm ở `infrastructure/observability/grafana/dashboards/k6-load-testing.json`.
 - Load test giả định các service target đã được chạy local và có seed data tương ứng.
-- Trên VPS, `run-smoke-vps.sh` sẽ dùng network nội bộ `it-job-network` và `observability`.
+- Trên VPS, `run-k6-vps.sh` sẽ dùng network nội bộ `it-job-network` và `observability`.
 - Workflow `K6 Test VPS` cũng bật sẵn `PREPARE_DEMO_DATA=true`, nên không phụ thuộc việc deploy gần nhất có chạy `run_seed` hay không.
