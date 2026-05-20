@@ -20,6 +20,22 @@
   "graphTooltip": 0,
   "panels": [
     {
+      "id": 7,
+      "title": "Dashboard Guide",
+      "type": "text",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## Backend Overview\n\nMuc dich: theo doi traffic, latency, error va business events cua backend.\n\nNguon du lieu: `Prometheus`.\n\nDung khi demo: chay nghiep vu hoac load/performance test de xem service nao dang noi bat ve do tre va loi."
+      },
+      "transparent": true
+    },
+    {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -34,7 +50,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 4
       },
       "id": 1,
       "options": {
@@ -79,7 +95,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 0
+        "y": 4
       },
       "id": 2,
       "options": {
@@ -137,7 +153,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 12
       },
       "id": 3,
       "options": {
@@ -182,7 +198,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 12
       },
       "id": 4,
       "options": {
@@ -237,7 +253,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 20
       },
       "id": 5,
       "options": {
@@ -298,7 +314,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 20
       },
       "id": 6,
       "options": {
@@ -342,8 +358,9 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Microservices Overview",
+  "title": "Backend Overview",
   "uid": "microservices-overview",
   "version": 2,
-  "weekStart": ""
+  "weekStart": "",
+  "description": "Theo doi luu luong, do tre, loi 5xx va business events cua cum backend trong luc demo nghiep vu."
 }

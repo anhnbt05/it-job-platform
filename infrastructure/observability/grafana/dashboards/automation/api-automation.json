@@ -20,6 +20,22 @@
   "graphTooltip": 0,
   "panels": [
     {
+      "id": 7,
+      "title": "Dashboard Guide",
+      "type": "text",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## API Automation Test\n\nMuc dich: theo doi ket qua pass/fail cua workflow API automation.\n\nNguon du lieu: `Loki` (`automation_test_result`).\n\nDung khi demo: chay workflow API test tren GitHub Actions, sau do doi chieu so luot chay, trang thai va log ket qua moi nhat."
+      },
+      "transparent": true
+    },
+    {
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -73,7 +89,7 @@
         "h": 5,
         "w": 6,
         "x": 0,
-        "y": 0
+        "y": 4
       },
       "id": 1,
       "options": {
@@ -136,7 +152,7 @@
         "h": 5,
         "w": 6,
         "x": 6,
-        "y": 0
+        "y": 4
       },
       "id": 2,
       "options": {
@@ -199,7 +215,7 @@
         "h": 5,
         "w": 6,
         "x": 12,
-        "y": 0
+        "y": 4
       },
       "id": 3,
       "options": {
@@ -258,7 +274,7 @@
         "h": 5,
         "w": 6,
         "x": 18,
-        "y": 0
+        "y": 4
       },
       "id": 4,
       "options": {
@@ -302,7 +318,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 9
       },
       "id": 5,
       "options": {
@@ -336,7 +352,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 17
       },
       "id": 6,
       "options": {
@@ -381,5 +397,6 @@
   "title": "API Automation Test",
   "uid": "automation-api",
   "version": 2,
-  "weekStart": ""
+  "weekStart": "",
+  "description": "Ket qua workflow API automation tren GitHub Actions, duoc ghi vao Loki de phuc vu demo va doi chieu nhanh."
 }

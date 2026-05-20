@@ -20,6 +20,22 @@
   "graphTooltip": 0,
   "panels": [
     {
+      "id": 6,
+      "title": "Dashboard Guide",
+      "type": "text",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## Backend Service Logs\n\nMuc dich: xem log runtime cua backend, nhat la request HTTP, warning va error.\n\nNguon du lieu: `Loki`.\n\nLuu y: dashboard nay **khong** hien log `automation-tests`; no chi tap trung vao service backend that."
+      },
+      "transparent": true
+    },
+    {
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
@@ -55,7 +71,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 0
+        "y": 4
       },
       "id": 1,
       "options": {
@@ -114,7 +130,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 0
+        "y": 4
       },
       "id": 2,
       "options": {
@@ -177,7 +193,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 0
+        "y": 4
       },
       "id": 3,
       "options": {
@@ -213,7 +229,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 10
       },
       "id": 4,
       "options": {
@@ -245,7 +261,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 20
       },
       "id": 5,
       "options": {
@@ -311,8 +327,9 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Service Logs",
+  "title": "Backend Service Logs",
   "uid": "service-logs",
   "version": 7,
-  "weekStart": ""
+  "weekStart": "",
+  "description": "Tap trung vao log HTTP, warning va error cua backend runtime. Dashboard nay co chu y loai bo automation-tests."
 }

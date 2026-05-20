@@ -20,6 +20,22 @@
   "graphTooltip": 0,
   "panels": [
     {
+      "id": 5,
+      "title": "Dashboard Guide",
+      "type": "text",
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## System Health\n\nMuc dich: theo doi suc khoe process, memory va kha nang scrape metric cua toan he thong.\n\nNguon du lieu: `Prometheus`.\n\nDung khi demo: xac nhan service song, memory on dinh va observability van thu thap du lieu binh thuong."
+      },
+      "transparent": true
+    },
+    {
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -34,7 +50,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 4
       },
       "id": 1,
       "options": {
@@ -74,7 +90,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 0
+        "y": 4
       },
       "id": 2,
       "options": {
@@ -114,7 +130,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 12
       },
       "id": 3,
       "options": {
@@ -154,7 +170,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 12
       },
       "id": 4,
       "options": {
@@ -196,8 +212,9 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Runtime Health",
+  "title": "System Health",
   "uid": "runtime-health",
   "version": 2,
-  "weekStart": ""
+  "weekStart": "",
+  "description": "Tong quan process health, memory va scrape availability cua he thong observability va backend."
 }
