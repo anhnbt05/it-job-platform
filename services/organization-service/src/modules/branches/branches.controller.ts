@@ -43,7 +43,13 @@ export class BranchesController {
   @Post()
   @Roles(RoleEnum.RECRUITER, RoleEnum.ADMIN)
   async createBranchHttp(@Body() payload: CreateBranchDto) {
-    return this.createBranch(payload);
+    const branch = await this.createBranch(payload);
+
+    return {
+      success: true,
+      message: 'Tạo chi nhánh thành công.',
+      data: branch,
+    };
   }
 
   @Patch(':id')

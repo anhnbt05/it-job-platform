@@ -24,7 +24,7 @@ export class CreateCategoryUseCase {
 
     if (existing) {
       throw new BadRequestException(
-        `Category with name ${dto.name} already exists`,
+        `Danh mục "${dto.name}" đã tồn tại`,
       );
     }
 

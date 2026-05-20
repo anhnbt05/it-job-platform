@@ -66,11 +66,11 @@ export class UploadsService {
       };
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Unknown upload error';
+        error instanceof Error ? error.message : 'Lỗi tải tệp không xác định';
 
       if (message.includes('folder parameter')) {
         throw new BadRequestException(
-          `Cau hinh thu muc upload khong hop le: ${targetFolder}`,
+          `Cấu hình thư mục upload không hợp lệ: ${targetFolder}`,
         );
       }
 
@@ -105,7 +105,7 @@ export class UploadsService {
 
     return {
       success: true,
-      mesasge: 'Uploaded CV successfully.',
+      message: 'Tải CV lên thành công.',
       data: {
         resumeUrl: url,
       },

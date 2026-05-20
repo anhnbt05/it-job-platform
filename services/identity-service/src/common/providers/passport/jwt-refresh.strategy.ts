@@ -47,7 +47,7 @@ export class RtStrategy extends PassportStrategy(
       validRt.revoked === true ||
       validRt.expires_at < new Date()
     ) {
-      throw new UnauthorizedException('Refresh token invalid');
+      throw new UnauthorizedException('Refresh token không hợp lệ.');
     }
 
     return payload;

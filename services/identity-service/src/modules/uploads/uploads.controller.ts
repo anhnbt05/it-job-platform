@@ -1,5 +1,5 @@
 import { Public, Roles, UserSession } from '@/common/decorators';
-import { TUserSession, UploadedImage } from '@/common/types';
+import { TUserSession } from '@/common/types';
 import {
   BadRequestException,
   Controller,
@@ -28,8 +28,14 @@ export class UploadsController {
   async uploadImage(
     @UploadedFile() file: Express.Multer.File,
     @Query('folder') folder?: string,
-  ): Promise<UploadedImage> {
-    return this.uploadsService.uploadImage(file, folder);
+  ) {
+    const uploadedImage = await this.uploadsService.uploadImage(file, folder);
+
+    return {
+      success: true,
+      message: 'Tải tệp lên thành công.',
+      data: uploadedImage,
+    };
   }
 
   @Post('resume')

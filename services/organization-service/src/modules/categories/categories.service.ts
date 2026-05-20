@@ -20,7 +20,11 @@ export class CategoriesService {
 
   async createCategory(createCategoryDto: CreateCategoryDto) {
     const category = await this.createCategoryUseCase.execute(createCategoryDto);
-    return category.toPrimitives();
+    return {
+      success: true,
+      message: 'Tạo danh mục thành công.',
+      data: category.toPrimitives(),
+    };
   }
 
   async getCategories() {
@@ -38,10 +42,19 @@ export class CategoriesService {
       id,
       updateCategoryDto,
     );
-    return category.toPrimitives();
+    return {
+      success: true,
+      message: 'Cập nhật danh mục thành công.',
+      data: category.toPrimitives(),
+    };
   }
 
   async removeCategory(id: string) {
     await this.removeCategoryUseCase.execute(id);
+
+    return {
+      success: true,
+      message: 'Xóa danh mục thành công.',
+    };
   }
 }

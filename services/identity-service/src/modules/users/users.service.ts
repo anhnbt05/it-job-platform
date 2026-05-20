@@ -208,7 +208,7 @@ export class UsersService {
         });
 
         if (!candidate) {
-          throw new Error('Candidate profile not found');
+          throw new Error('Không tìm thấy hồ sơ ứng viên');
         }
 
         await tx.candidate.update({
@@ -446,7 +446,7 @@ export class UsersService {
 
     return {
       success: true,
-      message: 'Uploaded avatar successfully',
+      message: 'Tải ảnh đại diện lên thành công.',
       data: await this.getMe(userSession),
     };
   }

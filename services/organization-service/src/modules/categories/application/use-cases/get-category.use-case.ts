@@ -13,7 +13,7 @@ export class GetCategoryUseCase {
     const category = await this.categoryRepository.findById(id);
 
     if (!category) {
-      throw new NotFoundException(`Category with ID ${id} not found`);
+      throw new NotFoundException(`Không tìm thấy danh mục với ID ${id}`);
     }
 
     return category;

@@ -51,6 +51,12 @@ export class CompaniesController {
   @Post()
   @Roles(RoleEnum.ADMIN)
   async createCompanyHttp(@Body() createCompanyDto: CreateCompanyDto) {
-    return this.createCompany(createCompanyDto);
+    const company = await this.createCompany(createCompanyDto);
+
+    return {
+      success: true,
+      message: 'Lưu thông tin công ty thành công.',
+      data: company,
+    };
   }
 }

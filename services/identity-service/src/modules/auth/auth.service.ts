@@ -102,7 +102,12 @@ export class AuthService {
 
     this.trackAuthEvent('sign_in', 'success');
 
-    return this.issueTokenPair(payload);
+    const tokenPair = await this.issueTokenPair(payload);
+
+    return {
+      message: 'Đăng nhập thành công.',
+      ...tokenPair,
+    };
   }
 
   async refreshToken(
@@ -172,7 +177,10 @@ export class AuthService {
 
     this.trackAuthEvent('refresh_token', 'success');
 
-    return tokenPair;
+    return {
+      message: 'Làm mới phiên đăng nhập thành công.',
+      ...tokenPair,
+    };
   }
 
   async signUp(signUpDto: SignUpDto) {
