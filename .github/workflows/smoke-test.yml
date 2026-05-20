@@ -1,4 +1,4 @@
-name: Smoke Test VPS
+name: K6 Test VPS
 
 on:
   workflow_dispatch:
@@ -40,11 +40,11 @@ jobs:
       FAIL_FAST_INPUT: ${{ github.event.inputs.fail_fast }}
       AUTOMATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
-      - name: Mark k6 automation start
+      - name: Mark k6 test start
         id: mark_start
         run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
 
-      - name: Run k6 smoke test on VPS
+      - name: Run k6 test on VPS
         id: run_k6
         continue-on-error: true
         uses: appleboy/ssh-action@v1.0.3
@@ -75,7 +75,7 @@ jobs:
 
             PREPARE_DEMO_DATA=true FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-smoke-vps.sh "$SCENARIO" "$TEST_ID"
 
-      - name: Compute k6 automation result
+      - name: Compute k6 test result
         id: k6_result
         if: always()
         shell: bash
@@ -89,7 +89,7 @@ jobs:
           echo "duration_ms=$duration_ms" >> "$GITHUB_OUTPUT"
           echo "status=$status" >> "$GITHUB_OUTPUT"
 
-      - name: Log k6 automation result to Loki source file
+      - name: Log k6 test result to Loki source file
         if: always()
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -119,9 +119,9 @@ jobs:
             AUTOMATION_SUMMARY="k6 workflow completed with status ${{ steps.k6_result.outputs.status }} for scenario ${{ github.event.inputs.scenario || 'smoke' }}." \
             bash ./scripts/dev/write-automation-log.sh
 
-      - name: Fail workflow when k6 smoke test fails
+      - name: Fail workflow when k6 test fails
         if: steps.run_k6.outcome != 'success'
         shell: bash
         run: |
-          echo "k6 smoke/performance test failed." >&2
+          echo "k6 test failed." >&2
           exit 1

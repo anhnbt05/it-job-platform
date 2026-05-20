@@ -340,7 +340,7 @@
       },
       "targets": [
         {
-          "expr": "(avg(k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}) or on() vector(0))",
+          "expr": "(avg(max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__range])) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -402,7 +402,7 @@
       },
       "targets": [
         {
-          "expr": "((sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\",expected_response=\"false\"}[$__rate_interval])) / clamp_min(sum(rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__rate_interval])), 0.0001)) or on() vector(0))",
+          "expr": "((sum(increase(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\",expected_response=\"false\"}[$__range])) / clamp_min(sum(increase(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__range])), 1)) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -464,7 +464,7 @@
       },
       "targets": [
         {
-          "expr": "(avg(k6_checks_rate{testid=~\"$testid\",scenario=~\"$scenario\"}) or on() vector(0))",
+          "expr": "(avg(max_over_time(k6_checks_rate{testid=~\"$testid\",scenario=~\"$scenario\"}[$__range])) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -526,7 +526,7 @@
       },
       "targets": [
         {
-          "expr": "(avg(k6_vus{testid=~\"$testid\",scenario=~\"$scenario\"}) or on() vector(0))",
+          "expr": "(max(max_over_time(k6_vus{testid=~\"$testid\",scenario=~\"$scenario\"}[$__range])) or on() vector(0))",
           "refId": "A"
         }
       ],
@@ -833,7 +833,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "k6 Load Test",
+  "title": "K6 Test",
   "uid": "automation-k6",
   "version": 2,
   "weekStart": ""
