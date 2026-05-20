@@ -9,6 +9,14 @@ providers:
     updateIntervalSeconds: 10
     options:
       path: /var/lib/grafana/dashboards/automation
+  - name: "performance-test"
+    orgId: 1
+    folder: "Performance Test"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards/performance
   - name: "overview"
     orgId: 1
     folder: "Overview"

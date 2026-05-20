@@ -71,92 +71,11 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
+        "w": 6,
         "x": 0,
         "y": 0
       },
       "id": 1,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
-      },
-      "targets": [
-        {
-          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"failed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"passed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Smoke Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "index": 0,
-                  "text": "PASS"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {
-                "from": 0.5,
-                "result": {
-                  "index": 1,
-                  "text": "FAIL"
-                },
-                "to": 1000000
-              },
-              "type": "range"
-            }
-          ],
-          "noValue": "PASS",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 4,
-        "y": 0
-      },
-      "id": 2,
       "options": {
         "colorMode": "background",
         "graphMode": "none",
@@ -178,88 +97,7 @@
           "refId": "A"
         }
       ],
-      "title": "Spike Status",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "index": 0,
-                  "text": "PASS"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {
-                "from": 0.5,
-                "result": {
-                  "index": 1,
-                  "text": "FAIL"
-                },
-                "to": 1000000
-              },
-              "type": "range"
-            }
-          ],
-          "noValue": "PASS",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 4,
-        "x": 8,
-        "y": 0
-      },
-      "id": 3,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
-      },
-      "targets": [
-        {
-          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"stress\", status=\"failed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"stress\", status=\"passed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Stress Status",
+      "title": "Run Status",
       "type": "stat"
     },
     {
@@ -296,8 +134,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
-        "x": 16,
+        "w": 6,
+        "x": 12,
         "y": 0
       },
       "id": 5,
@@ -358,8 +196,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
-        "x": 20,
+        "w": 6,
+        "x": 18,
         "y": 0
       },
       "id": 6,
@@ -420,8 +258,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 4,
-        "x": 12,
+        "w": 6,
+        "x": 6,
         "y": 0
       },
       "id": 8,
@@ -483,12 +321,12 @@
       },
       "targets": [
         {
-          "expr": "sum by (service, operation) (max_over_time(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range]))",
-          "legendFormat": "{{service}} | {{operation}}",
+          "expr": "sum by (service) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval]))",
+          "legendFormat": "{{service}}",
           "refId": "A"
         }
       ],
-      "title": "Traffic by Operation",
+      "title": "Request Trend",
       "type": "timeseries"
     },
     {
@@ -526,13 +364,237 @@
       },
       "targets": [
         {
-          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
-          "legendFormat": "{{service}} | {{operation}}",
+          "expr": "max by (service) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval])) * 1000",
+          "legendFormat": "{{service}}",
           "refId": "A"
         }
       ],
-      "title": "P95 by Operation",
+      "title": "P95 Trend",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (service) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\",expected_response=\"false\"}[$__interval]))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 21
+      },
+      "id": 12,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (service) (max_over_time(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Traffic by Service",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 2000
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 21
+      },
+      "id": 13,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(max by (service) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000)",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "P95 by Service",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 21
+      },
+      "id": 14,
+      "options": {
+        "displayMode": "gradient",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (service) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\",expected_response=\"false\"}[$__range])))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed Requests by Service",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -559,9 +621,9 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 29
       },
-      "id": 13,
+      "id": 15,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -609,6 +671,7 @@
     "automation",
     "tests",
     "performance",
+    "spike",
     "prometheus",
     "loki"
   ],
@@ -642,18 +705,18 @@
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
-          "text": "All",
-          "value": ".*"
+          "selected": true,
+          "text": "spike",
+          "value": "spike"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "PBFA97CFB590B2093"
         },
         "definition": "label_values(k6_vus{testid=~\"$testid\"}, suite)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Performance Scenario",
+        "hide": 2,
+        "includeAll": false,
+        "label": "Scenario",
         "multi": false,
         "name": "suite",
         "options": [],
@@ -697,8 +760,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Performance Test",
-  "uid": "automation-k6",
+  "title": "Performance Spike",
+  "uid": "automation-performance-spike",
   "version": 3,
   "weekStart": ""
 }

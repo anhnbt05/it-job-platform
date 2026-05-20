@@ -100,7 +100,7 @@ SCENARIO=stress TEST_ID=stress-local PEAK_VUS=25 docker compose up --abort-on-co
 - Bộ performance test đang dùng output `experimental-prometheus-rw`, nên Prometheus cần bật remote write receiver.
 - Mỗi run sẽ được gắn tag `testid=<TEST_ID>` và `suite=<SCENARIO>` để lọc trên dashboard Grafana.
 - Với `spike` và `stress`, có thể override tải đỉnh bằng `PEAK_VUS`; để trống thì dùng default trong scenario.
-- Dashboard Grafana cho performance test nằm ở `infrastructure/observability/grafana/dashboards/automation/k6-performance.json`.
+- Dashboard Grafana cho performance test nằm ở `infrastructure/observability/grafana/dashboards/performance/performance-smoke.json`.
 - Load test giả định các service target đã được chạy local và có seed data tương ứng.
 - Trên VPS, `run-k6-vps.sh` sẽ dùng network nội bộ `it-job-network` và `observability`.
 - Workflow `Performance Test VPS` mặc định không seed lại; chỉ khi bật input `prepare_demo_data` thì mới migrate/seed trước khi chạy.
