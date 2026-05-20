@@ -71,7 +71,7 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
+        "w": 4,
         "x": 0,
         "y": 0
       },
@@ -92,12 +92,12 @@
       },
       "targets": [
         {
-          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"failed\"} | json | test_id=~\"$testid\" | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"passed\"} | json | test_id=~\"$testid\" | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
+          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"failed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"passed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
           "queryType": "instant",
           "refId": "A"
         }
       ],
-      "title": "Latest Run Status",
+      "title": "Smoke Status",
       "type": "stat"
     },
     {
@@ -110,7 +110,29 @@
           "color": {
             "mode": "thresholds"
           },
-          "noValue": "0",
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "PASS"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": 0.5,
+                "result": {
+                  "index": 1,
+                  "text": "FAIL"
+                },
+                "to": 1000000
+              },
+              "type": "range"
+            }
+          ],
+          "noValue": "PASS",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -119,12 +141,8 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 1
-              },
-              {
                 "color": "red",
-                "value": 3
+                "value": 1
               }
             ]
           },
@@ -134,8 +152,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 6,
+        "w": 4,
+        "x": 4,
         "y": 0
       },
       "id": 2,
@@ -155,12 +173,12 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\"} | json | test_id=~\"$testid\" [24h])) or vector(0))",
+          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"spike\", status=\"failed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"spike\", status=\"passed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
           "queryType": "instant",
           "refId": "A"
         }
       ],
-      "title": "Total Runs 24h",
+      "title": "Spike Status",
       "type": "stat"
     },
     {
@@ -173,7 +191,29 @@
           "color": {
             "mode": "thresholds"
           },
-          "noValue": "0",
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "PASS"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": 0.5,
+                "result": {
+                  "index": 1,
+                  "text": "FAIL"
+                },
+                "to": 1000000
+              },
+              "type": "range"
+            }
+          ],
+          "noValue": "PASS",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -182,12 +222,8 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 1
-              },
-              {
                 "color": "red",
-                "value": 3
+                "value": 1
               }
             ]
           },
@@ -197,8 +233,8 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 12,
+        "w": 4,
+        "x": 8,
         "y": 0
       },
       "id": 3,
@@ -218,71 +254,12 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"passed\"} | json | test_id=~\"$testid\" [24h])) or vector(0))",
+          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"stress\", status=\"failed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"stress\", status=\"passed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
           "queryType": "instant",
           "refId": "A"
         }
       ],
-      "title": "Passed 24h",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 0
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
-      },
-      "targets": [
-        {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"failed\"} | json | test_id=~\"$testid\" [24h])) or vector(0))",
-          "queryType": "instant",
-          "refId": "A"
-        }
-      ],
-      "title": "Failed 24h",
+      "title": "Stress Status",
       "type": "stat"
     },
     {
@@ -319,9 +296,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 0,
-        "y": 5
+        "w": 4,
+        "x": 16,
+        "y": 0
       },
       "id": 5,
       "options": {
@@ -344,7 +321,7 @@
           "refId": "A"
         }
       ],
-      "title": "Worst Endpoint P95",
+      "title": "Worst P95",
       "type": "stat"
     },
     {
@@ -381,9 +358,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 6,
-        "y": 5
+        "w": 4,
+        "x": 20,
+        "y": 0
       },
       "id": 6,
       "options": {
@@ -406,69 +383,7 @@
           "refId": "A"
         }
       ],
-      "title": "Request Error Rate",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.8
-              },
-              {
-                "color": "green",
-                "value": 0.95
-              }
-            ]
-          },
-          "unit": "percentunit"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 12,
-        "y": 5
-      },
-      "id": 7,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value"
-      },
-      "targets": [
-        {
-          "expr": "(min(max_over_time(k6_checks_rate{testid=~\"$testid\",suite=~\"$suite\"}[$__range])) or on() vector(0))",
-          "refId": "A"
-        }
-      ],
-      "title": "Worst Check Pass Rate",
+      "title": "Error Rate",
       "type": "stat"
     },
     {
@@ -505,9 +420,9 @@
       },
       "gridPos": {
         "h": 5,
-        "w": 6,
-        "x": 18,
-        "y": 5
+        "w": 4,
+        "x": 12,
+        "y": 0
       },
       "id": 8,
       "options": {
@@ -551,7 +466,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 10
+        "y": 5
       },
       "id": 9,
       "options": {
@@ -573,7 +488,7 @@
           "refId": "A"
         }
       ],
-      "title": "Cumulative Requests By Operation",
+      "title": "Traffic by Operation",
       "type": "timeseries"
     },
     {
@@ -594,7 +509,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 10
+        "y": 5
       },
       "id": 10,
       "options": {
@@ -616,7 +531,7 @@
           "refId": "A"
         }
       ],
-      "title": "P95 Latency By Operation",
+      "title": "P95 by Operation",
       "type": "timeseries"
     },
     {
@@ -642,130 +557,9 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 18
-      },
-      "id": 11,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "targets": [
-        {
-          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_avg{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "avg",
-          "refId": "A"
-        },
-        {
-          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p99{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "p99",
-          "refId": "C"
-        }
-      ],
-      "title": "Latency Table By Operation",
-      "transformations": [
-        {
-          "id": "seriesToColumns",
-          "options": {
-            "byField": "operation"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true
-            },
-            "renameByName": {
-              "Value #A": "avg_ms",
-              "Value #B": "p95_ms",
-              "Value #C": "p99_ms",
-              "operation": "operation",
-              "service": "service"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 18
-      },
-      "id": 12,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": true,
-        "showCommonLabels": false,
-        "showLabels": true,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": true
-      },
-      "targets": [
-        {
-          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\"} | json | test_id=~\"$testid\"",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Latest Results",
-      "type": "logs"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 0,
-        "y": 28
+        "y": 13
       },
       "id": 13,
       "options": {
@@ -788,7 +582,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top Slowest Operations",
+      "title": "Slowest Operations",
       "transformations": [
         {
           "id": "organize",
@@ -806,139 +600,6 @@
         }
       ],
       "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 28
-      },
-      "id": 14,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "targets": [
-        {
-          "expr": "topk(10, sum by (service, operation) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\",expected_response=\"false\"}[$__range])))",
-          "format": "table",
-          "instant": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Top Error Operations",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true
-            },
-            "renameByName": {
-              "Value": "failed_requests",
-              "operation": "operation",
-              "service": "service"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 2000
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 38
-      },
-      "id": 15,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true
-      },
-      "targets": [
-        {
-          "expr": "sort_desc(max by (service) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000)",
-          "legendFormat": "{{service}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Worst Service By P95",
-      "type": "bargauge"
     }
   ],
   "refresh": "1m",
@@ -947,7 +608,7 @@
   "tags": [
     "automation",
     "tests",
-    "k6",
+    "performance",
     "prometheus",
     "loki"
   ],
@@ -967,7 +628,7 @@
         "definition": "label_values(k6_vus, testid)",
         "hide": 0,
         "includeAll": true,
-        "label": "K6 Test ID",
+        "label": "Performance Test ID",
         "multi": false,
         "name": "testid",
         "options": [],
@@ -992,7 +653,7 @@
         "definition": "label_values(k6_vus{testid=~\"$testid\"}, suite)",
         "hide": 0,
         "includeAll": true,
-        "label": "K6 Scenario",
+        "label": "Performance Scenario",
         "multi": false,
         "name": "suite",
         "options": [],
@@ -1017,7 +678,7 @@
         "definition": "label_values(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\"}, service)",
         "hide": 0,
         "includeAll": true,
-        "label": "K6 Service",
+        "label": "Performance Service",
         "multi": false,
         "name": "service",
         "options": [],
@@ -1036,7 +697,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "K6 Test",
+  "title": "Performance Test",
   "uid": "automation-k6",
   "version": 3,
   "weekStart": ""

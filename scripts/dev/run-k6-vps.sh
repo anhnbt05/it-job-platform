@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="${ROOT_DIR:-/opt/it-job/it-job-platform}"
 SCENARIO="${1:-smoke}"
-TEST_ID="${2:-manual-k6}"
+TEST_ID="${2:-manual-performance}"
 FAIL_FAST="${FAIL_FAST:-true}"
 PREPARE_DEMO_DATA="${PREPARE_DEMO_DATA:-false}"
 PEAK_VUS="${PEAK_VUS:-}"
@@ -38,7 +38,7 @@ prepare_demo_data() {
     return
   fi
 
-  log "preparing demo schema and seed data for k6 scenario=$SCENARIO"
+  log "preparing demo schema and seed data for performance scenario=$SCENARIO"
   install_node_seed_dependencies
 
   bash "$ROOT_DIR/scripts/db/seed.sh" identity-service
@@ -52,9 +52,9 @@ bash "$ROOT_DIR/scripts/dev/wait-app-stack-vps.sh" --skip-frontend
 cd "$ROOT_DIR/infrastructure/load-testing"
 
 if [[ -n "$PEAK_VUS" ]]; then
-  log "running k6 scenario=$SCENARIO test_id=$TEST_ID peak_vus=$PEAK_VUS"
+  log "running performance scenario=$SCENARIO test_id=$TEST_ID peak_vus=$PEAK_VUS"
 else
-  log "running k6 scenario=$SCENARIO test_id=$TEST_ID"
+  log "running performance scenario=$SCENARIO test_id=$TEST_ID"
 fi
 
 SCENARIO="$SCENARIO" \

@@ -22,9 +22,9 @@ Stack local trong thư mục này gồm:
   - warning/error logs
   - bộ đếm lỗi trong 1 giờ gần nhất
 - `Automation Test`
-  - tổng hợp cả 3 suite `api-automation`, `ui-e2e`, `k6-load-testing`
+  - tổng hợp cả 3 suite `api-automation`, `ui-e2e`, `performance-testing`
   - phần Loki: pass/fail, failure rate, duration trend, log chi tiết từng lần chạy
-  - phần Prometheus/k6: p95 latency, error rate, checks pass rate, request rate
+  - phần Prometheus/performance metrics: p95 latency, error rate, checks pass rate, request rate
   - lọc theo `suite`, `testid`, `scenario`, `service`
 
 ## Log parsing

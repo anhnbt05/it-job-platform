@@ -1,11 +1,11 @@
-name: K6 Test VPS
-run-name: K6 ${{ inputs.scenario || 'smoke' }} | ${{ inputs.test_id || format('github-run-{0}', github.run_id) }}
+name: Performance Test VPS
+run-name: Performance ${{ inputs.scenario || 'smoke' }} | ${{ inputs.test_id || format('github-run-{0}', github.run_id) }}
 
 on:
   workflow_dispatch:
     inputs:
       scenario:
-        description: k6 scenario to run
+        description: Performance scenario to run
         required: true
         default: smoke
         type: choice
@@ -24,7 +24,7 @@ on:
         default: true
         type: boolean
       prepare_demo_data:
-        description: Run migrate/seed before executing K6
+        description: Run migrate/seed before executing performance test
         required: false
         default: false
         type: boolean
@@ -43,7 +43,7 @@ concurrency:
 
 jobs:
   k6-test:
-    name: K6 Test Job
+    name: Performance Test Job
     runs-on: ubuntu-latest
     env:
       VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
@@ -52,11 +52,11 @@ jobs:
       FAIL_FAST_INPUT: ${{ github.event.inputs.fail_fast }}
       AUTOMATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
-      - name: Mark k6 test start
+      - name: Mark performance test start
         id: mark_start
         run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
 
-      - name: Run k6 test on VPS
+      - name: Run performance test on VPS
         id: run_k6
         continue-on-error: true
         uses: appleboy/ssh-action@v1.0.3
@@ -87,7 +87,7 @@ jobs:
 
             PEAK_VUS="${{ github.event.inputs.peak_vus || '' }}" PREPARE_DEMO_DATA="${{ github.event.inputs.prepare_demo_data || 'false' }}" FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-k6-vps.sh "$SCENARIO" "$TEST_ID"
 
-      - name: Compute k6 test result
+      - name: Compute performance test result
         id: k6_result
         if: always()
         shell: bash
@@ -101,7 +101,7 @@ jobs:
           echo "duration_ms=$duration_ms" >> "$GITHUB_OUTPUT"
           echo "status=$status" >> "$GITHUB_OUTPUT"
 
-      - name: Log k6 test result to Loki source file
+      - name: Log performance test result to Loki source file
         if: always()
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -117,7 +117,7 @@ jobs:
             BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
             cd "$BACKEND_PATH"
 
-            AUTOMATION_SUITE="k6-load-testing" \
+            AUTOMATION_SUITE="performance-testing" \
             AUTOMATION_KIND="${{ github.event.inputs.scenario || 'smoke' }}" \
             AUTOMATION_SOURCE="github-actions" \
             AUTOMATION_STATUS="${{ steps.k6_result.outputs.status }}" \
@@ -128,12 +128,12 @@ jobs:
             AUTOMATION_WORKFLOW="${{ github.workflow }}" \
             AUTOMATION_SCENARIO="${{ github.event.inputs.scenario || 'smoke' }}" \
             AUTOMATION_TEST_ID="${{ github.event.inputs.test_id || format('github-run-{0}', github.run_id) }}" \
-            AUTOMATION_SUMMARY="k6 workflow completed with status ${{ steps.k6_result.outputs.status }} for scenario ${{ github.event.inputs.scenario || 'smoke' }}." \
+            AUTOMATION_SUMMARY="performance test workflow completed with status ${{ steps.k6_result.outputs.status }} for scenario ${{ github.event.inputs.scenario || 'smoke' }}." \
             bash ./scripts/dev/write-automation-log.sh
 
-      - name: Fail workflow when k6 test fails
+      - name: Fail workflow when performance test fails
         if: steps.run_k6.outcome != 'success'
         shell: bash
         run: |
-          echo "k6 test failed." >&2
+          echo "performance test failed." >&2
           exit 1

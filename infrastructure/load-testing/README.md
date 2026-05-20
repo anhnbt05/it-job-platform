@@ -1,6 +1,6 @@
 # Load Testing
 
-Thư mục này dùng `k6` để chạy smoke, spike và stress test dựa trên endpoint thật trong source code.
+Thư mục này dùng bộ kịch bản performance test để chạy smoke, spike và stress test dựa trên endpoint thật trong source code.
 
 ## Flows hiện có
 
@@ -30,7 +30,7 @@ Các giá trị mặc định lấy từ source code seed hiện có:
 
 ## Base URLs
 
-Mặc định `k6` sẽ gọi service nội bộ qua Docker network:
+Mặc định bộ performance test sẽ gọi service nội bộ qua Docker network:
 
 - `identity-service` và `organization-service` đi qua Kong:
   - `http://kong-gateway:8000/identity`
@@ -97,10 +97,10 @@ SCENARIO=stress TEST_ID=stress-local PEAK_VUS=25 docker compose up --abort-on-co
 
 ## Lưu ý
 
-- `k6` đang dùng output `experimental-prometheus-rw`, nên Prometheus cần bật remote write receiver.
+- Bộ performance test đang dùng output `experimental-prometheus-rw`, nên Prometheus cần bật remote write receiver.
 - Mỗi run sẽ được gắn tag `testid=<TEST_ID>` và `suite=<SCENARIO>` để lọc trên dashboard Grafana.
 - Với `spike` và `stress`, có thể override tải đỉnh bằng `PEAK_VUS`; để trống thì dùng default trong scenario.
-- Dashboard Grafana cho k6 nằm ở `infrastructure/observability/grafana/dashboards/k6-load-testing.json`.
+- Dashboard Grafana cho performance test nằm ở `infrastructure/observability/grafana/dashboards/automation/k6-performance.json`.
 - Load test giả định các service target đã được chạy local và có seed data tương ứng.
 - Trên VPS, `run-k6-vps.sh` sẽ dùng network nội bộ `it-job-network` và `observability`.
-- Workflow `K6 Test VPS` mặc định không seed lại; chỉ khi bật input `prepare_demo_data` thì mới migrate/seed trước khi chạy.
+- Workflow `Performance Test VPS` mặc định không seed lại; chỉ khi bật input `prepare_demo_data` thì mới migrate/seed trước khi chạy.

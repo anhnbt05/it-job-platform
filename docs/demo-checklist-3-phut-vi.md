@@ -64,7 +64,7 @@ Nói:
 
 ### 4. Chứng minh automation test đã tạo traffic thật 45 giây
 
-Mở dashboard `K6 Load Testing`.
+Mở dashboard `Performance Test`.
 
 Chọn:
 
@@ -107,12 +107,12 @@ cd /opt/it-job/it-job-platform
 PREPARE_DEMO_DATA=false bash ./scripts/dev/run-smoke-vps.sh smoke demo-live-001
 ```
 
-Sau đó vào lại `K6 Load Testing` và chọn:
+Sau đó vào lại `Performance Test` và chọn:
 
 - `testid = demo-live-001`
 
 ## Lưu ý quan trọng
 
 - Nếu vừa mới restart service, đợi `job-service` ổn định hẳn rồi mới chạy smoke.
-- Nếu dashboard `K6 Load Testing` chưa hiện ngay, refresh sau vài giây.
+- Nếu dashboard `Performance Test` chưa hiện ngay, refresh sau vài giây.
 - Nếu `Service Logs` ít dữ liệu, thu hẹp time range vào đúng lúc vừa chạy smoke.

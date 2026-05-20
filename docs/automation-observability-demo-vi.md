@@ -20,7 +20,7 @@ Demo theo đúng thứ tự:
   - `Microservices Overview`
   - `Runtime Health`
   - `Service Logs`
-  - `K6 Load Testing`
+  - `Performance Test`
 - Automation test:
   - script VPS: `scripts/dev/run-smoke-vps.sh`
   - GitHub Actions: `.github/workflows/smoke-test.yml`
@@ -42,7 +42,7 @@ Mở lần lượt:
 1. `Runtime Health`
 2. `Microservices Overview`
 3. `Service Logs`
-4. `K6 Load Testing`
+4. `Performance Test`
 
 ### Khi chưa chạy test, bạn nên nói gì
 
@@ -50,7 +50,7 @@ Mở lần lượt:
 - Request rate thấp hoặc gần như yên nếu chưa có ai thao tác.
 - 5xx rate phải thấp hoặc bằng 0.
 - Log vẫn có dữ liệu nền từ các request health check hoặc thao tác đăng nhập trước đó.
-- Dashboard `K6 Load Testing` gần như trống hoặc chỉ có dữ liệu từ các lần test cũ.
+- Dashboard `Performance Test` gần như trống hoặc chỉ có dữ liệu từ các lần test cũ.
 
 ## Bước 2: chạy smoke test
 
@@ -76,7 +76,7 @@ Smoke test hiện tại sẽ chạy các flow chính:
 
 ## Bước 3: quay lại Grafana để quan sát sau test
 
-### Dashboard `K6 Load Testing`
+### Dashboard `Performance Test`
 
 Chọn:
 
@@ -160,7 +160,7 @@ Thông số nên dùng:
 - `test_id = demo-smoke-001`
 - `fail_fast = true`
 
-Sau khi workflow chạy xong, quay lại dashboard `K6 Load Testing` và lọc đúng `testid`.
+Sau khi workflow chạy xong, quay lại dashboard `Performance Test` và lọc đúng `testid`.
 
 ## Kỳ vọng để coi là “ổn”
 
@@ -168,14 +168,14 @@ Sau khi workflow chạy xong, quay lại dashboard `K6 Load Testing` và lọc �
 - Prometheus có scrape data từ toàn bộ service.
 - Loki thấy log của các service.
 - Chạy `run-smoke-vps.sh` xong không fail.
-- Dashboard `K6 Load Testing` hiện rõ dữ liệu theo `testid`.
+- Dashboard `Performance Test` hiện rõ dữ liệu theo `testid`.
 - `Microservices Overview` và `Service Logs` phản ánh ngay ảnh hưởng của lần test vừa chạy.
 
 ## Kết luận hiện tại
 
 Theo cấu hình trong repo, phần `automation test + observability` hiện đã nối với nhau đúng hướng:
 
-- k6 đẩy metric vào Prometheus bằng remote write
+- performance test đẩy metric vào Prometheus bằng remote write
 - Grafana đã có dashboard riêng để đọc metric test
 - Promtail/Loki đã có pipeline đọc log service
 - smoke test có đủ flow để tạo ra traffic có ý nghĩa

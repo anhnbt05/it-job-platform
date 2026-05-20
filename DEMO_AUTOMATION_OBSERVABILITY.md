@@ -31,7 +31,7 @@ Dang nhap Grafana:
 
 Mo san 4 dashboard trong Grafana:
 
-- `K6 Load Testing`
+- `Performance Test`
 - `Microservices Overview`
 - `Runtime Health`
 - `Service Logs`
@@ -175,9 +175,9 @@ Cau noi mau:
 
 ## 5. Phan 3: Demo observability stack
 
-### 5.1. Grafana: K6 Load Testing
+### 5.1. Grafana: Performance Test
 
-Vao dashboard `K6 Load Testing`.
+Vao dashboard `Performance Test`.
 
 Filter theo:
 
@@ -298,7 +298,7 @@ Neu chay bang GitHub Actions thay cho terminal:
 ### 6.3. Can show gi khi loi xay ra
 
 1. terminal hoac GitHub Actions fail that
-2. Grafana `K6 Load Testing`
+2. Grafana `Performance Test`
    - filter `testid = demo-fail-001`
    - show error rate tang
 3. Grafana `Runtime Health`
@@ -350,7 +350,7 @@ Neu chay bang GitHub Actions:
 Show:
 
 - smoke pass lai
-- Grafana `K6 Load Testing`: filter `testid = demo-recover-001`
+- Grafana `Performance Test`: filter `testid = demo-recover-001`
 - Grafana `Runtime Health`: service tro lai binh thuong
 - `Microservices Overview`: request va latency on dinh lai
 
