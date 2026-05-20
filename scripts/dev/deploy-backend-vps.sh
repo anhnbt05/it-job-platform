@@ -238,9 +238,14 @@ wait_kafka_topic_leaders() {
     local not_ready=()
     local describe_output
 
+    # Fetch all topic metadata in one call to avoid slow per-topic docker exec loops.
+    describe_output="$(docker exec kafka kafka-topics --bootstrap-server kafka:9092 --describe 2>/dev/null || true)"
+
     for topic in "${topics[@]}"; do
-      describe_output="$(docker compose exec -T kafka kafka-topics --bootstrap-server kafka:9092 --describe --topic "$topic" 2>/dev/null || true)"
-      if [[ -z "$describe_output" ]] || grep -Eiq 'Leader:[[:space:]]*(-1|none)' <<<"$describe_output"; then
+      local topic_describe_output
+      topic_describe_output="$(grep -F "Topic: $topic" <<<"$describe_output" || true)"
+
+      if [[ -z "$topic_describe_output" ]] || grep -Eiq 'Leader:[[:space:]]*(-1|none)' <<<"$topic_describe_output"; then
         not_ready+=("$topic")
       fi
     done
