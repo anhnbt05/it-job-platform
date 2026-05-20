@@ -10,4 +10,7 @@ import java.util.Map;
 public class DashboardSummaryResponse {
     private Map<String, Object> jobStats;
     private Map<String, Object> applicationStats;
+    private boolean degraded;
+    private Map<String, String> dependencyStatus;
+    private Map<String, String> dependencyErrors;
 }

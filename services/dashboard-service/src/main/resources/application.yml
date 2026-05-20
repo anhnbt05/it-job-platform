@@ -6,6 +6,13 @@ server:
 spring:
   application:
     name: dashboard-service
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 2000
+            readTimeout: 4000
 
 app:
   observability:

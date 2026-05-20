@@ -26,7 +26,12 @@ public class DashboardController {
     public ResponseEntity<ApiResponse<DashboardSummaryResponse>> getSummary(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate) {
-        return ResponseEntity.ok(ApiResponse.ok(dashboardService.getSummary(startDate, endDate)));
+        DashboardSummaryResponse summary = dashboardService.getSummary(startDate, endDate);
+        String message = summary.isDegraded()
+                ? "Dashboard đang ở chế độ suy giảm vì một số dịch vụ phụ trợ tạm thời không khả dụng."
+                : "Lấy tổng hợp thống kê thành công.";
+
+        return ResponseEntity.ok(ApiResponse.ok(message, summary));
     }
 
     @PostMapping("/reports")
