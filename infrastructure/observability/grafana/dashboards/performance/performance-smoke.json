@@ -92,7 +92,7 @@
       },
       "targets": [
         {
-          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"failed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"passed\"} | json | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
+          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"failed\"} | json | test_id=~\"$testid\" | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=~\"performance-testing|k6-load-testing\", kind=\"smoke\", status=\"passed\"} | json | test_id=~\"$testid\" | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
           "queryType": "instant",
           "refId": "A"
         }

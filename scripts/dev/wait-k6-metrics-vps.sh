@@ -67,14 +67,14 @@ wait_for_query_result \
 
 wait_for_query_result \
   "k6_http_reqs_total" \
-  "sum(increase(k6_http_reqs_total{testid=\"${TEST_ID}\",suite=\"${SCENARIO}\"}[30m]))"
+  "sum(max_over_time(k6_http_reqs_total{testid=\"${TEST_ID}\",suite=\"${SCENARIO}\"}[30m]))"
 
 wait_for_query_result \
   "k6 request series by service" \
-  "count(count by (service) (k6_http_reqs_total{testid=\"${TEST_ID}\",suite=\"${SCENARIO}\"}))"
+  "count(max by (service) (max_over_time(k6_http_reqs_total{testid=\"${TEST_ID}\",suite=\"${SCENARIO}\"}[30m])))"
 
 wait_for_query_result \
   "k6 p95 series by service" \
-  "count(count by (service) (k6_http_req_duration_p95{testid=\"${TEST_ID}\",suite=\"${SCENARIO}\"}))"
+  "count(max by (service) (max_over_time(k6_http_req_duration_p95{testid=\"${TEST_ID}\",suite=\"${SCENARIO}\"}[30m])))"
 
 log "k6 metrics and service-level series are ready in Prometheus"
