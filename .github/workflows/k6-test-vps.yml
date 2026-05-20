@@ -27,11 +27,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: smoke-test-vps
+  group: k6-test-vps
   cancel-in-progress: false
 
 jobs:
-  smoke-test:
+  k6-test:
+    name: K6 Test Job
     runs-on: ubuntu-latest
     env:
       VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
