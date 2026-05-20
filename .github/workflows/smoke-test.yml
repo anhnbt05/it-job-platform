@@ -13,9 +13,9 @@ on:
           - spike
           - stress
       test_id:
-        description: Tag used in Grafana/Prometheus
+        description: Tag used in Grafana/Prometheus (leave blank to auto-generate)
         required: false
-        default: github-manual
+        default: ""
         type: string
       fail_fast:
         description: Stop early on failed checks
@@ -60,7 +60,7 @@ jobs:
 
             BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
             SCENARIO="${SCENARIO_INPUT:-smoke}"
-            TEST_ID="${TEST_ID_INPUT:-github-manual}"
+            TEST_ID="${TEST_ID_INPUT:-github-run-${{ github.run_id }}}"
             FAIL_FAST_FLAG=false
 
             if [ "${FAIL_FAST_INPUT:-true}" = "true" ]; then
@@ -115,7 +115,7 @@ jobs:
             AUTOMATION_REPOSITORY="${{ github.repository }}" \
             AUTOMATION_WORKFLOW="${{ github.workflow }}" \
             AUTOMATION_SCENARIO="${{ github.event.inputs.scenario || 'smoke' }}" \
-            AUTOMATION_TEST_ID="${{ github.event.inputs.test_id || 'github-manual' }}" \
+            AUTOMATION_TEST_ID="${{ github.event.inputs.test_id || format('github-run-{0}', github.run_id) }}" \
             AUTOMATION_SUMMARY="k6 workflow completed with status ${{ steps.k6_result.outputs.status }} for scenario ${{ github.event.inputs.scenario || 'smoke' }}." \
             bash ./scripts/dev/write-automation-log.sh
 

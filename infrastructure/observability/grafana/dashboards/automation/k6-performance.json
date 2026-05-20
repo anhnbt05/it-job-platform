@@ -92,7 +92,7 @@
       },
       "targets": [
         {
-          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", status=\"failed\"} | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", status=\"passed\"} | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
+          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"failed\"} | json | test_id=~\"$testid\" | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"passed\"} | json | test_id=~\"$testid\" | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -155,7 +155,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\"} | json | test_id=~\"$testid\" [24h])) or vector(0))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -218,7 +218,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", status=\"passed\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"passed\"} | json | test_id=~\"$testid\" [24h])) or vector(0))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -277,7 +277,7 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", status=\"failed\"}[24h])) or vector(0))",
+          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\", status=\"failed\"} | json | test_id=~\"$testid\" [24h])) or vector(0))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -340,11 +340,11 @@
       },
       "targets": [
         {
-          "expr": "(avg(max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__range])) or on() vector(0))",
+          "expr": "((max(max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\"}[$__range])) * 1000) or on() vector(0))",
           "refId": "A"
         }
       ],
-      "title": "P95 Latency",
+      "title": "Worst Endpoint P95",
       "type": "stat"
     },
     {
@@ -402,11 +402,11 @@
       },
       "targets": [
         {
-          "expr": "((sum(increase(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\",expected_response=\"false\"}[$__range])) / clamp_min(sum(increase(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__range])), 1)) or on() vector(0))",
+          "expr": "((sum(increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",expected_response=\"false\"}[$__range])) / clamp_min(sum(increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\"}[$__range])), 1)) or on() vector(0))",
           "refId": "A"
         }
       ],
-      "title": "Error Rate",
+      "title": "Request Error Rate",
       "type": "stat"
     },
     {
@@ -464,11 +464,11 @@
       },
       "targets": [
         {
-          "expr": "(avg(max_over_time(k6_checks_rate{testid=~\"$testid\",scenario=~\"$scenario\"}[$__range])) or on() vector(0))",
+          "expr": "(min(max_over_time(k6_checks_rate{testid=~\"$testid\",suite=~\"$suite\"}[$__range])) or on() vector(0))",
           "refId": "A"
         }
       ],
-      "title": "Checks Pass Rate",
+      "title": "Worst Check Pass Rate",
       "type": "stat"
     },
     {
@@ -526,11 +526,11 @@
       },
       "targets": [
         {
-          "expr": "(max(max_over_time(k6_vus{testid=~\"$testid\",scenario=~\"$scenario\"}[$__range])) or on() vector(0))",
+          "expr": "(max(max_over_time(k6_vus{testid=~\"$testid\",suite=~\"$suite\"}[$__range])) or on() vector(0))",
           "refId": "A"
         }
       ],
-      "title": "Active VUs",
+      "title": "Peak VUs",
       "type": "stat"
     },
     {
@@ -568,12 +568,12 @@
       },
       "targets": [
         {
-          "expr": "sum by (service, operation) (rate(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"}[$__rate_interval]))",
+          "expr": "sum by (service, operation) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval]))",
           "legendFormat": "{{service}} | {{operation}}",
           "refId": "A"
         }
       ],
-      "title": "Request Rate By Operation",
+      "title": "Requests By Operation",
       "type": "timeseries"
     },
     {
@@ -611,7 +611,7 @@
       },
       "targets": [
         {
-          "expr": "avg by (service, operation) (k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval])) * 1000",
           "legendFormat": "{{service}} | {{operation}}",
           "refId": "A"
         }
@@ -661,21 +661,21 @@
       },
       "targets": [
         {
-          "expr": "avg by (service, operation) (k6_http_req_duration_avg{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_avg{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
           "format": "table",
           "instant": true,
           "legendFormat": "avg",
           "refId": "A"
         },
         {
-          "expr": "avg by (service, operation) (k6_http_req_duration_p95{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
           "format": "table",
           "instant": true,
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "expr": "avg by (service, operation) (k6_http_req_duration_p99{testid=~\"$testid\",scenario=~\"$scenario\",service=~\"$service\"})",
+          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p99{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
           "format": "table",
           "instant": true,
           "legendFormat": "p99",
@@ -732,7 +732,7 @@
       },
       "targets": [
         {
-          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\"}",
+          "expr": "{job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"k6-load-testing\", kind=~\"$suite\"} | json | test_id=~\"$testid\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -787,14 +787,14 @@
           "type": "prometheus",
           "uid": "PBFA97CFB590B2093"
         },
-        "definition": "label_values(k6_vus{testid=~\"$testid\"}, scenario)",
+        "definition": "label_values(k6_vus{testid=~\"$testid\"}, suite)",
         "hide": 0,
         "includeAll": true,
         "label": "K6 Scenario",
         "multi": false,
-        "name": "scenario",
+        "name": "suite",
         "options": [],
-        "query": "label_values(k6_vus{testid=~\"$testid\"}, scenario)",
+        "query": "label_values(k6_vus{testid=~\"$testid\"}, suite)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -811,14 +811,14 @@
           "type": "prometheus",
           "uid": "PBFA97CFB590B2093"
         },
-        "definition": "label_values(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\"}, service)",
+        "definition": "label_values(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\"}, service)",
         "hide": 0,
         "includeAll": true,
         "label": "K6 Service",
         "multi": false,
         "name": "service",
         "options": [],
-        "query": "label_values(k6_http_reqs_total{testid=~\"$testid\",scenario=~\"$scenario\"}, service)",
+        "query": "label_values(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\"}, service)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
