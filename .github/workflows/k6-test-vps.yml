@@ -61,11 +61,11 @@ jobs:
             set -euo pipefail
 
             BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
-            SCENARIO="${SCENARIO_INPUT:-smoke}"
-            TEST_ID="${TEST_ID_INPUT:-github-run-${{ github.run_id }}}"
+            SCENARIO="${{ github.event.inputs.scenario || 'smoke' }}"
+            TEST_ID="${{ github.event.inputs.test_id || format('github-run-{0}', github.run_id) }}"
             FAIL_FAST_FLAG=false
 
-            if [ "${FAIL_FAST_INPUT:-true}" = "true" ]; then
+            if [ "${{ github.event.inputs.fail_fast || 'true' }}" = "true" ]; then
               FAIL_FAST_FLAG=true
             fi
 
@@ -108,7 +108,7 @@ jobs:
             cd "$BACKEND_PATH"
 
             AUTOMATION_SUITE="k6-load-testing" \
-            AUTOMATION_KIND="${SCENARIO_INPUT:-smoke}" \
+            AUTOMATION_KIND="${{ github.event.inputs.scenario || 'smoke' }}" \
             AUTOMATION_SOURCE="github-actions" \
             AUTOMATION_STATUS="${{ steps.k6_result.outputs.status }}" \
             AUTOMATION_DURATION_MS="${{ steps.k6_result.outputs.duration_ms }}" \
