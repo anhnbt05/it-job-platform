@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { GraphileWorkerModule } from 'nestjs-graphile-worker';
 import { ConfigService } from '@nestjs/config';
+import { EmailsController } from '@/modules/emails/emails.controller';
 import { SendEmailTask } from '@/modules/jobs/tasks';
 import { EmailsModule } from '@/modules/emails/emails.module';
 import { MetricsModule } from '@/modules/observability/metrics.module';
@@ -32,6 +33,7 @@ import { graphileWorkerLogger } from './graphile-worker.logger';
       },
     }),
   ],
+  controllers: [EmailsController],
   providers: [JobsService, SendEmailTask],
   exports: [JobsService],
 })

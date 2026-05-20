@@ -9,6 +9,7 @@ DEPLOY_FRONTEND="${DEPLOY_FRONTEND:-0}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 PREVIOUS_DEPLOY_SHA="${PREVIOUS_DEPLOY_SHA:-}"
 CURRENT_DEPLOY_SHA="${CURRENT_DEPLOY_SHA:-}"
+DEPLOY_SERVICES_INPUT="${DEPLOY_SERVICES_INPUT:-}"
 ROOT_ENV_FILE="$ROOT_DIR/.env"
 KAFKA_TOPICS_FILE="$ROOT_DIR/infrastructure/kafka/topics.txt"
 TCP_WAIT_TIMEOUT_SECONDS="${TCP_WAIT_TIMEOUT_SECONDS:-180}"
@@ -160,6 +161,38 @@ detect_changed_backend_services() {
         ;;
     esac
   done
+}
+
+use_requested_deploy_services() {
+  if [[ -z "$DEPLOY_SERVICES_INPUT" ]]; then
+    return 1
+  fi
+
+  CHANGED_BACKEND_SERVICES=()
+  OBSERVABILITY_CHANGED=0
+
+  local requested_services=()
+  IFS=',' read -r -a requested_services <<< "$DEPLOY_SERVICES_INPUT"
+
+  local svc=""
+  for svc in "${requested_services[@]}"; do
+    svc="$(echo "$svc" | xargs)"
+    [[ -z "$svc" ]] && continue
+
+    if service_in_list "$svc" "${BACKEND_SERVICES[@]}"; then
+      append_unique_service "$svc"
+    else
+      log "ignoring unknown deploy service requested by workflow: $svc"
+    fi
+  done
+
+  if (( ${#CHANGED_BACKEND_SERVICES[@]} == 0 )); then
+    log "workflow provided deploy services, but none were valid: $DEPLOY_SERVICES_INPUT"
+    return 1
+  fi
+
+  log "using deploy services requested by workflow: ${CHANGED_BACKEND_SERVICES[*]}"
+  return 0
 }
 
 wait_tcp() {
@@ -423,7 +456,9 @@ wait_tcp 127.0.0.1 "${KONG_ADMIN_PORT:-8001}" kong-admin
 bash ./scripts/dev/normalize-db-passwords.sh
 wait_kafka
 
-detect_changed_backend_services
+if ! use_requested_deploy_services; then
+  detect_changed_backend_services
+fi
 
 if [[ "$START_OBSERVABILITY" == "1" && "$OBSERVABILITY_CHANGED" == "1" ]]; then
   log "observability configuration changed, recreating observability services"

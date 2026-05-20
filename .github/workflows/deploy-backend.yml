@@ -26,6 +26,7 @@ jobs:
     outputs:
       build_matrix: ${{ steps.changes.outputs.build_matrix }}
       changed_service_count: ${{ steps.changes.outputs.changed_service_count }}
+      changed_services_csv: ${{ steps.changes.outputs.changed_services_csv }}
       has_service_changes: ${{ steps.changes.outputs.has_service_changes }}
     steps:
       - name: Checkout repository
@@ -60,6 +61,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             write_build_matrix "{\"include\":$ALL_SERVICES_JSON}"
             echo "changed_service_count=6" >> "$GITHUB_OUTPUT"
+            echo "changed_services_csv=identity-service,organization-service,notification-service,job-service,application-service,dashboard-service" >> "$GITHUB_OUTPUT"
             echo "has_service_changes=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -70,6 +72,7 @@ jobs:
           if [[ -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
             write_build_matrix "{\"include\":$ALL_SERVICES_JSON}"
             echo "changed_service_count=6" >> "$GITHUB_OUTPUT"
+            echo "changed_services_csv=identity-service,organization-service,notification-service,job-service,application-service,dashboard-service" >> "$GITHUB_OUTPUT"
             echo "has_service_changes=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -135,22 +138,27 @@ jobs:
           done
 
           service_entries=()
+          changed_service_names=()
           for service in "${ordered_services[@]}"; do
             if [[ -n "${changed_services[$service]:-}" ]]; then
               append_service_metadata "$service"
+              changed_service_names+=("$service")
             fi
           done
 
           changed_count="${#service_entries[@]}"
+          changed_services_csv=""
           if (( changed_count == 0 )); then
             changed_json='{"include":[]}'
           else
             joined_entries="$(IFS=,; echo "${service_entries[*]}")"
             changed_json="{\"include\":[${joined_entries}]}"
+            changed_services_csv="$(IFS=,; echo "${changed_service_names[*]}")"
           fi
 
           write_build_matrix "$changed_json"
           echo "changed_service_count=$changed_count" >> "$GITHUB_OUTPUT"
+          echo "changed_services_csv=$changed_services_csv" >> "$GITHUB_OUTPUT"
 
           if [[ "$changed_count" == "0" ]]; then
             echo "has_service_changes=false" >> "$GITHUB_OUTPUT"
@@ -231,6 +239,7 @@ jobs:
     env:
       VPS_BACKEND_PATH: ${{ vars.VPS_BACKEND_PATH }}
       RUN_SEED_INPUT: ${{ github.event.inputs.run_seed }}
+      DEPLOY_SERVICES_INPUT: ${{ needs.detect-changes.outputs.changed_services_csv }}
     steps:
       - name: Deploy backend stack over SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -263,6 +272,7 @@ jobs:
             PREVIOUS_DEPLOY_SHA="$PREVIOUS_HEAD" \
             CURRENT_DEPLOY_SHA="$CURRENT_HEAD" \
             RUN_SEED="$RUN_SEED_FLAG" \
+            DEPLOY_SERVICES_INPUT="${DEPLOY_SERVICES_INPUT:-}" \
             bash ./scripts/dev/deploy-backend-vps.sh
             docker image prune -f
             docker logout ghcr.io || true

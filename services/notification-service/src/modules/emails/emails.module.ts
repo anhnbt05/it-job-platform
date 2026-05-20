@@ -1,7 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { MetricsModule } from '@/modules/observability/metrics.module';
 import { EmailStrategyRegistry } from './email-strategy.registry';
-import { EmailsController } from './emails.controller';
 import { EmailsService } from './emails.service';
 import {
   LockAccountStrategy,
@@ -14,7 +13,6 @@ import {
 @Global()
 @Module({
   imports: [MetricsModule],
-  controllers: [EmailsController],
   providers: [
     EmailsService,
     EmailStrategyRegistry,
