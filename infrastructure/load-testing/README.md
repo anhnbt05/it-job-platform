@@ -101,4 +101,4 @@ SCENARIO=stress TEST_ID=stress-local docker compose up --abort-on-container-exit
 - Dashboard Grafana cho k6 nằm ở `infrastructure/observability/grafana/dashboards/k6-load-testing.json`.
 - Load test giả định các service target đã được chạy local và có seed data tương ứng.
 - Trên VPS, `run-smoke-vps.sh` sẽ dùng network nội bộ `it-job-network` và `observability`.
-- Workflow `Smoke Test VPS` cũng bật sẵn `PREPARE_DEMO_DATA=true`, nên không phụ thuộc việc deploy gần nhất có chạy `run_seed` hay không.
+- Workflow `K6 Test VPS` cũng bật sẵn `PREPARE_DEMO_DATA=true`, nên không phụ thuộc việc deploy gần nhất có chạy `run_seed` hay không.

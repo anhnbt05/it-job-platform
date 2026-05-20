@@ -568,12 +568,12 @@
       },
       "targets": [
         {
-          "expr": "sum by (service, operation) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval]))",
+          "expr": "sum by (service, operation) (max_over_time(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval]))",
           "legendFormat": "{{service}} | {{operation}}",
           "refId": "A"
         }
       ],
-      "title": "Requests By Operation",
+      "title": "Cumulative Requests By Operation",
       "type": "timeseries"
     },
     {
