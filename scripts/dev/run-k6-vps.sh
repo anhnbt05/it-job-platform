@@ -5,7 +5,7 @@ ROOT_DIR="${ROOT_DIR:-/opt/it-job/it-job-platform}"
 SCENARIO="${1:-smoke}"
 TEST_ID="${2:-manual-k6}"
 FAIL_FAST="${FAIL_FAST:-true}"
-PREPARE_DEMO_DATA="${PREPARE_DEMO_DATA:-true}"
+PREPARE_DEMO_DATA="${PREPARE_DEMO_DATA:-false}"
 
 log() {
   printf '>>> [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"

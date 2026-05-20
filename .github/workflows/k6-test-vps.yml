@@ -23,6 +23,11 @@ on:
         required: false
         default: true
         type: boolean
+      prepare_demo_data:
+        description: Run migrate/seed before executing K6
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -75,7 +80,7 @@ jobs:
             git reset --hard origin/main
             git clean -fd
 
-            PREPARE_DEMO_DATA=true FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-k6-vps.sh "$SCENARIO" "$TEST_ID"
+            PREPARE_DEMO_DATA="${{ github.event.inputs.prepare_demo_data || 'false' }}" FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-k6-vps.sh "$SCENARIO" "$TEST_ID"
 
       - name: Compute k6 test result
         id: k6_result
