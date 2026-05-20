@@ -568,7 +568,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (service, operation) (max_over_time(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval]))",
+          "expr": "sum by (service, operation) (max_over_time(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range]))",
           "legendFormat": "{{service}} | {{operation}}",
           "refId": "A"
         }
@@ -611,7 +611,7 @@
       },
       "targets": [
         {
-          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval])) * 1000",
+          "expr": "max by (service, operation) (max_over_time(k6_http_req_duration_p95{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__range])) * 1000",
           "legendFormat": "{{service}} | {{operation}}",
           "refId": "A"
         }
