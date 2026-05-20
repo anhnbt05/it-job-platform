@@ -20,7 +20,10 @@
   "graphTooltip": 0,
   "panels": [
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -89,16 +92,19 @@
       },
       "targets": [
         {
-          "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"failed\"}[24h])) or vector(0))",
-          "queryType": "range",
+          "expr": "((max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"failed\"} | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)) > bool (max(last_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"passed\"} | label_format ts=`{{ __timestamp__ | unixEpoch }}` | unwrap ts [7d])) or vector(0)))",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
-      "title": "UI E2E Status",
+      "title": "Latest Run Status",
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -150,7 +156,7 @@
       "targets": [
         {
           "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\"}[24h])) or vector(0))",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
@@ -158,7 +164,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -210,7 +219,7 @@
       "targets": [
         {
           "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"passed\"}[24h])) or vector(0))",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
@@ -218,7 +227,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -266,7 +278,7 @@
       "targets": [
         {
           "expr": "(sum(count_over_time({job=\"host-app\", service=\"automation-tests\", event=\"automation_test_result\", suite=\"ui-e2e\", status=\"failed\"}[24h])) or vector(0))",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
@@ -274,7 +286,10 @@
       "type": "stat"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -313,7 +328,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "Loki",
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
       "gridPos": {
         "h": 12,
         "w": 24,
@@ -342,7 +360,7 @@
       "type": "logs"
     }
   ],
-  "refresh": "15s",
+  "refresh": "1m",
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
@@ -355,7 +373,7 @@
     "list": []
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-7d",
     "to": "now"
   },
   "timepicker": {},

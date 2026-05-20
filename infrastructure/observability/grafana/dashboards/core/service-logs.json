@@ -75,7 +75,7 @@
       "targets": [
         {
           "expr": "(sum(count_over_time({job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", level=~\"error|fatal\"}[1h])) or vector(0))",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
@@ -134,7 +134,7 @@
       "targets": [
         {
           "expr": "(sum(count_over_time({job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", event=\"http_request\", status=~\"5..\"}[1h])) or vector(0))",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
@@ -197,7 +197,7 @@
       "targets": [
         {
           "expr": "(sum(count_over_time({job=\"host-app\", service!=\"automation-tests\", service=~\"$service\", event=\"http_request\"}[15m])) or vector(0))",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
@@ -269,7 +269,7 @@
       "type": "logs"
     }
   ],
-  "refresh": "30s",
+  "refresh": "1m",
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
@@ -306,7 +306,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
