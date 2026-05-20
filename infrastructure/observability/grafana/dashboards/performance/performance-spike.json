@@ -321,7 +321,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (service) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval]))",
+          "expr": "(sum by (service) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval])) or sum by (service) (max_over_time(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval])))",
           "legendFormat": "{{service}}",
           "refId": "A"
         }
@@ -407,7 +407,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (service) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\",expected_response=\"false\"}[$__interval]))",
+          "expr": "(sum by (service) (increase(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\",expected_response=\"false\"}[$__interval])) or on (service) (0 * sum by (service) (max_over_time(k6_http_reqs_total{testid=~\"$testid\",suite=~\"$suite\",service=~\"$service\"}[$__interval]))))",
           "legendFormat": "{{service}}",
           "refId": "A"
         }

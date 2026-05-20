@@ -87,6 +87,28 @@ jobs:
 
             PEAK_VUS="${{ github.event.inputs.peak_vus || '' }}" PREPARE_DEMO_DATA="${{ github.event.inputs.prepare_demo_data || 'false' }}" FAIL_FAST="$FAIL_FAST_FLAG" bash ./scripts/dev/run-k6-vps.sh "$SCENARIO" "$TEST_ID"
 
+      - name: Wait for Prometheus metrics on VPS
+        id: wait_metrics
+        if: steps.run_k6.outcome == 'success'
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+
+            BACKEND_PATH="${VPS_BACKEND_PATH:-/opt/it-job/it-job-platform}"
+            SCENARIO="${{ github.event.inputs.scenario || 'smoke' }}"
+            TEST_ID="${{ github.event.inputs.test_id || format('github-run-{0}', github.run_id) }}"
+
+            cd "$BACKEND_PATH"
+            bash ./scripts/dev/wait-k6-metrics-vps.sh "$SCENARIO" "$TEST_ID"
+
       - name: Compute performance test result
         id: k6_result
         if: always()
@@ -95,7 +117,7 @@ jobs:
           end_epoch=$(date +%s)
           duration_ms=$(( (end_epoch - ${{ steps.mark_start.outputs.epoch }}) * 1000 ))
           status="failed"
-          if [ "${{ steps.run_k6.outcome }}" = "success" ]; then
+          if [ "${{ steps.run_k6.outcome }}" = "success" ] && [ "${{ steps.wait_metrics.outcome || 'success' }}" = "success" ]; then
             status="passed"
           fi
           echo "duration_ms=$duration_ms" >> "$GITHUB_OUTPUT"
@@ -132,8 +154,8 @@ jobs:
             bash ./scripts/dev/write-automation-log.sh
 
       - name: Fail workflow when performance test fails
-        if: steps.run_k6.outcome != 'success'
+        if: steps.run_k6.outcome != 'success' || (steps.run_k6.outcome == 'success' && steps.wait_metrics.outcome == 'failure')
         shell: bash
         run: |
-          echo "performance test failed." >&2
+          echo "performance test failed or Prometheus metrics were not visible in time." >&2
           exit 1
