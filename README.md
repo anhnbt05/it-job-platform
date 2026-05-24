@@ -1,198 +1,717 @@
 # IT Job Platform Backend
 
-Monorepo backend cho nen tang tim viec lam nganh IT tai Viet Nam. Repo nay di cung frontend tai `../it-job-platform-fe`.
+Backend monorepo for **IT Job Platform**, a job marketplace focused on IT recruitment in Vietnam. The system is designed as a microservices-based platform with API gateway routing, database per service, asynchronous events, observability, CI/CD, automated tests, and VPS deployment.
 
-## Muc tieu cua README nay
+The frontend repository lives at `../it-job-platform-fe`.
 
-README nay uu tien mot muc tieu: giup ban dung duoc ban demo local nhanh, on dinh va it do vo nhat.
+## Table of Contents
 
-Neu can runbook ngan gon cho buoi trinh bay, xem them [DEMO.md](./DEMO.md).
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [Services](#services)
+- [Technology Stack](#technology-stack)
+- [Repository Structure](#repository-structure)
+- [Default Ports](#default-ports)
+- [Environment Configuration](#environment-configuration)
+- [Local Development](#local-development)
+- [Database Migration and Seed](#database-migration-and-seed)
+- [Demo Accounts](#demo-accounts)
+- [Automation Tests](#automation-tests)
+- [Observability](#observability)
+- [CI/CD and Deployment](#cicd-and-deployment)
+- [VPS Operations](#vps-operations)
+- [Useful Scripts](#useful-scripts)
+- [Troubleshooting](#troubleshooting)
 
-## Kien truc nhanh
+## Overview
 
-- `identity-service` (`3001`): auth, user, profile, candidate, recruiter
-- `organization-service` (`3002`): company, branch, category
-- `notification-service` (`3003`): notification, email
-- `job-service` (`8082`): dang tin va quan ly job
-- `application-service` (`8083`): workflow ung tuyen
-- `dashboard-service` (`8084`): tong hop bao cao
-- `gateway/kong` (`8000`): API gateway de frontend goi
+IT Job Platform supports three main user roles:
 
-## Dieu kien can
+- **Candidate**: searches jobs, saves favorites, applies to jobs, manages profile and CV.
+- **Recruiter**: manages company-related hiring flows, posts jobs, reviews applications.
+- **Administrator**: manages platform data, reviews jobs, monitors dashboard and system activity.
 
-- Docker Desktop
-- Node.js 20+
-- npm 10+
-- Java 17
-- Maven 3.9+
+The backend is split into domain-oriented services. Each service owns a clear responsibility and, where applicable, its own database. The platform also includes Kafka, Redis, Kong Gateway, Grafana, Prometheus, Loki, Jaeger, and GitHub Actions workflows.
 
-## Port local mac dinh
+## Key Features
 
-- Frontend: `3000`
-- Identity service: `3001`
-- Organization service: `3002`
-- Notification service: `3003`
-- Job service: `8082`
-- Application service: `8083`
-- Dashboard service: `8084`
-- Kong proxy: `8000`
-- Kafka UI: `8080`
-- Prometheus: `9090`
-- Grafana: `3005`
-- Jaeger: `16686`
+- Authentication, authorization, email verification, password reset.
+- User, candidate, recruiter and admin workflows.
+- Company, branch and category management.
+- Job posting, review, search, recommendation and favorites.
+- Job application workflow and application status management.
+- Notification and email delivery pipeline.
+- Admin dashboard summary and report export.
+- API automation, UI E2E automation integration, and performance testing.
+- Metrics, logs, traces, dashboards and design-for-failure demo.
+- GHCR-based image publishing and VPS deployment.
 
-## 1. Tao env cho Docker va local service
+## Architecture
 
-### Docker Compose / VPS
+### Logical Architecture
 
-Copy file mau o root repo:
+```mermaid
+flowchart LR
+    CLIENT["Clients<br/>Candidate / Recruiter / Admin"] --> FE["Web Frontend<br/>Next.js"]
+    FE --> GW["API Gateway<br/>Kong"]
 
-```powershell
-Copy-Item .env.example .env
+    subgraph MS["Microservices"]
+        ID["Identity Service<br/>NestJS"]
+        ORG["Organization Service<br/>NestJS"]
+        NOTI["Notification Service<br/>NestJS"]
+        JOB["Job Service<br/>Spring Boot"]
+        APP["Application Service<br/>Spring Boot"]
+        DASH["Dashboard Service<br/>Spring Boot"]
+    end
+
+    GW --> ID
+    GW --> ORG
+    GW --> NOTI
+    GW --> JOB
+    GW --> APP
+    GW --> DASH
+
+    subgraph DATA["Database per Service"]
+        IDDB[("Identity PostgreSQL")]
+        ORGDB[("Organization MySQL")]
+        NOTIDB[("Notification PostgreSQL")]
+        JOBDB[("Job PostgreSQL")]
+        APPDB[("Application MongoDB")]
+    end
+
+    ID --> IDDB
+    ORG --> ORGDB
+    NOTI --> NOTIDB
+    JOB --> JOBDB
+    APP --> APPDB
+
+    DASH -. "query summaries" .-> JOB
+    DASH -. "query summaries" .-> APP
+    JOB -. "business calls / REST" .-> ORG
+    JOB -. "business calls / REST" .-> APP
+
+    KAFKA["Kafka"]
+    REDIS["Redis"]
+
+    ID --- KAFKA
+    ORG --- KAFKA
+    NOTI --- KAFKA
+    JOB --- KAFKA
+    APP --- KAFKA
+
+    ID --- REDIS
+    NOTI --- REDIS
+
+    subgraph OBS["Observability"]
+        PROM["Prometheus"]
+        LOKI["Loki"]
+        JAEGER["Jaeger"]
+        GRAF["Grafana"]
+    end
+
+    MS --> PROM
+    MS --> LOKI
+    MS --> JAEGER
+    PROM --> GRAF
+    LOKI --> GRAF
+    JAEGER --> GRAF
 ```
 
-Hoac bash:
+### Deployment Architecture
+
+```mermaid
+flowchart LR
+    DEV["Source Code<br/>GitHub"] --> CI["GitHub Actions<br/>CI/CD"]
+    CI --> REG["GitHub Container Registry<br/>GHCR"]
+
+    subgraph VPS["VPS"]
+        DOCKER["Docker Engine<br/>Docker Compose"]
+        FE["Frontend Container"]
+        GW["Kong Gateway"]
+        SVC["Backend Service Containers"]
+        DATA["Database Containers"]
+        INFRA["Kafka / Redis"]
+        OBS["Grafana / Prometheus / Loki / Jaeger"]
+    end
+
+    REG --> DOCKER
+    DOCKER --> FE
+    DOCKER --> GW
+    DOCKER --> SVC
+    DOCKER --> DATA
+    DOCKER --> INFRA
+    DOCKER --> OBS
+```
+
+### Runtime Communication
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE as Frontend
+    participant GW as Kong Gateway
+    participant ID as Identity Service
+    participant JOB as Job Service
+    participant ORG as Organization Service
+    participant K as Kafka
+    participant N as Notification Service
+
+    User->>FE: Use web app
+    FE->>GW: HTTP request
+    GW->>ID: Route auth/profile request
+    ID-->>GW: Response
+    GW-->>FE: Response
+
+    FE->>GW: Create or update business data
+    GW->>ORG: HTTP business operation
+    ORG->>K: Publish domain event
+    K-->>N: Consume event if notification is required
+    K-->>JOB: Consume snapshot-related event if needed
+```
+
+## Services
+
+| Service | Runtime | Responsibility | Database | Default Port |
+| --- | --- | --- | --- | --- |
+| `identity-service` | NestJS | Authentication, users, roles, candidate/recruiter profile, company snapshots | PostgreSQL | `3001` |
+| `organization-service` | NestJS | Companies, branches, categories, organization domain events | MySQL | `3002` |
+| `notification-service` | NestJS | Notifications, email jobs, Graphile Worker background tasks | PostgreSQL | `3003` |
+| `job-service` | Spring Boot | Jobs, job review, recommendations, favorites, category snapshots | PostgreSQL | `8082` |
+| `application-service` | Spring Boot | Applications, application status workflow, candidate/recruiter application views | MongoDB | `8083` |
+| `dashboard-service` | Spring Boot | Admin dashboard summary, reports, graceful degradation demo | Internal HTTP clients | `8084` |
+| `gateway/kong` | Kong | API routing from frontend to backend services | N/A | `8000` |
+
+## Technology Stack
+
+### Backend
+
+- **NestJS** for identity, organization and notification services.
+- **Spring Boot** for job, application and dashboard services.
+- **PostgreSQL**, **MySQL**, and **MongoDB** as polyglot persistence.
+- **Kafka** for asynchronous domain communication.
+- **Redis** for fast temporary storage and cache-oriented workflows.
+- **Kong Gateway** as the single API entry point.
+- **Docker Compose** for local/VPS orchestration.
+
+### Observability
+
+- **Prometheus** for metrics scraping and k6 remote write.
+- **Loki** for centralized logs.
+- **Promtail** for shipping runtime logs to Loki.
+- **Jaeger** for distributed traces.
+- **Grafana** for dashboards.
+
+### Automation
+
+- **Node test runner** for API automation.
+- **Playwright** in the frontend repository for UI E2E tests.
+- **k6** for smoke, spike and stress performance scenarios.
+- **GitHub Actions** for build, test, deploy and demo workflows.
+- **GHCR** for Docker image publishing.
+
+## Repository Structure
+
+```text
+it-job-platform/
+├── .github/workflows/              # Backend deploy, API automation, performance, failure demo
+├── gateway/kong/                   # Kong declarative routing config
+├── infrastructure/
+│   ├── kafka/                      # Kafka compose, scripts and topic definitions
+│   ├── load-testing/               # k6 scenarios and config
+│   ├── observability/              # Grafana, Prometheus, Loki, Promtail, Jaeger config
+│   ├── redis/                      # Redis config
+│   └── databases/                  # Per-database compose files
+├── scripts/
+│   ├── db/                         # migrate/seed/reset scripts
+│   └── dev/                        # local/VPS deploy, tests, demo and operation scripts
+├── services/
+│   ├── identity-service/
+│   ├── organization-service/
+│   ├── notification-service/
+│   ├── job-service/
+│   ├── application-service/
+│   └── dashboard-service/
+├── tests/api/                      # API automation tests
+├── docker-compose.yml              # Infra, databases, gateway, observability
+├── docker-compose.app.yml          # Application containers
+└── .env.example                    # Root environment template
+```
+
+## Default Ports
+
+| Component | URL |
+| --- | --- |
+| Frontend | `http://localhost:3000` |
+| Kong Gateway | `http://localhost:8000` |
+| Kong Admin | `http://localhost:8001` |
+| Identity Service | `http://localhost:3001` |
+| Organization Service | `http://localhost:3002` |
+| Notification Service | `http://localhost:3003` |
+| Job Service | `http://localhost:8082` |
+| Application Service | `http://localhost:8083` |
+| Dashboard Service | `http://localhost:8084` |
+| Kafka UI | `http://localhost:8080` |
+| Prometheus | `http://localhost:9090` |
+| Grafana | `http://localhost:3005` |
+| Jaeger | `http://localhost:16686` |
+
+## Environment Configuration
+
+Create the root environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-`docker compose` se doc file root `.env` nay cho toan bo infra + app containers.
-
-Ghi chu quan trong:
-
-- Khi chay bang Docker, cac service **khong doc** `services/*/.env` mot cach tu dong.
-- Runtime trong container lay bien tu `docker-compose.yml` va `docker-compose.app.yml`, duoc noi suy tu root `.env`.
-- Day la nguon cau hinh chinh cho local Docker, VPS va GitHub deploy script.
-
-### Chay tung service tren host
-
-Neu ban muon chay rieng tung service tren may host, copy cac file mau sau thanh `.env`:
-
-- `services/identity-service/.env.example`
-- `services/organization-service/.env.example`
-- `services/notification-service/.env.example`
-- `services/job-service/.env.example`
-- `services/application-service/.env.example`
-- `services/dashboard-service/.env.example`
-
-Ghi chu:
-
-- 3 service Spring Boot hien da co default trong `application.yml`, nhung `.env.example` da duoc dien san cho mode local host.
-- Script `scripts/db/seed.sh` hien nay tu suy dien env tu root `.env`, nen khong con phu thuoc vao `services/*/.env` de seed tren VPS.
-- Frontend co file mau rieng trong repo `it-job-platform-fe/.env.example`.
-
-## 2. Khoi dong ha tang va gateway
-
-Chay trong root `it-job-platform`:
+PowerShell:
 
 ```powershell
+Copy-Item .env.example .env
+```
+
+Important rules:
+
+- The root `.env` is the main source for Docker Compose and VPS deployment.
+- Service-level `.env` files are useful only when running individual services directly on the host.
+- Do not commit `.env` or `.env.*` files. They are intentionally ignored.
+- For VPS deployment, keep secrets in the VPS root `.env` and GitHub Actions secrets/variables.
+
+## Local Development
+
+### Prerequisites
+
+- Docker Desktop or Docker Engine.
+- Node.js 20+ and npm 10+.
+- Java 17.
+- Maven 3.9+.
+- Git.
+
+### Start infrastructure
+
+From the backend repo root:
+
+```bash
 docker compose up -d
 ```
 
-Compose nay bat:
+This starts:
 
-- PostgreSQL / MySQL / MongoDB
-- Kafka + Kafka UI
-- Redis
-- Prometheus / Grafana / Loki / Jaeger
-- Kong Gateway
+- Databases: PostgreSQL, MySQL, MongoDB.
+- Kafka and Kafka UI.
+- Redis.
+- Kong Gateway.
+- Prometheus, Grafana, Loki, Promtail, Jaeger.
 
-## 3. Seed du lieu demo
+### Start backend services on the host
 
-Windows PowerShell:
+Open separate terminals.
+
+NestJS services:
+
+```bash
+cd services/identity-service
+npm install
+npm run start:dev
+```
+
+```bash
+cd services/organization-service
+npm install
+npm run start:dev
+```
+
+```bash
+cd services/notification-service
+npm install
+npm run start:dev
+```
+
+Spring Boot services:
+
+```bash
+cd services/job-service
+mvn spring-boot:run
+```
+
+```bash
+cd services/application-service
+mvn spring-boot:run
+```
+
+```bash
+cd services/dashboard-service
+mvn spring-boot:run
+```
+
+### Start the complete app stack using Docker images
+
+If images are available locally or via GHCR:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.app.yml up -d
+```
+
+## Database Migration and Seed
+
+Seed all supported services:
+
+```bash
+bash ./scripts/db/seed.sh
+```
+
+PowerShell:
 
 ```powershell
 .\scripts\db\seed.ps1
 ```
 
-Bash:
+Seed a specific service:
 
 ```bash
-./scripts/db/seed.sh
+bash ./scripts/db/seed.sh identity-service
+bash ./scripts/db/seed.sh organization-service
+bash ./scripts/db/seed.sh notification-service
+bash ./scripts/db/seed.sh job-service
+bash ./scripts/db/seed.sh application-service
 ```
 
-Script seed se:
+The seed script is intended for demo data. It runs migrations where needed and inserts representative data for accounts, companies, categories, jobs, applications and notifications.
 
-- migrate + seed `organization-service`
-- migrate + seed `identity-service`
-- migrate + seed `notification-service`
-- seed `job-service`
-- seed `application-service`
+## Demo Accounts
 
-Neu chi muon seed lai mot service:
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | `admin@example.com` | `admin123` |
+| Recruiter | `recruiter@example.com` | `recruiter123` |
+| Candidate | `candidate@example.com` | `candidate123` |
 
-```powershell
-.\scripts\db\seed.ps1 identity-service
+## Automation Tests
+
+### API Automation
+
+Run API tests on a ready VPS stack:
+
+```bash
+bash ./scripts/dev/run-api-automation-vps.sh
 ```
 
-## 4. Chay cac app service
+Run with demo data preparation:
 
-Mo 6 terminal.
-
-Node/Nest:
-
-```powershell
-cd services\identity-service
-npm run start:dev
+```bash
+PREPARE_DEMO_DATA=true bash ./scripts/dev/run-api-automation-vps.sh
 ```
 
-```powershell
-cd services\organization-service
-npm run start:dev
+The workflow `API Automation VPS` can also be triggered manually from GitHub Actions. It writes a structured automation result log that is collected by Loki and shown in Grafana.
+
+### Performance Tests
+
+Performance tests are located in `infrastructure/load-testing`.
+
+Scenarios:
+
+- `smoke`: quick low-load validation.
+- `spike`: sudden traffic increase.
+- `stress`: higher pressure to evaluate system limits.
+
+Run on VPS:
+
+```bash
+bash ./scripts/dev/run-k6-vps.sh smoke demo-smoke-001
+bash ./scripts/dev/run-k6-vps.sh spike demo-spike-001
+bash ./scripts/dev/run-k6-vps.sh stress demo-stress-001
 ```
 
-```powershell
-cd services\notification-service
-npm run start:dev
+Override peak VUs:
+
+```bash
+PEAK_VUS=50 bash ./scripts/dev/run-k6-vps.sh stress demo-stress-50
 ```
 
-Spring Boot:
+Performance results are sent to Prometheus and summarized in Grafana dashboards.
 
-```powershell
-cd services\job-service
-mvn spring-boot:run
+### Design for Failure Demo
+
+The graceful degradation demo intentionally stops `job-service` and verifies that `dashboard-service` responds in degraded mode instead of failing the entire dashboard flow.
+
+Run the full demo:
+
+```bash
+bash ./scripts/dev/demo-graceful-degradation-vps.sh full
 ```
 
-```powershell
-cd services\application-service
-mvn spring-boot:run
+Run step by step:
+
+```bash
+bash ./scripts/dev/demo-graceful-degradation-vps.sh baseline
+bash ./scripts/dev/demo-graceful-degradation-vps.sh inject-failure
+bash ./scripts/dev/demo-graceful-degradation-vps.sh check-degraded
+bash ./scripts/dev/demo-graceful-degradation-vps.sh recover
+bash ./scripts/dev/demo-graceful-degradation-vps.sh verify-recovered
 ```
 
-```powershell
-cd services\dashboard-service
-mvn spring-boot:run
+The GitHub workflow `Graceful Degradation Demo` runs the same idea through SSH and logs the result to Grafana/Loki.
+
+## Observability
+
+### Dashboards
+
+Grafana is available at:
+
+```text
+http://localhost:3005
 ```
 
-## 5. Kiem tra nhanh backend da san sang demo
+On VPS, replace `localhost` with the public server IP or domain.
 
-- `http://localhost:8000/identity` phan hoi qua Kong
-- `http://localhost:8080` mo duoc Kafka UI
-- `http://localhost:3005` mo duoc Grafana
-- 6 service boot khong crash
+Dashboard groups:
 
-## 6. Tai khoan demo da seed san
+- **Overview**
+  - `Backend Overview`: traffic, latency, 5xx errors and business events.
+  - `Backend Service Logs`: centralized runtime logs for backend services.
+  - `System Health`: process uptime, memory and Prometheus scrape status.
+- **Automation Tests**
+  - `API Automation Test`
+  - `UI E2E Test`
+  - `Design for Failure Demo`
+- **Performance Test**
+  - `Performance Smoke`
+  - `Performance Spike`
+  - `Performance Stress`
 
-- Admin: `admin@example.com` / `admin123`
-- Recruiter: `recruiter@example.com` / `recruiter123`
-- Candidate: `candidate@example.com` / `candidate123`
+### Metrics, Logs and Traces
 
-Frontend login page da co nut dien nhanh 3 tai khoan nay.
+```mermaid
+flowchart LR
+    SVC["Backend Services"] -->|metrics| PROM["Prometheus"]
+    SVC -->|runtime logs| PROMTAIL["Promtail"]
+    PROMTAIL --> LOKI["Loki"]
+    SVC -->|traces| JAEGER["Jaeger"]
+    PROM --> GRAF["Grafana"]
+    LOKI --> GRAF
+    JAEGER --> GRAF
+```
 
-## 7. Luong demo de xuat
+| Tool | Purpose |
+| --- | --- |
+| Prometheus | Scrapes service and k6 metrics |
+| Loki | Stores structured service and automation logs |
+| Promtail | Ships runtime log files into Loki |
+| Jaeger | Stores distributed traces |
+| Grafana | Visualizes metrics, logs, traces and automation results |
 
-1. Dang nhap `candidate@example.com` va demo tim viec.
-2. Dang nhap `recruiter@example.com` va demo quan ly bai dang.
-3. Dang nhap `admin@example.com` va demo dashboard, categories, companies.
+### Business Events
 
-## 8. Ngoai pham vi demo co ban
+Business events are domain-level events exposed as Prometheus counters. They show what meaningful business activity happened, not only raw HTTP traffic.
 
-- Tinh nang gui email can cau hinh SMTP thuc te
-- Tinh nang upload avatar / resume can cau hinh ImageKit thuc te
-- Quan sat metrics/logs da co stack local, nhung khong bat buoc cho demo co ban
+Examples:
 
-## 9. Luu y quan trong
+- Authentication success/failure.
+- Organization mutations such as company, branch or category changes.
+- Notification creation and email job results.
+- Job mutations.
+- Application events.
+- Dashboard report operations.
 
-- Kong dang route vao `host.docker.internal`, vi vay app services duoc ky vong chay tren may host.
-- Neu dung Windows, `scripts/db/seed.ps1` se tien hon `seed.sh`.
-- Neu `mvn` chua co trong PATH, cac Spring services va script seed cho Java se khong chay duoc.
+## CI/CD and Deployment
+
+### Backend Deployment Flow
+
+```mermaid
+flowchart LR
+    PUSH["Push to main"] --> DETECT["Detect changed services"]
+    DETECT --> BUILD["Build changed Docker images"]
+    BUILD --> GHCR["Push to GHCR"]
+    GHCR --> SSH["SSH to VPS"]
+    SSH --> PULL["Pull changed images"]
+    PULL --> MIGRATE["Run migrations if needed"]
+    MIGRATE --> RESTART["Restart changed services"]
+    RESTART --> HEALTH["Health checks"]
+```
+
+Workflow: `.github/workflows/deploy-backend.yml`
+
+Behavior:
+
+- Push to `main` triggers deployment.
+- Manual dispatch builds all backend services.
+- Changed-service detection avoids rebuilding every service on every push.
+- Images are pushed to GHCR with `main` and `sha-<commit>` tags.
+- VPS pulls images and recreates only relevant services.
+- Optional `run_seed` input runs full demo migration and seed.
+
+### Required GitHub Secrets
+
+| Secret | Purpose |
+| --- | --- |
+| `VPS_HOST` | VPS host or IP |
+| `VPS_USER` | SSH username |
+| `VPS_SSH_KEY` | Private SSH key for VPS |
+| `VPS_PORT` | Optional SSH port |
+
+### Required GitHub Variables
+
+| Variable | Purpose |
+| --- | --- |
+| `VPS_BACKEND_PATH` | Backend path on VPS, usually `/opt/it-job/it-job-platform` |
+
+## VPS Operations
+
+Expected backend path:
+
+```bash
+/opt/it-job/it-job-platform
+```
+
+### Deploy or Resume Stack
+
+```bash
+cd /opt/it-job/it-job-platform
+bash ./scripts/dev/deploy-backend-vps.sh
+```
+
+Resume the complete stack and run seed:
+
+```bash
+cd /opt/it-job/it-job-platform
+bash ./scripts/dev/resume-vps.sh
+```
+
+### Manage Services
+
+The service management script provides safe start/stop/restart/status/log commands for the VPS stack.
+
+```bash
+cd /opt/it-job/it-job-platform
+
+bash ./scripts/dev/service-vps.sh stop job-service
+bash ./scripts/dev/service-vps.sh start job-service
+bash ./scripts/dev/service-vps.sh restart notification-service
+bash ./scripts/dev/service-vps.sh status app
+bash ./scripts/dev/service-vps.sh logs notification-service
+```
+
+Supported groups:
+
+- `app`
+- `backend`
+- `infra`
+- `observability`
+- `all`
+
+The script uses `stop`, `up -d`, `restart`, `ps`, and `logs`. It does not run `docker compose down`, so it does not remove database volumes.
+
+### Cleanup Disk Space
+
+Common safe cleanup commands:
+
+```bash
+docker builder prune -af
+docker image prune -af
+docker container prune -f
+journalctl --vacuum-size=256M
+```
+
+Do not prune volumes unless you intentionally want to remove database data.
+
+## Useful Scripts
+
+| Script | Purpose |
+| --- | --- |
+| `scripts/db/seed.sh` | Run migrations and seed demo data |
+| `scripts/db/migrate.sh` | Run database migrations |
+| `scripts/dev/deploy-backend-vps.sh` | Deploy backend stack on VPS |
+| `scripts/dev/resume-vps.sh` | Resume full VPS stack and validate health |
+| `scripts/dev/wait-app-stack-vps.sh` | Wait until app stack is ready |
+| `scripts/dev/service-vps.sh` | Start/stop/restart/status/log services |
+| `scripts/dev/run-api-automation-vps.sh` | Run API automation on VPS |
+| `scripts/dev/run-k6-vps.sh` | Run k6 performance tests |
+| `scripts/dev/demo-graceful-degradation-vps.sh` | Run design-for-failure demo |
+| `scripts/dev/write-automation-log.sh` | Write automation result log for Loki |
+| `scripts/dev/sync-service-env-files.sh` | Generate service-level env files from root env |
+| `scripts/dev/normalize-db-passwords.sh` | Align local database passwords with root env |
+
+## Troubleshooting
+
+### Demo account cannot log in
+
+Run seed:
+
+```bash
+bash ./scripts/db/seed.sh identity-service
+```
+
+Check identity database credentials in root `.env` and container env:
+
+```bash
+docker compose exec identity-service printenv DATABASE_URL
+docker compose exec identity-postgres psql -U postgres -d postgres -c '\du'
+```
+
+### Notification service returns 500
+
+Check database and Graphile Worker configuration:
+
+```bash
+docker compose logs --tail 120 notification-service
+docker compose exec notification-service printenv DATABASE_URL
+docker compose exec notification-service printenv GRAPHILE_WORKER_DATABASE_URL
+```
+
+### Kafka UI is not reachable
+
+```bash
+docker compose up -d kafka kafka-ui
+docker compose logs --tail 100 kafka-ui
+```
+
+Default URL:
+
+```text
+http://localhost:8080
+```
+
+### Grafana dashboard shows no data
+
+Verify data sources:
+
+```bash
+curl -fsS http://localhost:9090/-/ready
+curl -fsS http://localhost:3100/ready
+curl -fsS http://localhost:3005/api/health
+```
+
+Run workload:
+
+```bash
+bash ./scripts/dev/run-api-automation-vps.sh
+bash ./scripts/dev/run-k6-vps.sh smoke demo-smoke-readme
+```
+
+### Docker disk usage is high
+
+```bash
+docker system df
+docker builder prune -af
+docker image prune -af
+```
+
+### Health check endpoints
+
+```bash
+curl -fsS http://localhost:8000/identity/health
+curl -fsS http://localhost:3001/health
+curl -fsS http://localhost:3002/health
+curl -fsS http://localhost:3003/health
+curl -fsS http://localhost:8082/api/health
+curl -fsS http://localhost:8083/api/health
+curl -fsS http://localhost:8084/api/health
+```
+
+## Notes
+
+- The backend and frontend are separate repositories.
+- The backend repository owns the infrastructure stack and Docker Compose deployment files.
+- The frontend deployment workflow uses this repository path on VPS to restart the `frontend` service.
+- Keep `.env` files local and private.
+- For a presentation-oriented walkthrough, see `DEMO.md` and `DEMO_AUTOMATION_OBSERVABILITY.md`.
