@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -100,12 +101,18 @@ public class ApplicationService {
         app = applicationRepository.save(app);
 
         Map<String, Object> event = new HashMap<>();
+        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventType", "ApplicationCreated");
+        event.put("occurredAt", LocalDateTime.now().toString());
         event.put("applicationId", app.getId());
         event.put("jobId", app.getJobId());
         event.put("jobTitle", app.getJobTitle());
         event.put("candidateId", candidateId);
         event.put("candidateName", candidateName);
         event.put("recruiterId", recruiterId);
+        event.put("status", "pending");
+        event.put("newStatus", "pending");
+        event.put("appliedAt", app.getAppliedAt().toString());
         eventProducer.sendApplicationCreated(event);
         incrementApplicationMetric("create", "pending");
 
@@ -141,17 +148,24 @@ public class ApplicationService {
         if (request.getAcceptedApplicationIds() != null) {
             for (String appId : request.getAcceptedApplicationIds()) {
                 Application app = verifyApplication(appId, recruiterId);
+                String oldStatus = app.getStatus().name().toLowerCase();
                 app.setStatus(ApplicationStatus.accepted);
                 applicationRepository.save(app);
 
                 Map<String, Object> event = new HashMap<>();
+                event.put("eventId", UUID.randomUUID().toString());
+                event.put("eventType", "ApplicationStatusChanged");
+                event.put("occurredAt", LocalDateTime.now().toString());
                 event.put("applicationId", app.getId());
                 event.put("jobId", app.getJobId());
                 event.put("jobTitle", app.getJobTitle());
                 event.put("candidateId", app.getCandidateId());
                 event.put("candidateName", app.getCandidateName());
+                event.put("oldStatus", oldStatus);
                 event.put("status", "accepted");
+                event.put("newStatus", "accepted");
                 event.put("recruiterId", recruiterId);
+                event.put("appliedAt", app.getAppliedAt().toString());
                 eventProducer.sendApplicationStatusChanged(event);
                 incrementApplicationMetric("process", "accepted");
             }
@@ -161,18 +175,25 @@ public class ApplicationService {
         if (request.getRejectedApplications() != null) {
             for (ProcessApplicationsRequest.RejectedApplication ra : request.getRejectedApplications()) {
                 Application app = verifyApplication(ra.getApplicationId(), recruiterId);
+                String oldStatus = app.getStatus().name().toLowerCase();
                 app.setStatus(ApplicationStatus.rejected);
                 applicationRepository.save(app);
 
                 Map<String, Object> event = new HashMap<>();
+                event.put("eventId", UUID.randomUUID().toString());
+                event.put("eventType", "ApplicationStatusChanged");
+                event.put("occurredAt", LocalDateTime.now().toString());
                 event.put("applicationId", app.getId());
                 event.put("jobId", app.getJobId());
                 event.put("jobTitle", app.getJobTitle());
                 event.put("candidateId", app.getCandidateId());
                 event.put("candidateName", app.getCandidateName());
+                event.put("oldStatus", oldStatus);
                 event.put("status", "rejected");
+                event.put("newStatus", "rejected");
                 event.put("reason", ra.getReason() != null ? ra.getReason() : "");
                 event.put("recruiterId", recruiterId);
+                event.put("appliedAt", app.getAppliedAt().toString());
                 eventProducer.sendApplicationStatusChanged(event);
                 incrementApplicationMetric("process", "rejected");
             }

@@ -12,7 +12,11 @@ export class BranchSnapshotEventFactory {
   ): SnapshotEventMessage<BranchSnapshotPayload> {
     return {
       topic: 'branch-snapshot.created',
-      payload: this.createPayload(branch),
+      payload: this.createPayload(
+        branch,
+        'branch-snapshot.created',
+        'BranchSnapshotCreated',
+      ),
     };
   }
 
@@ -21,19 +25,35 @@ export class BranchSnapshotEventFactory {
   ): SnapshotEventMessage<BranchSnapshotPayload> {
     return {
       topic: 'branch-snapshot.updated',
-      payload: this.createPayload(branch),
+      payload: this.createPayload(
+        branch,
+        'branch-snapshot.updated',
+        'BranchSnapshotUpdated',
+      ),
     };
   }
 
-  private createPayload(branch: Branch): BranchSnapshotPayload {
+  private createPayload(
+    branch: Branch,
+    topic: string,
+    eventType: string,
+  ): BranchSnapshotPayload {
+    const updatedAt = new Date(branch.updatedAt ?? new Date());
     return {
+      event_id: this.createEventId(topic, branch.id!, updatedAt),
+      event_type: eventType,
+      occurred_at: updatedAt,
       id: branch.id!,
       company_id: branch.company.id!,
       name: branch.name,
-      updated_at: new Date(branch.updatedAt ?? new Date()),
+      updated_at: updatedAt,
       city: branch.city,
       address: branch.address,
       country: branch.country,
     };
+  }
+
+  private createEventId(topic: string, aggregateId: string, occurredAt: Date) {
+    return `${topic}:${aggregateId}:${occurredAt.toISOString()}`;
   }
 }

@@ -32,12 +32,16 @@ public class CategoryEventConsumer {
             String name = payload.get("name").asText();
             LocalDateTime updatedAt = parseDate(payload.get("updated_at").asText());
 
-            CategorySnapshot snapshot = CategorySnapshot.builder()
-                    .id(id)
-                    .categoryName(name)
-                    .updatedAt(updatedAt)
-                    .build();
+            CategorySnapshot snapshot = categorySnapshotRepository.findById(id)
+                    .orElseGet(CategorySnapshot::new);
+            if (isStaleSnapshot(snapshot.getUpdatedAt(), updatedAt)) {
+                log.info("Skipping stale category snapshot create event for ID: {}", id);
+                return;
+            }
 
+            snapshot.setId(id);
+            snapshot.setCategoryName(name);
+            snapshot.setUpdatedAt(updatedAt);
             categorySnapshotRepository.save(snapshot);
             log.info("Saved new category snapshot: {}", name);
         } catch (Exception e) {
@@ -56,6 +60,10 @@ public class CategoryEventConsumer {
             LocalDateTime updatedAt = parseDate(payload.get("updated_at").asText());
 
             categorySnapshotRepository.findById(id).ifPresentOrElse(snapshot -> {
+                if (isStaleSnapshot(snapshot.getUpdatedAt(), updatedAt)) {
+                    log.info("Skipping stale category snapshot update event for ID: {}", id);
+                    return;
+                }
                 snapshot.setCategoryName(name);
                 snapshot.setUpdatedAt(updatedAt);
                 categorySnapshotRepository.save(snapshot);
@@ -81,9 +89,16 @@ public class CategoryEventConsumer {
         try {
             JsonNode payload = objectMapper.readTree(message);
             UUID id = UUID.fromString(payload.get("id").asText());
+            LocalDateTime updatedAt = payload.hasNonNull("updated_at")
+                    ? parseDate(payload.get("updated_at").asText())
+                    : LocalDateTime.now();
 
             categorySnapshotRepository.findById(id).ifPresent(snapshot -> {
-                snapshot.setUpdatedAt(LocalDateTime.now());
+                if (isStaleSnapshot(snapshot.getUpdatedAt(), updatedAt)) {
+                    log.info("Skipping stale category snapshot delete event for ID: {}", id);
+                    return;
+                }
+                snapshot.setUpdatedAt(updatedAt);
                 categorySnapshotRepository.save(snapshot);
                 log.info("Retained category snapshot ID {} to preserve historical job category references", id);
             });
@@ -98,5 +113,9 @@ public class CategoryEventConsumer {
         } catch (Exception e) {
             return LocalDateTime.now();
         }
+    }
+
+    private boolean isStaleSnapshot(LocalDateTime currentUpdatedAt, LocalDateTime incomingUpdatedAt) {
+        return currentUpdatedAt != null && incomingUpdatedAt.isBefore(currentUpdatedAt);
     }
 }

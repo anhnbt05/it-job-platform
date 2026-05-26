@@ -162,10 +162,16 @@ public class JobService {
 
         // Send Kafka event
         Map<String, Object> event = new HashMap<>();
+        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventType", "JobCreated");
+        event.put("occurredAt", LocalDateTime.now().toString());
         event.put("jobId", savedJob.getId().toString());
         event.put("jobTitle", savedJob.getTitle());
         event.put("recruiterId", recruiterId);
         event.put("status", "pending");
+        event.put("newStatus", "pending");
+        event.put("postedAt", savedJob.getPostedAt().toString());
+        event.put("expiredAt", savedJob.getExpiredAt().toString());
         jobEventProducer.sendJobCreated(event);
         incrementMutationMetric("create", "pending");
 
@@ -226,13 +232,21 @@ public class JobService {
 
         // If was rejected, re-submit to pending
         if (job.getStatus() == JobStatus.rejected) {
+            String oldStatus = job.getStatus().name().toLowerCase();
             job.setStatus(JobStatus.pending);
             Map<String, Object> event = new HashMap<>();
+            event.put("eventId", UUID.randomUUID().toString());
+            event.put("eventType", "JobStatusChanged");
+            event.put("occurredAt", LocalDateTime.now().toString());
             event.put("jobId", job.getId().toString());
             event.put("jobTitle", job.getTitle());
             event.put("recruiterId", job.getRecruiterId().toString());
+            event.put("oldStatus", oldStatus);
             event.put("status", "pending");
-            jobEventProducer.sendJobCreated(event);
+            event.put("newStatus", "pending");
+            event.put("postedAt", job.getPostedAt().toString());
+            event.put("expiredAt", job.getExpiredAt().toString());
+            jobEventProducer.sendJobStatusChanged(event);
         }
 
         jobRepository.save(job);
@@ -270,14 +284,22 @@ public class JobService {
                 Job job = jobRepository.findById(jobId)
                         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc có id '" + jobIdStr + "'."));
 
+                String oldStatus = job.getStatus().name().toLowerCase();
                 job.setStatus(JobStatus.open);
                 jobRepository.save(job);
 
                 Map<String, Object> event = new HashMap<>();
+                event.put("eventId", UUID.randomUUID().toString());
+                event.put("eventType", "JobStatusChanged");
+                event.put("occurredAt", LocalDateTime.now().toString());
                 event.put("jobId", jobIdStr);
                 event.put("jobTitle", job.getTitle());
                 event.put("recruiterId", job.getRecruiterId().toString());
+                event.put("oldStatus", oldStatus);
                 event.put("status", "approved");
+                event.put("newStatus", "open");
+                event.put("postedAt", job.getPostedAt().toString());
+                event.put("expiredAt", job.getExpiredAt().toString());
                 jobEventProducer.sendJobStatusChanged(event);
                 incrementMutationMetric("process", "approved");
             }
@@ -289,14 +311,22 @@ public class JobService {
                 Job job = jobRepository.findById(jobId)
                         .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy công việc có id '" + rj.getJobId() + "'."));
 
+                String oldStatus = job.getStatus().name().toLowerCase();
                 job.setStatus(JobStatus.rejected);
                 jobRepository.save(job);
 
                 Map<String, Object> event = new HashMap<>();
+                event.put("eventId", UUID.randomUUID().toString());
+                event.put("eventType", "JobStatusChanged");
+                event.put("occurredAt", LocalDateTime.now().toString());
                 event.put("jobId", rj.getJobId());
                 event.put("jobTitle", job.getTitle());
                 event.put("recruiterId", job.getRecruiterId().toString());
+                event.put("oldStatus", oldStatus);
                 event.put("status", "rejected");
+                event.put("newStatus", "rejected");
+                event.put("postedAt", job.getPostedAt().toString());
+                event.put("expiredAt", job.getExpiredAt().toString());
                 event.put("reason", rj.getReason() != null ? rj.getReason() : "");
                 jobEventProducer.sendJobStatusChanged(event);
                 incrementMutationMetric("process", "rejected");

@@ -44,6 +44,21 @@ services:
     networks:
       - it-job-network
 
+  dashboard-postgres:
+    image: postgres:16-alpine
+    container_name: dashboard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DASHBOARD_POSTGRES_DB:-dashboard_db}
+      POSTGRES_USER: ${DASHBOARD_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${DASHBOARD_POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${DASHBOARD_POSTGRES_BIND_HOST:-127.0.0.1}:${DASHBOARD_POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - dashboard_postgres_data:/var/lib/postgresql/data
+    networks:
+      - it-job-network
+
   organization-mysql:
     image: mysql:8
     container_name: organization-mysql
@@ -234,6 +249,7 @@ volumes:
   identity_postgres_data:
   job_postgres_data:
   notification_postgres_data:
+  dashboard_postgres_data:
   organization_mysql_data:
   application_mongo_data:
   redis_data:

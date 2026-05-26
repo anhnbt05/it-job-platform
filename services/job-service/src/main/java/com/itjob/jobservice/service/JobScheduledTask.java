@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -38,9 +39,14 @@ public class JobScheduledTask {
             log.info("Công việc sắp hết hạn: '{}' (ID: {})", job.getTitle(), job.getId());
 
             Map<String, Object> event = new HashMap<>();
+            event.put("eventId", UUID.randomUUID().toString());
+            event.put("eventType", "JobExpiringSoon");
+            event.put("occurredAt", LocalDateTime.now().toString());
             event.put("jobId", job.getId().toString());
             event.put("jobTitle", job.getTitle());
             event.put("recruiterId", job.getRecruiterId().toString());
+            event.put("status", job.getStatus().name().toLowerCase());
+            event.put("postedAt", job.getPostedAt().toString());
             event.put("expiredAt", job.getExpiredAt().toString());
             jobEventProducer.sendJobExpiringSoon(event);
         }
@@ -50,13 +56,22 @@ public class JobScheduledTask {
         for (Job job : expired) {
             log.info("Công việc đã hết hạn: '{}' (ID: {}), cập nhật trạng thái...", job.getTitle(), job.getId());
 
+            String oldStatus = job.getStatus().name().toLowerCase();
             job.setStatus(JobStatus.closed);
             jobRepository.save(job);
 
             Map<String, Object> event = new HashMap<>();
+            event.put("eventId", UUID.randomUUID().toString());
+            event.put("eventType", "JobExpired");
+            event.put("occurredAt", LocalDateTime.now().toString());
             event.put("jobId", job.getId().toString());
             event.put("jobTitle", job.getTitle());
             event.put("recruiterId", job.getRecruiterId().toString());
+            event.put("oldStatus", oldStatus);
+            event.put("status", "closed");
+            event.put("newStatus", "closed");
+            event.put("postedAt", job.getPostedAt().toString());
+            event.put("expiredAt", job.getExpiredAt().toString());
             jobEventProducer.sendJobExpired(event);
         }
 

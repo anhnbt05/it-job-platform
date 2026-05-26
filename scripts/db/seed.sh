@@ -53,8 +53,8 @@ prepare_identity_env() {
   export KAFKA_GROUP_ID="identity-service-group"
   export KAFKA_BROKERS="localhost:${KAFKA_EXTERNAL_PORT:-29092}"
   export FRONTEND_LOGIN_URL="${FRONTEND_LOGIN_URL:-http://localhost:3000/login}"
-  export IMAGEKIT_PUBLIC_KEY="${IMAGEKIT_PUBLIC_KEY:-public_jR+qP0WbyCh9fHVI8mZXPMQe3qE=}"
-  export IMAGEKIT_PRIVATE_KEY="${IMAGEKIT_PRIVATE_KEY:-private_tsBf7rGl8sQCgX2WTxbJtRKFMbk=}"
+  export IMAGEKIT_PUBLIC_KEY="${IMAGEKIT_PUBLIC_KEY:-replace-with-imagekit-public-key}"
+  export IMAGEKIT_PRIVATE_KEY="${IMAGEKIT_PRIVATE_KEY:-replace-with-imagekit-private-key}"
   export IMAGEKIT_FOLDER="${IMAGEKIT_FOLDER:-/captures}"
   export OBSERVABILITY_LOG_FILE="../../runtime-logs/identity-service.log"
 }

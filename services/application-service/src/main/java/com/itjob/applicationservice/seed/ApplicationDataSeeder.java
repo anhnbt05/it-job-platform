@@ -2,6 +2,7 @@ package com.itjob.applicationservice.seed;
 
 import com.itjob.applicationservice.document.Application;
 import com.itjob.applicationservice.enums.ApplicationStatus;
+import com.itjob.applicationservice.kafka.ApplicationEventProducer;
 import com.itjob.applicationservice.repository.ApplicationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -373,6 +376,7 @@ public class ApplicationDataSeeder implements ApplicationRunner {
 
     private final ApplicationRepository applicationRepository;
     private final ConfigurableApplicationContext applicationContext;
+    private final ApplicationEventProducer eventProducer;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -411,8 +415,26 @@ public class ApplicationDataSeeder implements ApplicationRunner {
             application.setAppliedAt(LocalDateTime.now().minusDays(resolveAppliedDaysAgo(index, seed.appliedDaysAgo())));
             application.setDeletedAt(null);
 
-            applicationRepository.save(application);
+            Application savedApplication = applicationRepository.save(application);
+            publishSeedApplicationEvent(savedApplication);
         }
+    }
+
+    private void publishSeedApplicationEvent(Application application) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", "seed:application-created:" + application.getId());
+        event.put("eventType", "ApplicationCreated");
+        event.put("occurredAt", application.getAppliedAt().toString());
+        event.put("applicationId", application.getId());
+        event.put("jobId", application.getJobId());
+        event.put("jobTitle", application.getJobTitle());
+        event.put("candidateId", application.getCandidateId());
+        event.put("candidateName", application.getCandidateName());
+        event.put("recruiterId", application.getRecruiterId());
+        event.put("status", application.getStatus().name().toLowerCase());
+        event.put("newStatus", application.getStatus().name().toLowerCase());
+        event.put("appliedAt", application.getAppliedAt().toString());
+        eventProducer.sendApplicationCreated(event);
     }
 
     private String resolveRecruiterId(String jobId) {

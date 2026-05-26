@@ -10,6 +10,7 @@ import com.itjob.jobservice.entity.JobRequirement;
 import com.itjob.jobservice.enums.JobStatus;
 import com.itjob.jobservice.enums.JobType;
 import com.itjob.jobservice.enums.Level;
+import com.itjob.jobservice.kafka.JobEventProducer;
 import com.itjob.jobservice.repository.CategorySnapshotRepository;
 import com.itjob.jobservice.repository.JobBenefitRepository;
 import com.itjob.jobservice.repository.JobCategoryRepository;
@@ -29,6 +30,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -727,6 +729,7 @@ public class JobDataSeeder implements ApplicationRunner {
     private final JobFavoriteRepository jobFavoriteRepository;
     private final ConfigurableApplicationContext applicationContext;
     private final PlatformTransactionManager transactionManager;
+    private final JobEventProducer jobEventProducer;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -788,7 +791,23 @@ public class JobDataSeeder implements ApplicationRunner {
             Job savedJob = jobRepository.save(job);
 
             replaceChildren(savedJob, seed.descriptions(), seed.requirements(), seed.benefits(), seed.categories());
+            publishSeedJobEvent(savedJob);
         }
+    }
+
+    private void publishSeedJobEvent(Job job) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", "seed:job-created:" + job.getId());
+        event.put("eventType", "JobCreated");
+        event.put("occurredAt", job.getPostedAt().toString());
+        event.put("jobId", job.getId().toString());
+        event.put("jobTitle", job.getTitle());
+        event.put("recruiterId", job.getRecruiterId().toString());
+        event.put("status", job.getStatus().name().toLowerCase());
+        event.put("newStatus", job.getStatus().name().toLowerCase());
+        event.put("postedAt", job.getPostedAt().toString());
+        event.put("expiredAt", job.getExpiredAt().toString());
+        jobEventProducer.sendJobCreated(event);
     }
 
     private void seedFavorites() {

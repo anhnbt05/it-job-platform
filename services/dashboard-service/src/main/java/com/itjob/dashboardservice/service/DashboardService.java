@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,16 +27,68 @@ public class DashboardService {
     private final ApplicationServiceClient applicationServiceClient;
     private final ReportContext reportContext;
     private final MeterRegistry meterRegistry;
+    private final DashboardReadModelService readModelService;
 
     /**
      * Lấy tổng hợp thống kê
      */
     public DashboardSummaryResponse getSummary(String startDate, String endDate) {
-        log.info("Đang lấy thống kê dashboard...");
+        log.info("Đang lấy thống kê dashboard từ read model...");
 
         Map<String, String> dependencyStatus = new LinkedHashMap<>();
         Map<String, String> dependencyErrors = new LinkedHashMap<>();
 
+        if (!readModelService.hasReadModelData()) {
+            dependencyStatus.put("dashboard-read-model", "empty");
+            dependencyErrors.put(
+                    "dashboard-read-model",
+                    "Read model chưa có dữ liệu. Dashboard đang fallback sang internal summary APIs."
+            );
+            return getSummaryFromDependencies(startDate, endDate, dependencyStatus, dependencyErrors);
+        }
+
+        LocalDateTime start = parseStartDate(startDate);
+        LocalDateTime end = parseEndDate(endDate);
+
+        Map<String, Object> jobStats = readModelService.getJobStats(start, end);
+        Map<String, Object> appStats = readModelService.getApplicationStats(start, end);
+
+        dependencyStatus.put("dashboard-read-model", "ok");
+        incrementDashboardMetric("summary", "read-model");
+
+        return DashboardSummaryResponse.builder()
+                .jobStats(jobStats)
+                .applicationStats(appStats)
+                .degraded(false)
+                .dependencyStatus(dependencyStatus)
+                .dependencyErrors(dependencyErrors)
+                .build();
+    }
+
+    /**
+     * Tạo báo cáo (PDF/Excel) với Strategy Pattern
+     */
+    public byte[] generateReport(ReportType type, String startDate, String endDate) {
+        log.info("Đang tạo báo cáo {}...", type);
+
+        DashboardSummaryResponse summary = getSummary(startDate, endDate);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("jobStats", summary.getJobStats());
+        data.put("applicationStats", summary.getApplicationStats());
+
+        ReportStrategy strategy = reportContext.getStrategy(type);
+        byte[] report = strategy.generate(data, type, startDate, endDate);
+        incrementDashboardMetric("report", type.name().toLowerCase());
+        return report;
+    }
+
+    private DashboardSummaryResponse getSummaryFromDependencies(
+            String startDate,
+            String endDate,
+            Map<String, String> dependencyStatus,
+            Map<String, String> dependencyErrors
+    ) {
         Map<String, Object> jobStats = fetchStatsSafely(
                 "job-service",
                 () -> jobServiceClient.getJobSummary(startDate, endDate),
@@ -52,7 +105,7 @@ public class DashboardService {
         );
 
         boolean degraded = !dependencyErrors.isEmpty();
-        incrementDashboardMetric("summary", degraded ? "degraded" : "none");
+        incrementDashboardMetric("summary", degraded ? "fallback-degraded" : "fallback");
 
         return DashboardSummaryResponse.builder()
                 .jobStats(jobStats)
@@ -61,25 +114,6 @@ public class DashboardService {
                 .dependencyStatus(dependencyStatus)
                 .dependencyErrors(dependencyErrors)
                 .build();
-    }
-
-    /**
-     * Tạo báo cáo (PDF/Excel) với Strategy Pattern
-     */
-    public byte[] generateReport(ReportType type, String startDate, String endDate) {
-        log.info("Đang tạo báo cáo {}...", type);
-
-        Map<String, Object> jobStats = jobServiceClient.getJobSummary(startDate, endDate);
-        Map<String, Object> appStats = applicationServiceClient.getApplicationSummary(startDate, endDate);
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("jobStats", jobStats);
-        data.put("applicationStats", appStats);
-
-        ReportStrategy strategy = reportContext.getStrategy(type);
-        byte[] report = strategy.generate(data, type, startDate, endDate);
-        incrementDashboardMetric("report", type.name().toLowerCase());
-        return report;
     }
 
     /**
@@ -166,5 +200,17 @@ public class DashboardService {
         applicationStats.put("accepted", 0);
         applicationStats.put("rejected", 0);
         return applicationStats;
+    }
+
+    private LocalDateTime parseStartDate(String startDate) {
+        return startDate != null && !startDate.isBlank()
+                ? LocalDateTime.parse(startDate + "T00:00:00")
+                : null;
+    }
+
+    private LocalDateTime parseEndDate(String endDate) {
+        return endDate != null && !endDate.isBlank()
+                ? LocalDateTime.parse(endDate + "T23:59:59")
+                : null;
     }
 }

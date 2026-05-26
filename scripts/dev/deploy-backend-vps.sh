@@ -431,6 +431,7 @@ docker compose up -d \
   identity-postgres \
   job-postgres \
   notification-postgres \
+  dashboard-postgres \
   organization-mysql \
   application-mongo \
   redis \
@@ -446,6 +447,7 @@ fi
 wait_tcp 127.0.0.1 "${IDENTITY_POSTGRES_PORT:-5432}" identity-postgres
 wait_tcp 127.0.0.1 "${JOB_POSTGRES_PORT:-5433}" job-postgres
 wait_tcp 127.0.0.1 "${NOTIFICATION_POSTGRES_PORT:-5434}" notification-postgres
+wait_tcp 127.0.0.1 "${DASHBOARD_POSTGRES_PORT:-5435}" dashboard-postgres
 wait_tcp 127.0.0.1 "${ORGANIZATION_MYSQL_PORT:-3306}" organization-mysql
 wait_tcp 127.0.0.1 "${APPLICATION_MONGO_PORT:-27018}" application-mongo
 wait_tcp 127.0.0.1 "${REDIS_PORT:-6379}" redis
