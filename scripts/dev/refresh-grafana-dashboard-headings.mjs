@@ -128,7 +128,7 @@ const dashboardConfigs = [
     },
   },
   {
-    path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/performance/performance-smoke.json",
+    path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/automation/performance-smoke.json",
     title: "Performance Smoke",
     description:
       "Dashboard dành cho smoke performance run. Đọc theo test id để xem run status, latency, traffic và error của từng service.",
@@ -144,7 +144,7 @@ const dashboardConfigs = [
     panelDescriptions: commonPerformancePanelDescriptions,
   },
   {
-    path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/performance/performance-spike.json",
+    path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/automation/performance-spike.json",
     title: "Performance Spike",
     description:
       "Dashboard dành cho spike performance run. Tập trung vào khả năng hấp thụ đột biến tải ở từng service.",
@@ -160,7 +160,7 @@ const dashboardConfigs = [
     panelDescriptions: commonPerformancePanelDescriptions,
   },
   {
-    path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/performance/performance-stress.json",
+    path: "E:/it-job/it-job-platform/infrastructure/observability/grafana/dashboards/automation/performance-stress.json",
     title: "Performance Stress",
     description:
       "Dashboard dành cho stress performance run. Dùng để quan sát độ trễ và sự ổn định khi hệ thống bị ép tải mạnh hơn và lâu hơn.",

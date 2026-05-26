@@ -473,7 +473,6 @@ Dashboard groups:
 - **Automation Tests**
   - `API Automation Test`
   - `UI E2E Test`
-- **Performance Test**
   - `Performance Smoke`
   - `Performance Spike`
   - `Performance Stress`
