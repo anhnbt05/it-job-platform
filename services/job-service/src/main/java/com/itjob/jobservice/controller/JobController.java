@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/jobs")
@@ -95,5 +96,12 @@ public class JobController {
         LocalDateTime start = startDate != null ? LocalDateTime.parse(startDate + "T00:00:00") : null;
         LocalDateTime end = endDate != null ? LocalDateTime.parse(endDate + "T23:59:59") : null;
         return ResponseEntity.ok(jobService.getJobSummary(start, end));
+    }
+
+    // Internal API cho kịch bản graceful degradation bằng snapshot
+    @GetMapping("/internal/snapshot-status")
+    @Operation(summary = "Trạng thái snapshot phục vụ graceful degradation (Internal API)")
+    public ResponseEntity<Map<String, Object>> getSnapshotStatus() {
+        return ResponseEntity.ok(jobService.getSnapshotStatus());
     }
 }

@@ -365,6 +365,20 @@ public class JobService {
                 .build();
     }
 
+    /**
+     * Snapshot readiness for graceful degradation demos.
+     */
+    public Map<String, Object> getSnapshotStatus() {
+        Map<String, Object> status = new LinkedHashMap<>();
+        status.put("mode", "local-snapshot");
+        status.put("degradationStrategy", "serve-job-browsing-from-job-db-and-category-snapshots");
+        status.put("jobCount", jobRepository.count());
+        status.put("categorySnapshotCount", categorySnapshotRepository.count());
+        status.put("jobCategoryMappingCount", jobCategoryRepository.count());
+        status.put("organizationServiceRequiredForBrowsing", false);
+        return status;
+    }
+
     // ========== Helper methods ==========
 
     private void saveJobCategories(Job job, List<String> categoryNames) {

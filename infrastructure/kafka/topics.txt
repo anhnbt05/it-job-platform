@@ -22,3 +22,4 @@ job-expiring-soon
 application-created
 application-status-changed
 job-closed-by-vacancy
+dashboard.dlq

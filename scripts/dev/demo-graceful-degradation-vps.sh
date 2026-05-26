@@ -4,12 +4,15 @@ set -euo pipefail
 ROOT_DIR="${ROOT_DIR:-/opt/it-job/it-job-platform}"
 WAIT_TIMEOUT_SECONDS="${WAIT_TIMEOUT_SECONDS:-120}"
 CURL_TIMEOUT_SECONDS="${CURL_TIMEOUT_SECONDS:-8}"
-START_DATE="${START_DATE:-2026-01-01}"
-END_DATE="${END_DATE:-2026-12-31}"
 
 JOB_HEALTH_URL="${JOB_HEALTH_URL:-http://127.0.0.1:8082/api/health}"
-DASHBOARD_HEALTH_URL="${DASHBOARD_HEALTH_URL:-http://127.0.0.1:8084/api/health}"
-DASHBOARD_SUMMARY_URL="${DASHBOARD_SUMMARY_URL:-http://127.0.0.1:8084/api/dashboard/summary?startDate=${START_DATE}&endDate=${END_DATE}}"
+JOB_LIST_URL="${JOB_LIST_URL:-http://127.0.0.1:8082/api/jobs}"
+JOB_SNAPSHOT_STATUS_URL="${JOB_SNAPSHOT_STATUS_URL:-http://127.0.0.1:8082/api/jobs/internal/snapshot-status}"
+ORGANIZATION_HEALTH_URL="${ORGANIZATION_HEALTH_URL:-http://127.0.0.1:3002/health}"
+KONG_ORGANIZATION_HEALTH_URL="${KONG_ORGANIZATION_HEALTH_URL:-http://127.0.0.1:8000/organization/health}"
+DEMO_USER_ID="${DEMO_USER_ID:-55555555-5555-5555-5555-555555555555}"
+DEMO_ROLE="${DEMO_ROLE:-candidate}"
+PRINT_FULL_JOB_RESPONSE="${PRINT_FULL_JOB_RESPONSE:-0}"
 
 APP_COMPOSE_ARGS=(
   -f "$ROOT_DIR/docker-compose.yml"
@@ -23,6 +26,13 @@ log() {
 fetch_url() {
   local url="$1"
   curl -fsS --max-time "$CURL_TIMEOUT_SECONDS" "$url"
+}
+
+fetch_jobs() {
+  curl -fsS --max-time "$CURL_TIMEOUT_SECONDS" \
+    -H "X-User-Id: $DEMO_USER_ID" \
+    -H "X-User-Role: $DEMO_ROLE" \
+    "$JOB_LIST_URL"
 }
 
 wait_http() {
@@ -61,101 +71,86 @@ wait_http_down() {
   log "${name} is no longer responding at ${url}"
 }
 
-fetch_dashboard_summary() {
-  fetch_url "$DASHBOARD_SUMMARY_URL"
+print_snapshot_status() {
+  log "job-service local snapshot status"
+  fetch_url "$JOB_SNAPSHOT_STATUS_URL"
+  printf '\n'
 }
 
-print_dashboard_summary() {
+assert_job_browsing_works() {
   local body
-  body="$(fetch_dashboard_summary)"
-  printf '%s\n' "$body"
-}
+  body="$(fetch_jobs)"
 
-wait_for_summary_flag() {
-  local expected_flag="$1"
-  local timeout_seconds="${2:-$WAIT_TIMEOUT_SECONDS}"
-  local deadline=$((SECONDS + timeout_seconds))
-  local body=""
-
-  until body="$(fetch_dashboard_summary 2>/dev/null)"; do
-    if (( SECONDS >= deadline )); then
-      echo "Timed out waiting for dashboard summary to respond." >&2
-      return 1
-    fi
-
-    sleep 3
-  done
-
-  until grep -q "\"degraded\":${expected_flag}" <<<"$body"; do
-    if (( SECONDS >= deadline )); then
-      echo "Timed out waiting for dashboard summary degraded=${expected_flag}." >&2
-      printf '%s\n' "$body" >&2
-      return 1
-    fi
-
-    sleep 3
-    body="$(fetch_dashboard_summary)"
-  done
-
-  if [[ "$expected_flag" == "true" ]]; then
-    log "dashboard summary is now degraded as expected"
-  else
-    log "dashboard summary is healthy again"
+  if ! grep -q '"success":true' <<<"$body"; then
+    echo "Job browsing did not return success=true." >&2
+    printf '%s\n' "$body" >&2
+    return 1
   fi
 
-  printf '%s\n' "$body"
-}
+  if ! grep -q '"categories":\[' <<<"$body"; then
+    echo "Job browsing response does not include category snapshot data." >&2
+    printf '%s\n' "$body" >&2
+    return 1
+  fi
 
-stop_job_service() {
-  log "stopping job-service"
-  (
-    cd "$ROOT_DIR"
-    docker compose "${APP_COMPOSE_ARGS[@]}" stop job-service
-  )
-
-  wait_http_down "$JOB_HEALTH_URL" "job-service"
-}
-
-start_job_service() {
-  log "starting job-service"
-  (
-    cd "$ROOT_DIR"
-    docker compose "${APP_COMPOSE_ARGS[@]}" up -d job-service
-  )
-
-  wait_http "$JOB_HEALTH_URL" "job-service"
+  log "job browsing still works and returns category data"
+  if [[ "$PRINT_FULL_JOB_RESPONSE" == "1" ]]; then
+    printf '%s\n' "$body"
+  else
+    printf '%s...\n' "${body:0:1200}"
+  fi
 }
 
 baseline() {
   log "checking healthy baseline"
-  wait_http "$DASHBOARD_HEALTH_URL" "dashboard-service"
   wait_http "$JOB_HEALTH_URL" "job-service"
-  wait_for_summary_flag false >/dev/null
+  wait_http "$ORGANIZATION_HEALTH_URL" "organization-service"
+  print_snapshot_status
+  assert_job_browsing_works >/dev/null
   log "baseline is healthy"
 }
 
 inject_failure() {
-  stop_job_service
+  log "stopping organization-service"
+  (
+    cd "$ROOT_DIR"
+    docker compose "${APP_COMPOSE_ARGS[@]}" stop organization-service
+  )
+
+  wait_http_down "$ORGANIZATION_HEALTH_URL" "organization-service"
 }
 
 check_degraded() {
   log "checking graceful degradation state"
-  wait_http "$DASHBOARD_HEALTH_URL" "dashboard-service"
-  local body
-  body="$(wait_for_summary_flag true)"
-  printf '%s\n' "$body"
+  wait_http "$JOB_HEALTH_URL" "job-service"
+
+  if fetch_url "$ORGANIZATION_HEALTH_URL" >/dev/null 2>&1; then
+    echo "organization-service is still responding; failure was not injected." >&2
+    return 1
+  fi
+
+  print_snapshot_status
+  assert_job_browsing_works
+  log "graceful degradation verified: organization-service is down, but job browsing is served from local snapshots"
 }
 
 recover() {
-  start_job_service
+  log "starting organization-service"
+  (
+    cd "$ROOT_DIR"
+    docker compose "${APP_COMPOSE_ARGS[@]}" up -d organization-service
+  )
+
+  wait_http "$ORGANIZATION_HEALTH_URL" "organization-service"
+  wait_http "$KONG_ORGANIZATION_HEALTH_URL" "kong-organization"
 }
 
 verify_recovered() {
-  log "verifying dashboard recovery"
-  wait_http "$DASHBOARD_HEALTH_URL" "dashboard-service"
-  local body
-  body="$(wait_for_summary_flag false)"
-  printf '%s\n' "$body"
+  log "verifying recovered state"
+  wait_http "$ORGANIZATION_HEALTH_URL" "organization-service"
+  wait_http "$JOB_HEALTH_URL" "job-service"
+  assert_job_browsing_works >/dev/null
+  log "system recovered"
 }
 
 print_usage() {
@@ -166,27 +161,36 @@ Usage:
   bash ./scripts/dev/demo-graceful-degradation-vps.sh check-degraded
   bash ./scripts/dev/demo-graceful-degradation-vps.sh recover
   bash ./scripts/dev/demo-graceful-degradation-vps.sh verify-recovered
-  bash ./scripts/dev/demo-graceful-degradation-vps.sh print-summary
+  bash ./scripts/dev/demo-graceful-degradation-vps.sh print-snapshot-status
+  bash ./scripts/dev/demo-graceful-degradation-vps.sh print-jobs
   bash ./scripts/dev/demo-graceful-degradation-vps.sh full
 
+Scenario:
+  Organization Service is stopped, but Job Service still serves job browsing
+  from its own job database and local category snapshots.
+
 Modes:
-  baseline          Verify dashboard summary is healthy before the demo.
-  inject-failure    Stop job-service and wait until its health endpoint is down.
-  check-degraded    Verify dashboard summary returns degraded=true.
-  recover           Start job-service again and wait for health.
-  verify-recovered  Verify dashboard summary returns degraded=false again.
-  print-summary     Print the current dashboard summary payload.
-  full              baseline -> inject-failure -> check-degraded -> recover -> verify-recovered.
+  baseline               Verify job-service, organization-service, snapshots, and job browsing.
+  inject-failure         Stop organization-service and wait until it is down.
+  check-degraded         Verify job browsing still works while organization-service is down.
+  recover                Start organization-service again and wait for health.
+  verify-recovered       Verify organization-service and job browsing after recovery.
+  print-snapshot-status  Print local snapshot status from job-service.
+  print-jobs             Print current job browsing response.
+  full                   baseline -> inject-failure -> check-degraded -> recover -> verify-recovered.
 
 Environment:
   ROOT_DIR
   WAIT_TIMEOUT_SECONDS
   CURL_TIMEOUT_SECONDS
-  START_DATE
-  END_DATE
   JOB_HEALTH_URL
-  DASHBOARD_HEALTH_URL
-  DASHBOARD_SUMMARY_URL
+  JOB_LIST_URL
+  JOB_SNAPSHOT_STATUS_URL
+  ORGANIZATION_HEALTH_URL
+  KONG_ORGANIZATION_HEALTH_URL
+  DEMO_USER_ID
+  DEMO_ROLE
+  PRINT_FULL_JOB_RESPONSE
 EOF
 }
 
@@ -209,19 +213,22 @@ main() {
     verify-recovered)
       verify_recovered
       ;;
-    print-summary)
-      print_dashboard_summary
+    print-snapshot-status)
+      print_snapshot_status
+      ;;
+    print-jobs)
+      assert_job_browsing_works
       ;;
     full)
       log "step 1/5: healthy baseline"
       baseline
-      log "step 2/5: stop job-service"
+      log "step 2/5: stop organization-service"
       inject_failure
-      log "step 3/5: dashboard should degrade gracefully"
+      log "step 3/5: job browsing should degrade gracefully"
       check_degraded
-      log "step 4/5: recover job-service"
+      log "step 4/5: recover organization-service"
       recover
-      log "step 5/5: dashboard should return to healthy state"
+      log "step 5/5: verify recovered state"
       verify_recovered
       ;;
     help|-h|--help)
