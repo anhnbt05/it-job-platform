@@ -8,9 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class JobOutboxService {
 
     private static final int MAX_ERROR_LENGTH = 1000;
+    private static final Clock UTC_CLOCK = Clock.systemUTC();
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
 
@@ -30,6 +34,7 @@ public class JobOutboxService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final MeterRegistry meterRegistry;
+    private final PlatformTransactionManager transactionManager;
 
     public void enqueue(String topic, Map<String, Object> event) {
         String eventId = resolveEventId(event);
@@ -50,8 +55,8 @@ public class JobOutboxService {
                     .payload(objectMapper.writeValueAsString(event))
                     .status(OutboxEventStatus.PENDING)
                     .attempts(0)
-                    .createdAt(LocalDateTime.now())
-                    .nextAttemptAt(LocalDateTime.now())
+                    .createdAt(now())
+                    .nextAttemptAt(now())
                     .build();
 
             outboxEventRepository.save(outboxEvent);
@@ -78,7 +83,7 @@ public class JobOutboxService {
         List<OutboxEvent> events = outboxEventRepository
                 .findTop100ByStatusInAndNextAttemptAtLessThanEqualOrderByCreatedAtAsc(
                         List.of(OutboxEventStatus.PENDING, OutboxEventStatus.FAILED),
-                        LocalDateTime.now()
+                        now()
                 );
 
         for (OutboxEvent event : events) {
@@ -87,7 +92,8 @@ public class JobOutboxService {
     }
 
     public void publishEvent(String eventId) {
-        outboxEventRepository.findById(eventId).ifPresent(event -> {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.executeWithoutResult(status -> outboxEventRepository.findById(eventId).ifPresent(event -> {
             if (event.getStatus() == OutboxEventStatus.PUBLISHED) {
                 return;
             }
@@ -97,7 +103,7 @@ public class JobOutboxService {
                 kafkaTemplate.send(event.getTopic(), event.getAggregateId(), payload).get(10, TimeUnit.SECONDS);
 
                 event.setStatus(OutboxEventStatus.PUBLISHED);
-                event.setPublishedAt(LocalDateTime.now());
+                event.setPublishedAt(now());
                 event.setLastError(null);
                 outboxEventRepository.save(event);
                 incrementOutboxMetric(event.getTopic(), "published");
@@ -106,12 +112,12 @@ public class JobOutboxService {
                 event.setStatus(OutboxEventStatus.FAILED);
                 event.setAttempts(event.getAttempts() + 1);
                 event.setLastError(truncate(exception.getMessage()));
-                event.setNextAttemptAt(LocalDateTime.now().plusSeconds(Math.min(60, event.getAttempts() * 5L)));
+                event.setNextAttemptAt(now().plusSeconds(Math.min(60, event.getAttempts() * 5L)));
                 outboxEventRepository.save(event);
                 incrementOutboxMetric(event.getTopic(), "failed");
                 log.warn("Failed to publish job outbox event {}: {}", event.getEventId(), exception.getMessage());
             }
-        });
+        }));
     }
 
     private String resolveEventId(Map<String, Object> event) {
@@ -142,5 +148,9 @@ public class JobOutboxService {
                 "topic", topic,
                 "result", result
         ).increment();
+    }
+
+    private LocalDateTime now() {
+        return LocalDateTime.now(UTC_CLOCK);
     }
 }

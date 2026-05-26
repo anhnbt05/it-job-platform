@@ -9,6 +9,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class ApplicationOutboxService {
 
     private static final int MAX_ERROR_LENGTH = 1000;
+    private static final Clock UTC_CLOCK = Clock.systemUTC();
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {
     };
 
@@ -48,8 +50,8 @@ public class ApplicationOutboxService {
                     .payload(objectMapper.writeValueAsString(event))
                     .status(OutboxEventStatus.PENDING)
                     .attempts(0)
-                    .createdAt(LocalDateTime.now())
-                    .nextAttemptAt(LocalDateTime.now())
+                    .createdAt(now())
+                    .nextAttemptAt(now())
                     .build();
 
             outboxEventRepository.save(outboxEvent);
@@ -66,7 +68,7 @@ public class ApplicationOutboxService {
         List<OutboxEvent> events = outboxEventRepository
                 .findTop100ByStatusInAndNextAttemptAtLessThanEqualOrderByCreatedAtAsc(
                         List.of(OutboxEventStatus.PENDING, OutboxEventStatus.FAILED),
-                        LocalDateTime.now()
+                        now()
                 );
 
         for (OutboxEvent event : events) {
@@ -85,7 +87,7 @@ public class ApplicationOutboxService {
                 kafkaTemplate.send(event.getTopic(), event.getAggregateId(), payload).get(10, TimeUnit.SECONDS);
 
                 event.setStatus(OutboxEventStatus.PUBLISHED);
-                event.setPublishedAt(LocalDateTime.now());
+                event.setPublishedAt(now());
                 event.setLastError(null);
                 outboxEventRepository.save(event);
                 incrementOutboxMetric(event.getTopic(), "published");
@@ -94,7 +96,7 @@ public class ApplicationOutboxService {
                 event.setStatus(OutboxEventStatus.FAILED);
                 event.setAttempts(event.getAttempts() + 1);
                 event.setLastError(truncate(exception.getMessage()));
-                event.setNextAttemptAt(LocalDateTime.now().plusSeconds(Math.min(60, event.getAttempts() * 5L)));
+                event.setNextAttemptAt(now().plusSeconds(Math.min(60, event.getAttempts() * 5L)));
                 outboxEventRepository.save(event);
                 incrementOutboxMetric(event.getTopic(), "failed");
                 log.warn("Failed to publish application outbox event {}: {}", event.getEventId(), exception.getMessage());
@@ -130,5 +132,9 @@ public class ApplicationOutboxService {
                 "topic", topic,
                 "result", result
         ).increment();
+    }
+
+    private LocalDateTime now() {
+        return LocalDateTime.now(UTC_CLOCK);
     }
 }
