@@ -432,7 +432,7 @@ Performance results are sent to Prometheus and summarized in Grafana dashboards.
 
 ### Design for Failure Demo
 
-The graceful degradation demo intentionally stops `job-service` and verifies that `dashboard-service` responds in degraded mode instead of failing the entire dashboard flow.
+The graceful degradation demo intentionally stops `organization-service` and verifies that `job-service` still serves job browsing from its own job database and local category snapshots.
 
 Run the full demo:
 
@@ -450,7 +450,7 @@ bash ./scripts/dev/demo-graceful-degradation-vps.sh recover
 bash ./scripts/dev/demo-graceful-degradation-vps.sh verify-recovered
 ```
 
-The GitHub workflow `Graceful Degradation Demo` runs the same idea through SSH and logs the result to Grafana/Loki.
+The demo can be run over SSH on the VPS and observed through service logs.
 
 ## Observability
 
@@ -473,7 +473,6 @@ Dashboard groups:
 - **Automation Tests**
   - `API Automation Test`
   - `UI E2E Test`
-  - `Design for Failure Demo`
 - **Performance Test**
   - `Performance Smoke`
   - `Performance Spike`
