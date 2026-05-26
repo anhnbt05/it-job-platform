@@ -13,7 +13,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class DashboardReadModelConsumer {
 
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+
     private final DashboardReadModelService readModelService;
+    private final DashboardDlqPublisher dlqPublisher;
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "job-created", groupId = "dashboard-service-read-model-group")
@@ -42,12 +45,34 @@ public class DashboardReadModelConsumer {
     }
 
     private void handle(String topic, String message, EventHandler handler) {
-        try {
-            JsonNode payload = objectMapper.readTree(message);
-            boolean processed = handler.apply(payload);
-            log.info("Dashboard read model event {} handled. processed={}", topic, processed);
-        } catch (Exception exception) {
-            log.error("Failed to process dashboard read model event from topic {}: {}", topic, exception.getMessage(), exception);
+        Exception lastException = null;
+
+        for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+            try {
+                JsonNode payload = objectMapper.readTree(message);
+                boolean processed = handler.apply(payload);
+                log.info("Dashboard read model event {} handled. processed={}", topic, processed);
+                return;
+            } catch (Exception exception) {
+                lastException = exception;
+                log.warn(
+                        "Failed to process dashboard read model event from topic {} on attempt {}/{}: {}",
+                        topic,
+                        attempt,
+                        MAX_RETRY_ATTEMPTS,
+                        exception.getMessage()
+                );
+            }
+        }
+
+        if (lastException != null) {
+            log.error(
+                    "Sending dashboard read model event from topic {} to DLQ after {} failed attempts",
+                    topic,
+                    MAX_RETRY_ATTEMPTS,
+                    lastException
+            );
+            dlqPublisher.publish(topic, message, lastException, MAX_RETRY_ATTEMPTS);
         }
     }
 
