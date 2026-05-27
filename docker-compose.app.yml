@@ -108,6 +108,9 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
       APPLICATION_SERVICE_URL: http://application-service:8083/api
       ORGANIZATION_SERVICE_URL: http://organization-service:3002
+      OTEL_SERVICE_NAME: job-service
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_TRACES_SAMPLER: always_on
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/job-service.log
     ports:
       - "${JOB_SERVICE_PORT:-8082}:8082"
@@ -128,6 +131,9 @@ services:
       MONGO_PORT: 27017
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
       JOB_SERVICE_URL: http://job-service:8082/api
+      OTEL_SERVICE_NAME: application-service
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_TRACES_SAMPLER: always_on
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/application-service.log
     ports:
       - "${APPLICATION_SERVICE_PORT:-8083}:8083"
@@ -152,6 +158,9 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_INTERNAL_BROKER:-kafka:9092}
       JOB_SERVICE_URL: http://job-service:8082/api
       APPLICATION_SERVICE_URL: http://application-service:8083/api
+      OTEL_SERVICE_NAME: dashboard-service
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_TRACES_SAMPLER: always_on
       OBSERVABILITY_LOG_FILE: /app/runtime-logs/dashboard-service.log
     ports:
       - "${DASHBOARD_SERVICE_PORT:-8084}:8084"

@@ -35,6 +35,20 @@ plugins:
         - Content-Disposition
       credentials: true
       max_age: 3600
+  - name: opentelemetry
+    config:
+      traces_endpoint: http://jaeger:4318/v1/traces
+      sampling_rate: 1.0
+      resource_attributes:
+        service.name: kong-gateway
+      propagation:
+        extract:
+          - w3c
+          - b3
+          - jaeger
+        inject:
+          - w3c
+        default_format: w3c
 
 services:
   - name: identity-service
