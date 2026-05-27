@@ -30,11 +30,9 @@ import java.util.stream.Collectors;
 public class ApplicationService {
 
     private static final String RECRUITER_NEW_APPLICATION = "recruiter_new_application";
-    private static final String ADMIN_NEW_APPLICATION = "admin_new_application";
     private static final String CANDIDATE_APPLICATION_APPROVED = "candidate_application_approved";
     private static final String CANDIDATE_APPLICATION_REJECTED = "candidate_application_rejected";
     private static final String CANDIDATE_JOB_CLOSED = "candidate_job_closed";
-    private static final String ROLE_ADMIN = "admin";
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationEventProducer eventProducer;
@@ -133,12 +131,6 @@ public class ApplicationService {
                 RECRUITER_NEW_APPLICATION,
                 "Có ứng viên mới ứng tuyển bài đăng của bạn",
                 recruiterId,
-                applicationCreatedMetadata
-        ));
-        eventProducer.sendNotificationCreated(createRoleNotificationEvent(
-                ADMIN_NEW_APPLICATION,
-                "Có đơn ứng tuyển mới trong hệ thống",
-                ROLE_ADMIN,
                 applicationCreatedMetadata
         ));
         incrementApplicationMetric("create", "pending");
@@ -388,32 +380,6 @@ public class ApplicationService {
         event.put("type", type);
         event.put("title", title);
         event.put("userId", userId);
-        event.put("metadata", metadata);
-        return event;
-    }
-
-    private Map<String, Object> createRoleNotificationEvent(
-            String type,
-            String title,
-            String recipientRole,
-            Map<String, Object> metadata
-    ) {
-        Map<String, Object> event = createBaseNotificationEvent(type, title, metadata);
-        event.put("recipientRole", recipientRole);
-        return event;
-    }
-
-    private Map<String, Object> createBaseNotificationEvent(
-            String type,
-            String title,
-            Map<String, Object> metadata
-    ) {
-        Map<String, Object> event = new HashMap<>();
-        event.put("eventId", UUID.randomUUID().toString());
-        event.put("eventType", "NotificationCreated");
-        event.put("occurredAt", LocalDateTime.now().toString());
-        event.put("type", type);
-        event.put("title", title);
         event.put("metadata", metadata);
         return event;
     }
