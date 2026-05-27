@@ -20,6 +20,9 @@ import java.util.UUID;
 @Slf4j
 public class JobScheduledTask {
 
+    private static final String RECRUITER_JOB_EXPIRING_SOON = "recruiter_job_expiring_soon";
+    private static final String RECRUITER_JOB_EXPIRED = "recruiter_job_expired";
+
     private final JobRepository jobRepository;
     private final JobEventProducer jobEventProducer;
 
@@ -49,6 +52,18 @@ public class JobScheduledTask {
             event.put("postedAt", job.getPostedAt().toString());
             event.put("expiredAt", job.getExpiredAt().toString());
             jobEventProducer.sendJobExpiringSoon(event);
+            jobEventProducer.sendNotificationCreated(createUserNotificationEvent(
+                    "notification:job-expiring-soon:" + job.getId() + ":" + job.getExpiredAt().toLocalDate(),
+                    RECRUITER_JOB_EXPIRING_SOON,
+                    "Tin tuyển dụng của bạn sắp hết hạn",
+                    job.getRecruiterId().toString(),
+                    metadataOf(
+                            "jobId", job.getId().toString(),
+                            "jobTitle", job.getTitle(),
+                            "jobExpiredAt", job.getExpiredAt().toString(),
+                            "status", job.getStatus().name().toLowerCase()
+                    )
+            ));
         }
 
         // Jobs đã hết hạn
@@ -73,8 +88,47 @@ public class JobScheduledTask {
             event.put("postedAt", job.getPostedAt().toString());
             event.put("expiredAt", job.getExpiredAt().toString());
             jobEventProducer.sendJobExpired(event);
+            jobEventProducer.sendNotificationCreated(createUserNotificationEvent(
+                    "notification:job-expired:" + job.getId(),
+                    RECRUITER_JOB_EXPIRED,
+                    "Tin tuyển dụng của bạn đã hết hạn",
+                    job.getRecruiterId().toString(),
+                    metadataOf(
+                            "jobId", job.getId().toString(),
+                            "jobTitle", job.getTitle(),
+                            "jobExpiredAt", job.getExpiredAt().toString(),
+                            "oldStatus", oldStatus,
+                            "newStatus", "closed"
+                    )
+            ));
         }
 
         log.info("Hoàn tất kiểm tra. Sắp hết hạn: {}, Đã hết hạn: {}", expiringSoon.size(), expired.size());
+    }
+
+    private Map<String, Object> createUserNotificationEvent(
+            String eventId,
+            String type,
+            String title,
+            String userId,
+            Map<String, Object> metadata
+    ) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", eventId);
+        event.put("eventType", "NotificationCreated");
+        event.put("occurredAt", LocalDateTime.now().toString());
+        event.put("type", type);
+        event.put("title", title);
+        event.put("userId", userId);
+        event.put("metadata", metadata);
+        return event;
+    }
+
+    private Map<String, Object> metadataOf(Object... entries) {
+        Map<String, Object> metadata = new HashMap<>();
+        for (int i = 0; i + 1 < entries.length; i += 2) {
+            metadata.put(String.valueOf(entries[i]), entries[i + 1]);
+        }
+        return metadata;
     }
 }

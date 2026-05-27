@@ -33,6 +33,7 @@ public class ApplicationService {
     private static final String ADMIN_NEW_APPLICATION = "admin_new_application";
     private static final String CANDIDATE_APPLICATION_APPROVED = "candidate_application_approved";
     private static final String CANDIDATE_APPLICATION_REJECTED = "candidate_application_rejected";
+    private static final String CANDIDATE_JOB_CLOSED = "candidate_job_closed";
     private static final String ROLE_ADMIN = "admin";
 
     private final ApplicationRepository applicationRepository;
@@ -264,6 +265,44 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
 
+    public void notifyCandidatesJobClosed(Map<String, Object> jobEvent) {
+        String jobId = String.valueOf(jobEvent.getOrDefault("jobId", ""));
+        if (jobId.isBlank()) {
+            log.warn("Skip candidate job closed notifications because jobId is missing: {}", jobEvent);
+            return;
+        }
+
+        String sourceEventId = String.valueOf(jobEvent.getOrDefault("eventId", jobId));
+        String jobTitle = String.valueOf(jobEvent.getOrDefault("jobTitle", "không rõ"));
+        String newStatus = String.valueOf(jobEvent.getOrDefault("newStatus", jobEvent.getOrDefault("status", "")));
+
+        if (!"closed".equalsIgnoreCase(newStatus) && !"JobExpired".equals(String.valueOf(jobEvent.get("eventType")))) {
+            return;
+        }
+
+        List<Application> applications = applicationRepository.findByJobIdAndDeletedAtIsNull(jobId).stream()
+                .filter(app -> app.getStatus() != ApplicationStatus.rejected)
+                .collect(Collectors.toList());
+
+        for (Application app : applications) {
+            eventProducer.sendNotificationCreated(createUserNotificationEvent(
+                    "notification:candidate-job-closed:" + sourceEventId + ":" + app.getId(),
+                    CANDIDATE_JOB_CLOSED,
+                    "Công việc bạn đã ứng tuyển hiện không còn hoạt động",
+                    app.getCandidateId(),
+                    metadataOf(
+                            "applicationId", app.getId(),
+                            "jobId", jobId,
+                            "jobTitle", jobTitle,
+                            "candidateName", app.getCandidateName(),
+                            "recruiterId", app.getRecruiterId(),
+                            "oldStatus", jobEvent.get("oldStatus"),
+                            "newStatus", "closed"
+                    )
+            ));
+        }
+    }
+
     /**
      * Thống kê đơn ứng tuyển (cho Dashboard Service)
      */
@@ -332,8 +371,18 @@ public class ApplicationService {
             String userId,
             Map<String, Object> metadata
     ) {
+        return createUserNotificationEvent(UUID.randomUUID().toString(), type, title, userId, metadata);
+    }
+
+    private Map<String, Object> createUserNotificationEvent(
+            String eventId,
+            String type,
+            String title,
+            String userId,
+            Map<String, Object> metadata
+    ) {
         Map<String, Object> event = new HashMap<>();
-        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventId", eventId);
         event.put("eventType", "NotificationCreated");
         event.put("occurredAt", LocalDateTime.now().toString());
         event.put("type", type);

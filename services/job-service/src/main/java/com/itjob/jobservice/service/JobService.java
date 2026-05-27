@@ -293,8 +293,25 @@ public class JobService {
         }
 
         job.setDeletedAt(LocalDateTime.now());
+        String oldStatus = job.getStatus().name().toLowerCase();
         job.setStatus(JobStatus.closed);
         jobRepository.save(job);
+
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventType", "JobStatusChanged");
+        event.put("occurredAt", LocalDateTime.now().toString());
+        event.put("jobId", job.getId().toString());
+        event.put("jobTitle", job.getTitle());
+        event.put("recruiterId", job.getRecruiterId().toString());
+        event.put("oldStatus", oldStatus);
+        event.put("status", "closed");
+        event.put("newStatus", "closed");
+        event.put("closedByUserId", userId);
+        event.put("closedByRole", role);
+        event.put("postedAt", job.getPostedAt().toString());
+        event.put("expiredAt", job.getExpiredAt().toString());
+        jobEventProducer.sendJobStatusChanged(event);
         incrementMutationMetric("delete", "closed");
     }
 
