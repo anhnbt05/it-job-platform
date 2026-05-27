@@ -426,6 +426,33 @@ wait_service_health() {
   esac
 }
 
+remove_conflicting_app_containers() {
+  local services=("$@")
+
+  if (( ${#services[@]} == 0 )); then
+    return
+  fi
+
+  local svc
+  for svc in "${services[@]}"; do
+    local container_ids=()
+
+    # Older compose/project names can leave containers like
+    # "<project>_application-service" while the current compose file also uses
+    # container_name: "application-service". Remove both forms before recreate
+    # to avoid Docker name allocation conflicts.
+    mapfile -t container_ids < <(
+      docker ps -a --format '{{.ID}} {{.Names}}' \
+        | awk -v svc="$svc" '$2 == svc || $2 ~ "_" svc "$" { print $1 }'
+    )
+
+    if (( ${#container_ids[@]} > 0 )); then
+      log "removing stale containers for ${svc}: ${container_ids[*]}"
+      docker rm -f "${container_ids[@]}" >/dev/null
+    fi
+  done
+}
+
 log "starting infrastructure"
 docker compose up -d \
   identity-postgres \
@@ -493,8 +520,10 @@ else
   log "pulling application images for: ${APP_UP_SERVICES[*]}"
   docker compose -f docker-compose.yml -f docker-compose.app.yml pull "${APP_UP_SERVICES[@]}"
 
+  remove_conflicting_app_containers "${APP_UP_SERVICES[@]}"
+
   log "restarting application services: ${APP_UP_SERVICES[*]}"
-  docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate \
+  docker compose -f docker-compose.yml -f docker-compose.app.yml up -d --force-recreate --remove-orphans \
     "${APP_UP_SERVICES[@]}"
 fi
 
