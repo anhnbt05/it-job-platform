@@ -28,4 +28,9 @@ export default () => ({
   mail_pass: process.env.MAIL_PASS || '',
   mail_from: process.env.MAIL_FROM || '',
   frontend_login_url: process.env.FRONTEND_LOGIN_URL || '',
+  notification: {
+    admin_user_ids:
+      process.env.NOTIFICATION_ADMIN_USER_IDS ||
+      '33333333-3333-3333-3333-333333333333,abababab-1111-2222-3333-444444444444',
+  },
 });

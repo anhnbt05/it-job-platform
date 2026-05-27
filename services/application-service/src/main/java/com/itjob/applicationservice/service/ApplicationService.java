@@ -29,6 +29,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ApplicationService {
 
+    private static final String RECRUITER_NEW_APPLICATION = "recruiter_new_application";
+    private static final String ADMIN_NEW_APPLICATION = "admin_new_application";
+    private static final String CANDIDATE_APPLICATION_APPROVED = "candidate_application_approved";
+    private static final String CANDIDATE_APPLICATION_REJECTED = "candidate_application_rejected";
+    private static final String ROLE_ADMIN = "admin";
+
     private final ApplicationRepository applicationRepository;
     private final ApplicationEventProducer eventProducer;
     private final MeterRegistry meterRegistry;
@@ -114,6 +120,26 @@ public class ApplicationService {
         event.put("newStatus", "pending");
         event.put("appliedAt", app.getAppliedAt().toString());
         eventProducer.sendApplicationCreated(event);
+        Map<String, Object> applicationCreatedMetadata = metadataOf(
+                "applicationId", app.getId(),
+                "jobId", app.getJobId(),
+                "jobTitle", app.getJobTitle(),
+                "candidateId", candidateId,
+                "candidateName", candidateName,
+                "recruiterId", recruiterId
+        );
+        eventProducer.sendNotificationCreated(createUserNotificationEvent(
+                RECRUITER_NEW_APPLICATION,
+                "Có ứng viên mới ứng tuyển bài đăng của bạn",
+                recruiterId,
+                applicationCreatedMetadata
+        ));
+        eventProducer.sendNotificationCreated(createRoleNotificationEvent(
+                ADMIN_NEW_APPLICATION,
+                "Có đơn ứng tuyển mới trong hệ thống",
+                ROLE_ADMIN,
+                applicationCreatedMetadata
+        ));
         incrementApplicationMetric("create", "pending");
 
         return mapToResponse(app);
@@ -167,6 +193,20 @@ public class ApplicationService {
                 event.put("recruiterId", recruiterId);
                 event.put("appliedAt", app.getAppliedAt().toString());
                 eventProducer.sendApplicationStatusChanged(event);
+                eventProducer.sendNotificationCreated(createUserNotificationEvent(
+                        CANDIDATE_APPLICATION_APPROVED,
+                        "Đơn ứng tuyển của bạn đã được chấp nhận",
+                        app.getCandidateId(),
+                        metadataOf(
+                                "applicationId", app.getId(),
+                                "jobId", app.getJobId(),
+                                "jobTitle", app.getJobTitle(),
+                                "candidateName", app.getCandidateName(),
+                                "recruiterId", recruiterId,
+                                "oldStatus", oldStatus,
+                                "newStatus", "accepted"
+                        )
+                ));
                 incrementApplicationMetric("process", "accepted");
             }
         }
@@ -195,6 +235,21 @@ public class ApplicationService {
                 event.put("recruiterId", recruiterId);
                 event.put("appliedAt", app.getAppliedAt().toString());
                 eventProducer.sendApplicationStatusChanged(event);
+                Map<String, Object> metadata = new HashMap<>();
+                metadata.put("applicationId", app.getId());
+                metadata.put("jobId", app.getJobId());
+                metadata.put("jobTitle", app.getJobTitle());
+                metadata.put("candidateName", app.getCandidateName());
+                metadata.put("recruiterId", recruiterId);
+                metadata.put("oldStatus", oldStatus);
+                metadata.put("newStatus", "rejected");
+                metadata.put("reason", ra.getReason() != null ? ra.getReason() : "");
+                eventProducer.sendNotificationCreated(createUserNotificationEvent(
+                        CANDIDATE_APPLICATION_REJECTED,
+                        "Đơn ứng tuyển của bạn đã bị từ chối",
+                        app.getCandidateId(),
+                        metadata
+                ));
                 incrementApplicationMetric("process", "rejected");
             }
         }
@@ -269,5 +324,56 @@ public class ApplicationService {
                 "action", action,
                 "outcome", outcome
         ).increment();
+    }
+
+    private Map<String, Object> createUserNotificationEvent(
+            String type,
+            String title,
+            String userId,
+            Map<String, Object> metadata
+    ) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventType", "NotificationCreated");
+        event.put("occurredAt", LocalDateTime.now().toString());
+        event.put("type", type);
+        event.put("title", title);
+        event.put("userId", userId);
+        event.put("metadata", metadata);
+        return event;
+    }
+
+    private Map<String, Object> createRoleNotificationEvent(
+            String type,
+            String title,
+            String recipientRole,
+            Map<String, Object> metadata
+    ) {
+        Map<String, Object> event = createBaseNotificationEvent(type, title, metadata);
+        event.put("recipientRole", recipientRole);
+        return event;
+    }
+
+    private Map<String, Object> createBaseNotificationEvent(
+            String type,
+            String title,
+            Map<String, Object> metadata
+    ) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventType", "NotificationCreated");
+        event.put("occurredAt", LocalDateTime.now().toString());
+        event.put("type", type);
+        event.put("title", title);
+        event.put("metadata", metadata);
+        return event;
+    }
+
+    private Map<String, Object> metadataOf(Object... entries) {
+        Map<String, Object> metadata = new HashMap<>();
+        for (int i = 0; i + 1 < entries.length; i += 2) {
+            metadata.put(String.valueOf(entries[i]), entries[i + 1]);
+        }
+        return metadata;
     }
 }

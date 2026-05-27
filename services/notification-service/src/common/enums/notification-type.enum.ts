@@ -4,6 +4,7 @@ export enum NotificationType {
   RECRUITER_JOB_APPROVED = 'recruiter_job_approved',
   RECRUITER_JOB_REJECTED = 'recruiter_job_rejected',
   RECRUITER_NEW_APPLICATION = 'recruiter_new_application',
+  ADMIN_NEW_APPLICATION = 'admin_new_application',
   ADMIN_NEW_JOB_POST = 'admin_new_job_post',
   RECRUITER_JOB_EXPIRING_SOON = 'recruiter_job_expiring_soon',
   RECRUITER_JOB_EXPIRED = 'recruiter_job_expired',

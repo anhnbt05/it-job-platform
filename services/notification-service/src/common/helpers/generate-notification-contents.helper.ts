@@ -51,6 +51,15 @@ export const generateNotificationContents = (
       ];
     }
 
+    case NotificationType.ADMIN_NEW_APPLICATION: {
+      const createdAt = format(new Date(), 'dd/MM/yyyy hh:mm:ss a');
+
+      return [
+        `Ứng viên ${metadata.candidateName || 'N/A'} vừa nộp đơn ứng tuyển vào công việc ${metadata.jobTitle || 'không rõ'}.`,
+        `Vào lúc: ${createdAt}.`,
+      ];
+    }
+
     case NotificationType.RECRUITER_JOB_EXPIRING_SOON: {
       const expiredAtFormatted = metadata.jobExpiredAt
         ? format(new Date(metadata.jobExpiredAt as string), 'dd/MM/yyyy')

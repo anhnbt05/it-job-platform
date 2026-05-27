@@ -19,6 +19,7 @@ public class JobEventProducer {
     public static final String TOPIC_JOB_EXPIRED = "job-expired";
     public static final String TOPIC_JOB_EXPIRING_SOON = "job-expiring-soon";
     public static final String TOPIC_NEW_APPLICATION_NOTIFY = "new-application-notify";
+    public static final String TOPIC_NOTIFICATION_CREATE = "notification.create";
 
     public void sendJobCreated(Map<String, Object> event) {
         log.info("Enqueue event job-created: {}", event);
@@ -38,5 +39,10 @@ public class JobEventProducer {
     public void sendJobExpiringSoon(Map<String, Object> event) {
         log.info("Enqueue event job-expiring-soon: {}", event);
         outboxService.enqueue(TOPIC_JOB_EXPIRING_SOON, event);
+    }
+
+    public void sendNotificationCreated(Map<String, Object> event) {
+        log.info("Enqueue event notification.create: {}", event);
+        outboxService.enqueue(TOPIC_NOTIFICATION_CREATE, event);
     }
 }

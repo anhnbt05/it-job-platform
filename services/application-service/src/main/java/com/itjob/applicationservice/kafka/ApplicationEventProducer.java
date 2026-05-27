@@ -17,6 +17,7 @@ public class ApplicationEventProducer {
     public static final String TOPIC_APPLICATION_CREATED = "application-created";
     public static final String TOPIC_APPLICATION_STATUS_CHANGED = "application-status-changed";
     public static final String TOPIC_JOB_CLOSED = "job-closed-by-vacancy";
+    public static final String TOPIC_NOTIFICATION_CREATE = "notification.create";
 
     public void sendApplicationCreated(Map<String, Object> event) {
         log.info("Enqueue event application-created: {}", event);
@@ -31,5 +32,10 @@ public class ApplicationEventProducer {
     public void sendJobClosedByVacancy(Map<String, Object> event) {
         log.info("Enqueue event job-closed-by-vacancy: {}", event);
         outboxService.enqueue(TOPIC_JOB_CLOSED, event);
+    }
+
+    public void sendNotificationCreated(Map<String, Object> event) {
+        log.info("Enqueue event notification.create: {}", event);
+        outboxService.enqueue(TOPIC_NOTIFICATION_CREATE, event);
     }
 }

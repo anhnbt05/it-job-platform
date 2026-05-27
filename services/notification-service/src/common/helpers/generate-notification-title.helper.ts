@@ -20,6 +20,8 @@ export const generateNotificationTitle = (type: NotificationType): string => {
       return 'Tin tuyển dụng của bạn đã bị từ chối';
     case NotificationType.RECRUITER_NEW_APPLICATION:
       return 'Có ứng viên mới ứng tuyển bài đăng của bạn';
+    case NotificationType.ADMIN_NEW_APPLICATION:
+      return 'Có đơn ứng tuyển mới trong hệ thống';
     default: {
       return 'Thông báo mới';
     }

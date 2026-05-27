@@ -32,6 +32,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JobService {
 
+    private static final String ADMIN_NEW_JOB_POST = "admin_new_job_post";
+    private static final String RECRUITER_JOB_APPROVED = "recruiter_job_approved";
+    private static final String RECRUITER_JOB_REJECTED = "recruiter_job_rejected";
+    private static final String ROLE_ADMIN = "admin";
+
     private final JobRepository jobRepository;
     private final JobDescriptionRepository jobDescriptionRepository;
     private final JobRequirementRepository jobRequirementRepository;
@@ -173,6 +178,16 @@ public class JobService {
         event.put("postedAt", savedJob.getPostedAt().toString());
         event.put("expiredAt", savedJob.getExpiredAt().toString());
         jobEventProducer.sendJobCreated(event);
+        jobEventProducer.sendNotificationCreated(createRoleNotificationEvent(
+                ADMIN_NEW_JOB_POST,
+                "Nhà tuyển dụng vừa đăng tin mới",
+                ROLE_ADMIN,
+                metadataOf(
+                        "jobId", savedJob.getId().toString(),
+                        "jobTitle", savedJob.getTitle(),
+                        "recruiterId", recruiterId
+                )
+        ));
         incrementMutationMetric("create", "pending");
 
         return mapToJobDetailResponse(savedJob);
@@ -247,6 +262,16 @@ public class JobService {
             event.put("postedAt", job.getPostedAt().toString());
             event.put("expiredAt", job.getExpiredAt().toString());
             jobEventProducer.sendJobStatusChanged(event);
+            jobEventProducer.sendNotificationCreated(createRoleNotificationEvent(
+                    ADMIN_NEW_JOB_POST,
+                    "Tin tuyển dụng được gửi duyệt lại",
+                    ROLE_ADMIN,
+                    metadataOf(
+                            "jobId", job.getId().toString(),
+                            "jobTitle", job.getTitle(),
+                            "recruiterId", job.getRecruiterId().toString()
+                    )
+            ));
         }
 
         jobRepository.save(job);
@@ -301,6 +326,18 @@ public class JobService {
                 event.put("postedAt", job.getPostedAt().toString());
                 event.put("expiredAt", job.getExpiredAt().toString());
                 jobEventProducer.sendJobStatusChanged(event);
+                jobEventProducer.sendNotificationCreated(createUserNotificationEvent(
+                        RECRUITER_JOB_APPROVED,
+                        "Tin tuyển dụng của bạn đã được duyệt",
+                        job.getRecruiterId().toString(),
+                        metadataOf(
+                                "jobId", jobIdStr,
+                                "jobTitle", job.getTitle(),
+                                "oldStatus", oldStatus,
+                                "newStatus", "open",
+                                "adminUserId", adminUserId
+                        )
+                ));
                 incrementMutationMetric("process", "approved");
             }
         }
@@ -329,6 +366,19 @@ public class JobService {
                 event.put("expiredAt", job.getExpiredAt().toString());
                 event.put("reason", rj.getReason() != null ? rj.getReason() : "");
                 jobEventProducer.sendJobStatusChanged(event);
+                Map<String, Object> metadata = new HashMap<>();
+                metadata.put("jobId", rj.getJobId());
+                metadata.put("jobTitle", job.getTitle());
+                metadata.put("oldStatus", oldStatus);
+                metadata.put("newStatus", "rejected");
+                metadata.put("reason", rj.getReason() != null ? rj.getReason() : "");
+                metadata.put("adminUserId", adminUserId);
+                jobEventProducer.sendNotificationCreated(createUserNotificationEvent(
+                        RECRUITER_JOB_REJECTED,
+                        "Tin tuyển dụng của bạn đã bị từ chối",
+                        job.getRecruiterId().toString(),
+                        metadata
+                ));
                 incrementMutationMetric("process", "rejected");
             }
         }
@@ -659,5 +709,56 @@ public class JobService {
             return jobRepository.countByExpiredAtLessThanAndPostedAtLessThanEqual(now, endDate);
         }
         return jobRepository.countByExpiredAtLessThan(now);
+    }
+
+    private Map<String, Object> createUserNotificationEvent(
+            String type,
+            String title,
+            String userId,
+            Map<String, Object> metadata
+    ) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventType", "NotificationCreated");
+        event.put("occurredAt", LocalDateTime.now().toString());
+        event.put("type", type);
+        event.put("title", title);
+        event.put("userId", userId);
+        event.put("metadata", metadata);
+        return event;
+    }
+
+    private Map<String, Object> createRoleNotificationEvent(
+            String type,
+            String title,
+            String recipientRole,
+            Map<String, Object> metadata
+    ) {
+        Map<String, Object> event = createBaseNotificationEvent(type, title, metadata);
+        event.put("recipientRole", recipientRole);
+        return event;
+    }
+
+    private Map<String, Object> createBaseNotificationEvent(
+            String type,
+            String title,
+            Map<String, Object> metadata
+    ) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("eventId", UUID.randomUUID().toString());
+        event.put("eventType", "NotificationCreated");
+        event.put("occurredAt", LocalDateTime.now().toString());
+        event.put("type", type);
+        event.put("title", title);
+        event.put("metadata", metadata);
+        return event;
+    }
+
+    private Map<String, Object> metadataOf(Object... entries) {
+        Map<String, Object> metadata = new HashMap<>();
+        for (int i = 0; i + 1 < entries.length; i += 2) {
+            metadata.put(String.valueOf(entries[i]), entries[i + 1]);
+        }
+        return metadata;
     }
 }
